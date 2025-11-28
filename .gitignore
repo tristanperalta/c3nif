@@ -24,3 +24,8 @@ c3nif-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Compiled NIF shared libraries
+/priv/*.so
+/priv/*.dylib
+/priv/*.dll

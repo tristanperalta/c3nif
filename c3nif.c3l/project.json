@@ -19,7 +19,8 @@
   "targets": {
     "c3nif": {
       "type": "static-lib",
-      "reloc": "pic"
+      "reloc": "pic",
+      "sanitize": "address"
     }
   },
   "cc": "cc",
