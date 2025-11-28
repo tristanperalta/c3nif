@@ -1,0 +1,30 @@
+{
+  "provides": "c3nif",
+  "targets": {
+    "linux-x64": {
+      "link-args": [],
+      "dependencies": [],
+      "linked-libraries": []
+    },
+    "linux-aarch64": {
+      "link-args": [],
+      "dependencies": [],
+      "linked-libraries": []
+    },
+    "macos-x64": {
+      "link-args": [],
+      "dependencies": [],
+      "linked-libraries": []
+    },
+    "macos-aarch64": {
+      "link-args": [],
+      "dependencies": [],
+      "linked-libraries": []
+    },
+    "windows-x64": {
+      "link-args": [],
+      "dependencies": [],
+      "linked-libraries": []
+    }
+  }
+}

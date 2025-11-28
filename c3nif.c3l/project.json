@@ -1,0 +1,29 @@
+{
+  "langrev": "1",
+  "warnings": [
+    "no-unused"
+  ],
+  "dependency-search-paths": [],
+  "dependencies": [],
+  "authors": [
+    "Tristan Peralta <tristan@peralta.ph>"
+  ],
+  "version": "0.1.0",
+  "sources": [
+    "c3nif.c3",
+    "erl_nif.c3",
+    "env.c3",
+    "term.c3"
+  ],
+  "output": ".",
+  "targets": {
+    "c3nif": {
+      "type": "static-lib",
+      "reloc": "pic"
+    }
+  },
+  "cc": "cc",
+  "linker": "cc",
+  "link-libc": true,
+  "opt": "O0"
+}
