@@ -130,11 +130,18 @@ This document tracks the development progress of C3nif.
 
 ## Phase 4: Code Generation
 
-- [ ] Parse C3 source for `@nif` annotations
-- [ ] Generate `ErlNifEntry` struct automatically
-- [ ] Automatic NIF function collection (inventory pattern)
-- [ ] Generate Elixir function stubs
-- [ ] Generate module lifecycle callback wrappers
+### Implemented
+- [x] Parse C3 source for `nif:` annotations in doc comments
+  - Uses `<* nif: arity = N *>` format to avoid C3 contract syntax conflicts
+  - Supports: `arity`, `name` (custom Elixir name), `dirty` (cpu/io)
+- [x] Generate `ErlNifEntry` struct automatically
+  - Generates `__c3nif_funcs__` array with function metadata
+  - Generates `nif_init()` function with proper `@export` attribute
+- [x] Auto-detect `on_load`/`on_unload` callbacks by function name and signature
+- [x] Automatic NIF function collection via Elixir-side parsing
+
+### Not Implemented (Future Work)
+- [ ] Generate Elixir function stubs (users write manual stubs - Rustler style)
 - [ ] Dialyzer typespec generation
 - [ ] Resource type name prefixing (avoid conflicts)
 
@@ -178,6 +185,10 @@ This document tracks the development progress of C3nif.
   - [x] Timeslice consumption
   - [x] Static dirty scheduler declaration
   - [x] Dynamic scheduling (normal→dirty→normal)
+- [x] `test/integration/codegen_test.exs` - Code generation (4 tests)
+  - [x] Auto-generated entry point with multiple NIFs
+  - [x] Custom Elixir name via `name = "..."` annotation
+  - [x] Auto-detected `on_load` callback wiring
 
 ### Safety Tests
 - [x] `test/integration/safety_test.exs` - Errors become tuples, not BEAM crash

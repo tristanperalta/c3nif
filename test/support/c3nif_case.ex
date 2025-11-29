@@ -38,14 +38,22 @@ defmodule C3nif.Case do
   Compiles a C3 NIF module for testing.
 
   Returns `{:ok, module}` on success or `{:error, reason}` on failure.
+
+  ## Options
+
+  - `:otp_app` - The OTP application (default: `:c3nif`)
+  - `:skip_codegen` - If true, skip automatic entry point generation (default: true for backwards compatibility)
   """
   def compile_test_nif(module, c3_code, opts \\ []) do
     otp_app = Keyword.get(opts, :otp_app, :c3nif)
+    # Default to skip_codegen: true for backwards compatibility with existing tests
+    skip_codegen = Keyword.get(opts, :skip_codegen, true)
 
     compile_opts = [
       module: module,
       otp_app: otp_app,
-      c3_code: c3_code
+      c3_code: c3_code,
+      skip_codegen: skip_codegen
     ]
 
     C3nif.Compiler.compile(compile_opts)

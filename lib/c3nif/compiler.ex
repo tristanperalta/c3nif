@@ -4,9 +4,20 @@ defmodule C3nif.Compiler do
 
   This module handles the compilation of C3 code and generation of Elixir bindings
   during the `@before_compile` phase.
+
+  ## Code Generation
+
+  The compiler automatically:
+  1. Parses C3 source to find NIF functions with `@nif` annotations
+  2. Detects `on_load`/`on_unload` callback functions
+  3. Generates the NIF entry point code (func array + nif_init)
+  4. Appends generated code to user's C3 source before compilation
   """
 
   require Logger
+
+  alias C3nif.Parser
+  alias C3nif.Generator
 
   @doc false
   defmacro __before_compile__(%{module: module, file: file}) do
@@ -76,19 +87,29 @@ defmodule C3nif.Compiler do
   - `:otp_app` - The OTP application
   - `:c3_code` - The C3 source code
   - `:output_dir` - Directory for the compiled library
+  - `:skip_codegen` - If true, skip automatic entry point generation (default: false)
   """
   def compile(opts) do
     module = Keyword.fetch!(opts, :module)
     otp_app = Keyword.fetch!(opts, :otp_app)
     c3_code = Keyword.fetch!(opts, :c3_code)
     output_dir = Keyword.get(opts, :output_dir, staging_dir(module))
+    skip_codegen = Keyword.get(opts, :skip_codegen, false)
 
     # Ensure output directory exists
     File.mkdir_p!(output_dir)
 
+    # Generate entry point code if not skipped
+    final_c3_code =
+      if skip_codegen do
+        c3_code
+      else
+        generate_entry_code(c3_code, module)
+      end
+
     # Write C3 source file
     c3_file = Path.join(output_dir, "#{module}.c3")
-    File.write!(c3_file, c3_code)
+    File.write!(c3_file, final_c3_code)
 
     # Generate project.json for c3c
     project_json = generate_project_json(module, otp_app)
@@ -166,6 +187,20 @@ defmodule C3nif.Compiler do
       dev_path
     else
       Application.app_dir(:c3nif, ["priv", "c3nif.c3l"])
+    end
+  end
+
+  defp generate_entry_code(c3_code, module) do
+    {nifs, callbacks} = Parser.parse(c3_code)
+
+    if Enum.empty?(nifs) do
+      # No NIFs found - return original code unchanged
+      # This allows manual entry point definition
+      c3_code
+    else
+      # Module is an atom like Elixir.MyModule - convert to string form
+      module_name = to_string(module)
+      Generator.generate_complete(c3_code, module_name, nifs, callbacks)
     end
   end
 end
