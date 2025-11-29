@@ -209,3 +209,120 @@ defmodule C3nif.IntegrationTest.CodegenWithCallbackTest do
     end
   end
 end
+
+# Test for dirty scheduler annotations in codegen
+defmodule C3nif.IntegrationTest.CodegenDirtySchedulerNif do
+  @nif_path_base "libC3nif.IntegrationTest.CodegenDirtySchedulerNif"
+
+  def load_nif(priv_dir) do
+    nif_path =
+      priv_dir
+      |> Path.join(@nif_path_base)
+      |> String.to_charlist()
+
+    case :erlang.load_nif(nif_path, 0) do
+      :ok -> :ok
+      {:error, {:reload, _}} -> :ok
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  # Manual stubs
+  def dirty_cpu_annotated, do: :erlang.nif_error(:nif_not_loaded)
+  def dirty_io_annotated, do: :erlang.nif_error(:nif_not_loaded)
+end
+
+defmodule C3nif.IntegrationTest.CodegenDirtySchedulerTest do
+  use C3nif.Case, async: false
+
+  @moduletag :integration
+
+  # C3 code with dirty scheduler annotations - entry point auto-generated
+  @c3_code """
+  module codegen_dirty_test;
+
+  import c3nif;
+  import c3nif::erl_nif;
+  import c3nif::env;
+  import c3nif::term;
+  import c3nif::scheduler;
+
+  <* nif: arity = 0, dirty = cpu *>
+  fn erl_nif::ErlNifTerm dirty_cpu_annotated(
+      erl_nif::ErlNifEnv* raw_env,
+      CInt argc,
+      erl_nif::ErlNifTerm* argv
+  ) {
+      env::Env e = env::wrap(raw_env);
+      scheduler::ThreadType t = scheduler::current_thread_type();
+
+      char* thread_name;
+      switch (t) {
+          case scheduler::ThreadType.DIRTY_CPU: thread_name = "dirty_cpu";
+          case scheduler::ThreadType.DIRTY_IO: thread_name = "dirty_io";
+          case scheduler::ThreadType.NORMAL: thread_name = "normal";
+          case scheduler::ThreadType.UNDEFINED: thread_name = "undefined";
+      }
+
+      return term::make_ok_tuple(&e, term::make_atom(&e, thread_name)).raw();
+  }
+
+  <* nif: arity = 0, dirty = io *>
+  fn erl_nif::ErlNifTerm dirty_io_annotated(
+      erl_nif::ErlNifEnv* raw_env,
+      CInt argc,
+      erl_nif::ErlNifTerm* argv
+  ) {
+      env::Env e = env::wrap(raw_env);
+      scheduler::ThreadType t = scheduler::current_thread_type();
+
+      char* thread_name;
+      switch (t) {
+          case scheduler::ThreadType.DIRTY_CPU: thread_name = "dirty_cpu";
+          case scheduler::ThreadType.DIRTY_IO: thread_name = "dirty_io";
+          case scheduler::ThreadType.NORMAL: thread_name = "normal";
+          case scheduler::ThreadType.UNDEFINED: thread_name = "undefined";
+      }
+
+      return term::make_ok_tuple(&e, term::make_atom(&e, thread_name)).raw();
+  }
+  """
+
+  setup_all do
+    case compile_test_nif(
+           C3nif.IntegrationTest.CodegenDirtySchedulerNif,
+           @c3_code,
+           otp_app: :c3nif,
+           skip_codegen: false
+         ) do
+      {:ok, lib_path} ->
+        priv_dir = :code.priv_dir(:c3nif) |> to_string()
+        nif_name = "libC3nif.IntegrationTest.CodegenDirtySchedulerNif#{C3nif.nif_extension()}"
+        dest_path = Path.join(priv_dir, nif_name)
+
+        File.mkdir_p!(priv_dir)
+        File.cp!(lib_path, dest_path)
+
+        case C3nif.IntegrationTest.CodegenDirtySchedulerNif.load_nif(priv_dir) do
+          :ok -> {:ok, lib_path: dest_path}
+          {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
+        end
+
+      {:error, {:compile_failed, _exit_code, output}} ->
+        raise "Compilation failed: #{output}"
+
+      {:error, reason} ->
+        raise "Compilation failed: #{inspect(reason)}"
+    end
+  end
+
+  describe "dirty scheduler annotations in codegen" do
+    test "dirty = cpu annotation runs NIF on dirty CPU scheduler" do
+      assert {:ok, :dirty_cpu} = C3nif.IntegrationTest.CodegenDirtySchedulerNif.dirty_cpu_annotated()
+    end
+
+    test "dirty = io annotation runs NIF on dirty IO scheduler" do
+      assert {:ok, :dirty_io} = C3nif.IntegrationTest.CodegenDirtySchedulerNif.dirty_io_annotated()
+    end
+  end
+end

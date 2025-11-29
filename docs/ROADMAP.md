@@ -122,7 +122,7 @@ This document tracks the development progress of C3nif.
 - [x] `scheduler.c3` module with all scheduler operations
 - [x] Static dirty scheduler declaration via `ErlNifFunc.flags`
 - [x] Dynamic scheduling between normal/dirty schedulers
-- [ ] High-level dirty scheduler integration (`@nif("name", dirty: .cpu)`) - requires code generation
+- [x] High-level dirty scheduler integration via annotations (`<* nif: dirty = cpu *>`)
 - [x] Documentation of dirty scheduler limitations (in scheduler.c3 module docs)
   - [x] Which enif_* functions are safe (all term/memory ops work)
   - [x] Process termination behavior (NIF continues, check `is_process_alive`)
@@ -185,10 +185,12 @@ This document tracks the development progress of C3nif.
   - [x] Timeslice consumption
   - [x] Static dirty scheduler declaration
   - [x] Dynamic scheduling (normal→dirty→normal)
-- [x] `test/integration/codegen_test.exs` - Code generation (4 tests)
+- [x] `test/integration/codegen_test.exs` - Code generation (6 tests)
   - [x] Auto-generated entry point with multiple NIFs
   - [x] Custom Elixir name via `name = "..."` annotation
   - [x] Auto-detected `on_load` callback wiring
+  - [x] Dirty CPU scheduler via `dirty = cpu` annotation
+  - [x] Dirty IO scheduler via `dirty = io` annotation
 
 ### Safety Tests
 - [x] `test/integration/safety_test.exs` - Errors become tuples, not BEAM crash
