@@ -41,6 +41,7 @@ defmodule C3nif do
 
   - `:otp_app` - Required. The OTP application this module belongs to.
   - `:c3_path` - Optional. Path to external C3 source file instead of inline code.
+  - `:c3_sources` - Optional. List of additional C3 source paths/globs to include (e.g., `["c3_src/mylib/src/**"]`).
   - `:nifs` - Optional. List of NIF function specifications.
 
   ## C3 NIF Conventions

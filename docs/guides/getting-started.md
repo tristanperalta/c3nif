@@ -98,6 +98,15 @@ use C3nif, otp_app: :my_nif_app
 
 This sets up the module for NIF compilation. The `:otp_app` option tells C3nif where to find your `priv` directory for loading the compiled NIF.
 
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `:otp_app` | Required. The OTP application name for finding priv directory |
+| `:c3_sources` | Optional. List of external C3 source file paths or glob patterns |
+
+See [External C3 Sources](#external-c3-sources) for more on `:c3_sources`.
+
 ### The ~c3 Sigil
 
 The `~c3` sigil contains your C3 code. It will be extracted and compiled during the Mix build process.
@@ -186,6 +195,70 @@ iex> MyNifApp.Math.add("not", "integers")
 ```
 
 The `make_badarg` function signals an argument error to the Erlang VM.
+
+## External C3 Sources
+
+For larger projects, you can organize your C3 code in external files instead of embedding everything in the `~c3` sigil. Use the `:c3_sources` option to include additional C3 source files:
+
+```elixir
+defmodule MyNifApp.Math do
+  use C3nif,
+    otp_app: :my_nif_app,
+    c3_sources: [
+      "c3_src/math_helpers.c3",
+      "c3_src/utils/**/*.c3"
+    ]
+
+  ~c3"""
+  module math;
+
+  import c3nif;
+  import c3nif::erl_nif;
+  import c3nif::env;
+  import c3nif::term;
+  import math_helpers;  // Import external module
+
+  <* nif: arity = 2 *>
+  fn erl_nif::ErlNifTerm multiply(
+      erl_nif::ErlNifEnv* raw_env,
+      CInt argc,
+      erl_nif::ErlNifTerm* argv
+  ) {
+      env::Env e = env::wrap(raw_env);
+      // ... use functions from math_helpers ...
+  }
+  """
+
+  def multiply(_a, _b), do: :erlang.nif_error(:nif_not_loaded)
+end
+```
+
+### Path Resolution
+
+- Paths are relative to your project root
+- Glob patterns like `**/*.c3` are supported for matching multiple files
+- Absolute paths are also supported
+
+### Example Directory Structure
+
+```
+my_nif_app/
+├── c3_src/
+│   ├── math_helpers.c3    # External C3 module
+│   └── utils/
+│       └── string_utils.c3
+├── lib/
+│   └── my_nif_app/
+│       └── math.ex        # Elixir module with use C3nif
+└── mix.exs
+```
+
+### Benefits
+
+- **Better organization** - Keep C3 code in dedicated files
+- **IDE support** - Use C3 syntax highlighting and tools on `.c3` files
+- **Code reuse** - Share C3 modules across multiple NIFs
+- **Incremental builds** - Only recompile when source files change
 
 ## Next Steps
 

@@ -278,6 +278,36 @@ end
 
 All `~c3` blocks are concatenated before compilation.
 
+### External Source Files
+
+For even better organization, use the `:c3_sources` option to include external C3 files:
+
+```elixir
+defmodule MyApp.Nif do
+  use C3nif,
+    otp_app: :my_app,
+    c3_sources: [
+      "c3_src/helpers.c3",
+      "c3_src/utils/**/*.c3"
+    ]
+
+  ~c3"""
+  module mynif;
+
+  import c3nif;
+  import c3nif::erl_nif;
+  import helpers;  // External module
+
+  <* nif: arity = 1 *>
+  fn erl_nif::ErlNifTerm process(...) { /* ... */ }
+  """
+
+  def process(_data), do: :erlang.nif_error(:nif_not_loaded)
+end
+```
+
+External sources support glob patterns (`**/*.c3`) for matching multiple files. See the [Getting Started](getting-started.md#external-c3-sources) guide for more details.
+
 ## Best Practices
 
 1. **Keep NIFs short** - NIFs should complete quickly (< 1ms). Use dirty schedulers for longer operations.

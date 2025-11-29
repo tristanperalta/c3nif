@@ -23,6 +23,7 @@ defmodule C3nif.Compiler do
   defmacro __before_compile__(%{module: module, file: file}) do
     opts = Module.get_attribute(module, :c3nif_opts)
     otp_app = Keyword.fetch!(opts, :otp_app)
+    c3_sources = Keyword.get(opts, :c3_sources, [])
 
     # Get the accumulated C3 code
     c3_code =
@@ -49,11 +50,15 @@ defmodule C3nif.Compiler do
     # Build paths
     nif_path = Path.join(priv_dir, nif_name)
 
+    # Write manifest entry for mix task to pick up
+    write_manifest_entry(module, otp_app, c3_code, c3_sources, file)
+
     quote do
       @c3_file_path unquote(c3_file_path)
       @nif_path unquote(nif_path)
       @nif_name unquote(nif_name)
       @otp_app unquote(otp_app)
+      @c3_sources unquote(c3_sources)
 
       def __load_nifs__ do
         nif_path =
@@ -75,7 +80,53 @@ defmodule C3nif.Compiler do
             {:error, reason}
         end
       end
+
+      def __c3nif_opts__ do
+        %{
+          module: __MODULE__,
+          otp_app: @otp_app,
+          c3_sources: @c3_sources,
+          nif_name: @nif_name
+        }
+      end
     end
+  end
+
+  @doc """
+  Returns the path to the C3nif manifest file.
+  """
+  def manifest_path do
+    Path.join([Mix.Project.build_path(), ".c3nif_manifest"])
+  end
+
+  defp write_manifest_entry(module, otp_app, c3_code, c3_sources, source_file) do
+    manifest_file = manifest_path()
+    File.mkdir_p!(Path.dirname(manifest_file))
+
+    entry = %{
+      module: module,
+      otp_app: otp_app,
+      c3_code: c3_code,
+      c3_sources: c3_sources,
+      source_file: source_file,
+      timestamp: System.os_time(:second)
+    }
+
+    # Read existing manifest or start fresh
+    existing =
+      if File.exists?(manifest_file) do
+        manifest_file
+        |> File.read!()
+        |> :erlang.binary_to_term()
+      else
+        %{}
+      end
+
+    # Update with new entry
+    updated = Map.put(existing, module, entry)
+
+    # Write back
+    File.write!(manifest_file, :erlang.term_to_binary(updated))
   end
 
   @doc """
@@ -86,6 +137,7 @@ defmodule C3nif.Compiler do
   - `:module` - The Elixir module name
   - `:otp_app` - The OTP application
   - `:c3_code` - The C3 source code
+  - `:c3_sources` - Optional list of additional C3 source paths/globs
   - `:output_dir` - Directory for the compiled library
   - `:skip_codegen` - If true, skip automatic entry point generation (default: false)
   """
@@ -93,6 +145,7 @@ defmodule C3nif.Compiler do
     module = Keyword.fetch!(opts, :module)
     otp_app = Keyword.fetch!(opts, :otp_app)
     c3_code = Keyword.fetch!(opts, :c3_code)
+    c3_sources = Keyword.get(opts, :c3_sources, [])
     output_dir = Keyword.get(opts, :output_dir, staging_dir(module))
     skip_codegen = Keyword.get(opts, :skip_codegen, false)
 
@@ -112,7 +165,7 @@ defmodule C3nif.Compiler do
     File.write!(c3_file, final_c3_code)
 
     # Generate project.json for c3c
-    project_json = generate_project_json(module, otp_app)
+    project_json = generate_project_json(module, otp_app, c3_sources, output_dir)
     project_file = Path.join(output_dir, "project.json")
     File.write!(project_file, JSON.encode!(project_json))
 
@@ -152,14 +205,19 @@ defmodule C3nif.Compiler do
     System.tmp_dir!()
   end
 
-  defp generate_project_json(module, _otp_app) do
+  defp generate_project_json(module, _otp_app, c3_sources, _output_dir) do
+    # Expand globs - c3c supports absolute paths in sources
+    additional_sources = expand_source_globs(c3_sources)
+
+    all_sources = ["#{module}.c3" | additional_sources]
+
     %{
       "langrev" => "1",
       "warnings" => ["no-unused"],
       "dependency-search-paths" => ["lib"],
       "dependencies" => ["c3nif"],
       "version" => "0.1.0",
-      "sources" => ["#{module}.c3"],
+      "sources" => all_sources,
       "output" => "build",
       "targets" => %{
         to_string(module) => %{
@@ -188,6 +246,24 @@ defmodule C3nif.Compiler do
     else
       Application.app_dir(:c3nif, ["priv", "c3nif.c3l"])
     end
+  end
+
+  defp expand_source_globs(c3_sources) do
+    c3_sources
+    |> Enum.flat_map(fn pattern ->
+      # Expand relative to project root
+      abs_pattern = Path.expand(pattern, File.cwd!())
+
+      if String.contains?(pattern, "*") do
+        # Glob pattern - expand it
+        Path.wildcard(abs_pattern)
+      else
+        # Single file - just return it (as absolute path)
+        [abs_pattern]
+      end
+    end)
+    |> Enum.filter(&File.exists?/1)
+    |> Enum.uniq()
   end
 
   defp generate_entry_code(c3_code, module) do
