@@ -1,14 +1,57 @@
 defmodule C3nif.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+  @source_url "https://github.com/yourname/c3nif"
+
   def project do
     [
       app: :c3nif,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases()
+      aliases: aliases(),
+
+      # Docs
+      name: "C3nif",
+      description: "Write Erlang/Elixir NIFs in the C3 programming language",
+      source_url: @source_url,
+      docs: docs(),
+      package: package()
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      extras: [
+        "README.md": [title: "Overview"],
+        "docs/guides/getting-started.md": [title: "Getting Started"],
+        "docs/guides/nif-functions.md": [title: "NIF Functions"],
+        "docs/guides/type-conversion.md": [title: "Type Conversion"],
+        "docs/guides/error-handling.md": [title: "Error Handling"],
+        "docs/guides/resources.md": [title: "Resource Management"],
+        "docs/guides/dirty-schedulers.md": [title: "Dirty Schedulers"],
+        "CHANGELOG.md": [title: "Changelog"]
+      ],
+      groups_for_extras: [
+        Guides: ~r/docs\/guides\/.*/
+      ],
+      groups_for_modules: [
+        "Core": [C3nif, C3nif.Compiler],
+        "Internals": [C3nif.Parser, C3nif.Generator]
+      ]
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => @source_url
+      },
+      files: ~w(lib c3nif.c3l mix.exs README.md LICENSE CHANGELOG.md)
     ]
   end
 
@@ -22,7 +65,8 @@ defmodule C3nif.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4"},
+      {:ex_doc, "~> 0.35", only: :dev, runtime: false}
     ]
   end
 
