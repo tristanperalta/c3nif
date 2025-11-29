@@ -96,10 +96,15 @@ This document tracks the development progress of C3nif.
   - [x] Strict allocator pairing documentation
 
 ### Safety Hardening
-- [ ] `safety.c3` - Error isolation
-  - [ ] NIF entry point wrappers
-  - [ ] Error boundary enforcement
-  - [ ] Panic prevention
+- [x] `safety.c3` - Error isolation
+  - [x] NIF-specific faults (ALLOC_FAILED, RESOURCE_ERROR, ENCODE_ERROR, ARGC_MISMATCH)
+  - [x] NifResult type for explicit error handling
+  - [x] Argument validation helpers (get_arg, require_int, require_long, etc.)
+  - [x] Range validation (require_int_range, require_non_negative, require_positive)
+  - [x] Type validation (require_atom, require_binary, require_list, require_tuple, require_map, require_pid)
+  - [x] Fault-to-error helpers (make_badarg_error, make_overflow_error, etc.)
+  - [x] Two-layer NIF pattern documentation (inner uses optionals, outer catches faults)
+  - [x] Re-exports in c3nif.c3 for convenience
 
 ## Phase 3: Scheduler Support
 
@@ -154,9 +159,15 @@ This document tracks the development progress of C3nif.
 - [x] `test/integration/resource_keep_test.exs` - Keep/release reference counting
 - [x] `test/integration/resource_monitor_test.exs` - Down callbacks (process monitoring)
 - [x] `test/integration/allocator_test.exs` - BEAM allocator operations
+- [x] `test/integration/safety_test.exs` - Safety hardening (27 tests)
+  - [x] Argument bounds checking and validation
+  - [x] Type validation (int, uint, long, double, atom, binary, list, tuple, map, pid)
+  - [x] Range validation (require_int_range, require_non_negative, require_positive)
+  - [x] Nested fault propagation
+  - [x] Custom fault handling (ARGC_MISMATCH)
 
 ### Safety Tests
-- [ ] `test/safety/crash_test.exs` - Errors become exceptions, not BEAM crash
+- [x] `test/integration/safety_test.exs` - Errors become tuples, not BEAM crash
 - [ ] `test/safety/resource_test.exs` - GC cleanup with atomic counter verification
 - [ ] `test/safety/lifecycle_test.exs` - on_load/upgrade/unload callbacks
 

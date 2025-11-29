@@ -32,6 +32,7 @@ import c3nif::term;
 import c3nif::resource;
 import c3nif::binary;
 import c3nif::allocator;
+import c3nif::safety;
 
 // =============================================================================
 // Version Information
@@ -85,6 +86,33 @@ alias beam_alloc_try = allocator::alloc_try;
 alias beam_calloc = allocator::calloc;
 alias beam_realloc = allocator::realloc;
 alias beam_free = allocator::free;
+
+// Re-export safety types and functions
+alias NifResult = safety::NifResult;
+alias nif_ok = safety::ok;
+alias nif_badarg = safety::badarg;
+alias nif_error = safety::error;
+alias get_arg = safety::get_arg;
+alias require_int = safety::require_int;
+alias require_uint = safety::require_uint;
+alias require_long = safety::require_long;
+alias require_ulong = safety::require_ulong;
+alias require_double = safety::require_double;
+alias require_atom = safety::require_atom;
+alias require_binary = safety::require_binary;
+alias require_list = safety::require_list;
+alias require_tuple = safety::require_tuple;
+alias require_map = safety::require_map;
+alias require_pid = safety::require_pid;
+alias require_argc = safety::require_argc;
+alias require_int_range = safety::require_int_range;
+alias require_non_negative = safety::require_non_negative;
+alias require_positive = safety::require_positive;
+alias make_badarg_error = safety::make_badarg_error;
+alias make_overflow_error = safety::make_overflow_error;
+alias make_alloc_error = safety::make_alloc_error;
+alias make_resource_error = safety::make_resource_error;
+alias make_unknown_error = safety::make_unknown_error;
 
 // =============================================================================
 // NIF Entry Helpers
