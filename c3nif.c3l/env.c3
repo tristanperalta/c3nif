@@ -101,6 +101,26 @@ fn bool Env.consume_timeslice(&self, int percent) {
     return erl_nif::enif_consume_timeslice(self.inner, clamped) != 0;
 }
 
+/**
+ * Check if the current process is still alive.
+ *
+ * IMPORTANT: This is primarily useful on dirty schedulers where a process
+ * can be terminated while the NIF is still running. On normal schedulers,
+ * this always returns true.
+ *
+ * When a process terminates during a dirty NIF:
+ * - Links and monitors are triggered
+ * - The registered name is released
+ * - ETS tables are cleaned up
+ * - BUT the NIF continues to execute
+ *
+ * Long-running dirty NIFs should periodically check this and abort early
+ * if the process has terminated to avoid wasted work.
+ */
+fn bool Env.is_process_alive(&self) {
+    return erl_nif::enif_is_current_process_alive(self.inner) != 0;
+}
+
 // =============================================================================
 // OwnedEnv Functions
 // =============================================================================

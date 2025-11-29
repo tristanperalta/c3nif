@@ -33,6 +33,7 @@ import c3nif::resource;
 import c3nif::binary;
 import c3nif::allocator;
 import c3nif::safety;
+import c3nif::scheduler;
 
 // =============================================================================
 // Version Information
@@ -113,6 +114,21 @@ alias make_overflow_error = safety::make_overflow_error;
 alias make_alloc_error = safety::make_alloc_error;
 alias make_resource_error = safety::make_resource_error;
 alias make_unknown_error = safety::make_unknown_error;
+
+// Re-export scheduler types and functions
+alias ThreadType = scheduler::ThreadType;
+alias current_thread_type = scheduler::current_thread_type;
+alias is_dirty_scheduler = scheduler::is_dirty_scheduler;
+alias is_normal_scheduler = scheduler::is_normal_scheduler;
+alias schedule_nif = scheduler::schedule_nif;
+alias schedule_dirty_cpu = scheduler::schedule_dirty_cpu;
+alias schedule_dirty_io = scheduler::schedule_dirty_io;
+alias schedule_normal = scheduler::schedule_normal;
+alias is_process_alive = scheduler::is_process_alive;
+// Scheduler flag constants
+alias SCHED_NORMAL = scheduler::SCHED_NORMAL;
+alias SCHED_CPU_BOUND = scheduler::SCHED_CPU_BOUND;
+alias SCHED_IO_BOUND = scheduler::SCHED_IO_BOUND;
 
 // =============================================================================
 // NIF Entry Helpers

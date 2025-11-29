@@ -17,7 +17,8 @@
     "resource.c3",
     "binary.c3",
     "allocator.c3",
-    "safety.c3"
+    "safety.c3",
+    "scheduler.c3"
   ],
   "output": ".",
   "targets": {

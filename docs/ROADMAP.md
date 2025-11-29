@@ -109,17 +109,24 @@ This document tracks the development progress of C3nif.
 ## Phase 3: Scheduler Support
 
 ### Timeslice Management
-- [ ] `enif_consume_timeslice` high-level wrapper
-- [ ] Yielding NIF support (`enif_schedule_nif`)
+- [x] `enif_consume_timeslice` high-level wrapper (`Env.consume_timeslice`)
+- [x] Yielding NIF support (`enif_schedule_nif`)
+  - [x] `schedule_nif` high-level wrapper
+  - [x] `schedule_dirty_cpu`, `schedule_dirty_io`, `schedule_normal` convenience functions
 - [ ] Execution time profiling utilities
 
 ### Dirty Schedulers
 - [x] FFI bindings for dirty scheduler flags
-- [ ] High-level dirty scheduler integration (`@nif("name", dirty: .cpu)`)
-- [ ] Documentation of dirty scheduler limitations
-  - [ ] Which enif_* functions are unavailable
-  - [ ] Process dictionary restrictions
-  - [ ] Message receiving restrictions
+- [x] Thread type detection (`current_thread_type`, `is_dirty_scheduler`, `is_normal_scheduler`)
+- [x] Process liveness check (`is_process_alive`) for dirty scheduler cleanup
+- [x] `scheduler.c3` module with all scheduler operations
+- [x] Static dirty scheduler declaration via `ErlNifFunc.flags`
+- [x] Dynamic scheduling between normal/dirty schedulers
+- [ ] High-level dirty scheduler integration (`@nif("name", dirty: .cpu)`) - requires code generation
+- [x] Documentation of dirty scheduler limitations (in scheduler.c3 module docs)
+  - [x] Which enif_* functions are safe (all term/memory ops work)
+  - [x] Process termination behavior (NIF continues, check `is_process_alive`)
+  - [x] GC delays during dirty NIF execution
 
 ## Phase 4: Code Generation
 
@@ -165,6 +172,12 @@ This document tracks the development progress of C3nif.
   - [x] Range validation (require_int_range, require_non_negative, require_positive)
   - [x] Nested fault propagation
   - [x] Custom fault handling (ARGC_MISMATCH)
+- [x] `test/integration/scheduler_test.exs` - Scheduler support (12 tests)
+  - [x] Thread type detection (normal, dirty_cpu, dirty_io)
+  - [x] Process liveness checks
+  - [x] Timeslice consumption
+  - [x] Static dirty scheduler declaration
+  - [x] Dynamic scheduling (normal→dirty→normal)
 
 ### Safety Tests
 - [x] `test/integration/safety_test.exs` - Errors become tuples, not BEAM crash

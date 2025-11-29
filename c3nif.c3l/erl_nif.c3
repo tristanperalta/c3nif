@@ -302,6 +302,14 @@ extern fn ErlNifTerm enif_schedule_nif(
     CInt argc,
     ErlNifTerm* argv
 ) @extern("enif_schedule_nif");
+extern fn CInt enif_thread_type() @extern("enif_thread_type");
+extern fn CInt enif_is_current_process_alive(ErlNifEnv* env) @extern("enif_is_current_process_alive");
+
+// Thread type constants (returned by enif_thread_type)
+const CInt ERL_NIF_THR_UNDEFINED = 0;
+const CInt ERL_NIF_THR_NORMAL_SCHEDULER = 1;
+const CInt ERL_NIF_THR_DIRTY_CPU_SCHEDULER = 2;
+const CInt ERL_NIF_THR_DIRTY_IO_SCHEDULER = 3;
 
 // --- Term serialization ---
 extern fn CInt enif_term_to_binary(ErlNifEnv* env, ErlNifTerm term, ErlNifBinary* bin) @extern("enif_term_to_binary");
