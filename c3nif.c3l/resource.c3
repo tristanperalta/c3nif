@@ -23,6 +23,52 @@
  *     Term t = resource::make_term(&e, ptr);
  *     resource::release(ptr);  // Term now owns the reference
  *     return t.raw();
+ *
+ * ============================================================================
+ * Thread-Safety Guide
+ * ============================================================================
+ *
+ * ## Safe Operations (can be called from any scheduler including dirty):
+ *
+ * - enif_alloc_resource / enif_release_resource / enif_keep_resource
+ *   (All resource allocation and reference counting operations)
+ * - enif_alloc / enif_free / enif_realloc
+ *   (All BEAM memory allocation functions)
+ * - enif_monitor_process / enif_demonitor_process
+ *   (Process monitoring - designed for async and dirty scheduler use)
+ * - enif_send (message passing to other processes)
+ * - Resource registry lookups (read-only after on_load)
+ *
+ * ## Registration (on_load only):
+ *
+ * - register_type() / register_type_full() - MUST only be called from on_load
+ * - on_load runs in a single-threaded context, no synchronization needed
+ * - After on_load, the type registry is immutable and safe to read concurrently
+ *
+ * ## Resource State:
+ *
+ * - Resource contents (your struct fields) are NOT automatically thread-safe
+ * - If accessed from multiple schedulers, YOU must add synchronization:
+ *   - Use atomics for simple counters/flags
+ *   - Use mutexes for complex state modifications
+ * - Consider using message passing instead of shared mutable state
+ *
+ * ## Destructor Callbacks (dtor):
+ *
+ * - Run on an arbitrary scheduler thread (may be a dirty scheduler)
+ * - Timing is non-deterministic (triggered by garbage collection)
+ * - Keep destructors fast and non-blocking
+ * - Safe to call enif_send from destructor (use enif_alloc_env for the message)
+ * - Do NOT call enif_self, enif_get_local_pid, or term-creating functions
+ *   with the destructor's env - use enif_alloc_env() for message construction
+ *
+ * ## Down Callbacks (process monitoring):
+ *
+ * - Fires immediately when the monitored process terminates
+ * - Runs on the scheduler that detects the process death
+ * - Monitor is automatically removed after the callback fires
+ * - Safe to call most enif_* functions from down callback
+ * - The resource type must be registered with .members >= 3
  */
 module c3nif::resource;
 
@@ -293,4 +339,59 @@ fn void release(void* resource) {
  */
 fn usz sizeof_resource(void* resource) {
     return (usz)erl_nif::enif_sizeof_resource(resource);
+}
+
+// =============================================================================
+// Process Monitoring
+// =============================================================================
+
+/**
+ * Monitor a process from a resource.
+ *
+ * When the monitored process dies, the resource's `down` callback will be
+ * invoked. The resource type must have been registered with `register_type_full()`
+ * and `.members >= 3` in the ErlNifResourceTypeInit struct.
+ *
+ * Thread-safe: Can be called from any scheduler including dirty schedulers.
+ *
+ * @param e Environment (can be null for dirty schedulers with resource env)
+ * @param resource Pointer to the resource that will receive the down callback
+ * @param pid PID of the process to monitor
+ * @param monitor Output: monitor handle (for later demonitoring)
+ * @return true on success, false on failure (e.g., process already dead, no down callback)
+ */
+fn bool monitor_process(env::Env* e, void* resource, erl_nif::ErlNifPid* pid, erl_nif::ErlNifMonitor* monitor) {
+    return erl_nif::enif_monitor_process(e.raw(), resource, pid, monitor) == 0;
+}
+
+/**
+ * Stop monitoring a process.
+ *
+ * If the monitor is still active (process hasn't died), this cancels it.
+ * If the process has already died, the down callback may have already fired
+ * or may fire concurrently.
+ *
+ * Thread-safe: Can be called from any scheduler including dirty schedulers.
+ *
+ * @param e Environment
+ * @param resource Pointer to the resource that created the monitor
+ * @param monitor Monitor handle from monitor_process()
+ * @return true if successfully demonitored, false if already triggered or invalid
+ */
+fn bool demonitor_process(env::Env* e, void* resource, erl_nif::ErlNifMonitor* monitor) {
+    return erl_nif::enif_demonitor_process(e.raw(), resource, monitor) == 0;
+}
+
+/**
+ * Compare two monitor handles.
+ *
+ * Useful for identifying which monitor triggered a down callback when
+ * a resource has multiple active monitors.
+ *
+ * @param mon1 First monitor handle
+ * @param mon2 Second monitor handle
+ * @return 0 if equal, negative if mon1 < mon2, positive if mon1 > mon2
+ */
+fn CInt compare_monitors(erl_nif::ErlNifMonitor* mon1, erl_nif::ErlNifMonitor* mon2) {
+    return erl_nif::enif_compare_monitors(mon1, mon2);
 }

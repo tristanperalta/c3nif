@@ -58,6 +58,14 @@ alias get_resource = resource::get;
 alias keep_resource = resource::keep;
 alias release_resource = resource::release;
 
+// Re-export process monitoring functions
+alias monitor_process = resource::monitor_process;
+alias demonitor_process = resource::demonitor_process;
+alias compare_monitors = resource::compare_monitors;
+
+// Re-export monitor type
+alias ErlNifMonitor = erl_nif::ErlNifMonitor;
+
 // =============================================================================
 // NIF Entry Helpers
 // =============================================================================

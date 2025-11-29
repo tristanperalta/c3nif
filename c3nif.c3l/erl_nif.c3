@@ -32,7 +32,7 @@ alias UnloadFn = fn void(ErlNifEnv*, void*);
 // Resource callback types
 alias ResourceDtorFn = fn void(ErlNifEnv*, void*);
 alias ResourceStopFn = fn void(ErlNifEnv*, void*, CInt, CInt);
-alias ResourceDownFn = fn void(ErlNifEnv*, void*, ErlNifPid*, void*);
+alias ResourceDownFn = fn void(ErlNifEnv*, void*, ErlNifPid*, ErlNifMonitor*);
 alias ResourceDynCallFn = fn void(ErlNifEnv*, void*, void*);
 
 // =============================================================================
@@ -50,6 +50,12 @@ struct ErlNifBinary {
 // Process ID
 struct ErlNifPid {
     ErlNifTerm pid;  // internal, may change
+}
+
+// Monitor handle (opaque, for process monitoring)
+// Size: sizeof(void*) * 4 = 32 bytes on 64-bit systems
+struct ErlNifMonitor {
+    void*[4] data;  // Opaque monitor data (size matches ErlDrvMonitor in OTP)
 }
 
 // Port ID
@@ -278,6 +284,13 @@ extern fn ErlNifTerm enif_make_copy(ErlNifEnv* dst_env, ErlNifTerm src_term) @ex
 extern fn ErlNifPid* enif_self(ErlNifEnv* caller_env, ErlNifPid* pid) @extern("enif_self");
 extern fn CInt enif_get_local_pid(ErlNifEnv* env, ErlNifTerm term, ErlNifPid* pid) @extern("enif_get_local_pid");
 extern fn CInt enif_send(ErlNifEnv* env, ErlNifPid* to_pid, ErlNifEnv* msg_env, ErlNifTerm msg) @extern("enif_send");
+// Note: enif_make_pid is a macro in OTP. Use make_pid() helper below instead.
+// It simply returns the pid field from ErlNifPid.
+
+// --- Process monitoring ---
+extern fn CInt enif_monitor_process(ErlNifEnv* caller_env, void* obj, ErlNifPid* target_pid, ErlNifMonitor* monitor) @extern("enif_monitor_process");
+extern fn CInt enif_demonitor_process(ErlNifEnv* caller_env, void* obj, ErlNifMonitor* monitor) @extern("enif_demonitor_process");
+extern fn CInt enif_compare_monitors(ErlNifMonitor* mon1, ErlNifMonitor* mon2) @extern("enif_compare_monitors");
 
 // --- Scheduler operations ---
 extern fn CInt enif_consume_timeslice(ErlNifEnv* env, CInt percent) @extern("enif_consume_timeslice");
@@ -293,3 +306,15 @@ extern fn ErlNifTerm enif_schedule_nif(
 // --- Term serialization ---
 extern fn CInt enif_term_to_binary(ErlNifEnv* env, ErlNifTerm term, ErlNifBinary* bin) @extern("enif_term_to_binary");
 extern fn CULong enif_binary_to_term(ErlNifEnv* env, char* data, CULong size, ErlNifTerm* term, CUInt opts) @extern("enif_binary_to_term");
+
+// =============================================================================
+// Helper Functions (for C macros not callable from C3)
+// =============================================================================
+
+/**
+ * Convert an ErlNifPid to an ErlNifTerm.
+ * This is the C3 equivalent of the enif_make_pid macro.
+ */
+fn ErlNifTerm make_pid(ErlNifEnv* env, ErlNifPid* pid) {
+    return pid.pid;
+}
