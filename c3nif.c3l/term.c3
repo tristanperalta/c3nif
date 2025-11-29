@@ -143,14 +143,14 @@ fn Term make_uint(env::Env* e, uint value) {
  * Create an integer term from a long.
  */
 fn Term make_long(env::Env* e, long value) {
-    return (Term){ .inner = erl_nif::enif_make_int64(e.inner, value) };
+    return (Term){ .inner = erl_nif::enif_make_long(e.inner, (CLong)value) };
 }
 
 /**
  * Create an integer term from an unsigned long.
  */
 fn Term make_ulong(env::Env* e, ulong value) {
-    return (Term){ .inner = erl_nif::enif_make_uint64(e.inner, value) };
+    return (Term){ .inner = erl_nif::enif_make_ulong(e.inner, (CULong)value) };
 }
 
 /**
@@ -179,22 +179,22 @@ fn uint? Term.get_uint(&self, env::Env* e) {
  * Extract a long from a term.
  */
 fn long? Term.get_long(&self, env::Env* e) {
-    long result;
-    if (erl_nif::enif_get_int64(e.inner, self.inner, &result) == 0) {
+    CLong result;
+    if (erl_nif::enif_get_long(e.inner, self.inner, &result) == 0) {
         return BADARG?;
     }
-    return result;
+    return (long)result;
 }
 
 /**
  * Extract an unsigned long from a term.
  */
 fn ulong? Term.get_ulong(&self, env::Env* e) {
-    ulong result;
-    if (erl_nif::enif_get_uint64(e.inner, self.inner, &result) == 0) {
+    CULong result;
+    if (erl_nif::enif_get_ulong(e.inner, self.inner, &result) == 0) {
         return BADARG?;
     }
-    return result;
+    return (ulong)result;
 }
 
 // =============================================================================

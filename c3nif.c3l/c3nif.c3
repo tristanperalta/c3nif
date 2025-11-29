@@ -34,6 +34,7 @@ import c3nif::binary;
 import c3nif::allocator;
 import c3nif::safety;
 import c3nif::scheduler;
+import c3nif::macros;
 
 // =============================================================================
 // Version Information
@@ -129,6 +130,13 @@ alias is_process_alive = scheduler::is_process_alive;
 alias SCHED_NORMAL = scheduler::SCHED_NORMAL;
 alias SCHED_CPU_BOUND = scheduler::SCHED_CPU_BOUND;
 alias SCHED_IO_BOUND = scheduler::SCHED_IO_BOUND;
+
+// Note: Macros must be imported directly from c3nif::macros
+// The following macros are available:
+// - @require_type - Validate term type
+// - @get_resource - Extract typed resource from term
+// - nif_entry - NIF entry point with fault barrier (no @ - uses regular params)
+// - @require_arg, @require_arg_int, @require_arg_long, etc.
 
 // =============================================================================
 // NIF Entry Helpers
