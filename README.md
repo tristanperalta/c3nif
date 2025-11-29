@@ -184,6 +184,39 @@ fn ErlNifTerm get_counter(ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv) {
 }
 ```
 
+### Memory Allocation
+
+BEAM-tracked memory allocation for use with C3 standard library collections:
+
+```c3
+import c3nif::allocator;
+
+// Simple allocation
+void* ptr = allocator::alloc(1024);
+if (!ptr) {
+    return term::make_error_atom(&e, "alloc_failed").raw();
+}
+defer allocator::free(ptr);
+
+// Zero-initialized allocation
+void* zeroed = allocator::calloc(256);
+
+// Reallocation (preserves data)
+void* grown = allocator::realloc(ptr, 2048);
+
+// With C3 Allocator interface (for collections)
+allocator::BeamAllocator beam;
+List{int} numbers;
+numbers.init(&beam);
+defer numbers.free();
+```
+
+**Thread Safety**: All allocator functions are thread-safe and can be called from any thread (scheduler, dirty scheduler, or user-created).
+
+**VM Integration**: All allocations are tracked by the BEAM VM and visible in `erlang:memory()` reports.
+
+**Strict Pairing**: Memory allocated with `allocator::alloc` must be freed with `allocator::free`. Never mix with system `malloc`/`free`, binary allocators, or resource allocators.
+
 ## Supported Types
 
 | Erlang/Elixir | C3 Type | Operations |

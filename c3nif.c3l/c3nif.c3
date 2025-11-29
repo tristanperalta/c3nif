@@ -31,6 +31,7 @@ import c3nif::env;
 import c3nif::term;
 import c3nif::resource;
 import c3nif::binary;
+import c3nif::allocator;
 
 // =============================================================================
 // Version Information
@@ -75,6 +76,15 @@ alias inspect_iolist = binary::inspect_iolist;
 alias make_new_binary = binary::make_new;
 alias make_sub_binary = binary::make_sub;
 alias binary_from_slice = binary::from_slice;
+
+// Re-export allocator type and functions
+alias BeamAllocator = allocator::BeamAllocator;
+alias BEAM_ALLOCATOR = allocator::BEAM_ALLOCATOR;
+alias beam_alloc = allocator::alloc;
+alias beam_alloc_try = allocator::alloc_try;
+alias beam_calloc = allocator::calloc;
+alias beam_realloc = allocator::realloc;
+alias beam_free = allocator::free;
 
 // =============================================================================
 // NIF Entry Helpers

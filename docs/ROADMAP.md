@@ -87,9 +87,13 @@ This document tracks the development progress of C3nif.
   - [x] Thread-safety documentation
 
 ### Allocator Integration
-- [ ] `allocator.c3` - BEAM allocator wrappers
-  - [ ] BeamAllocator struct
-  - [ ] Strict allocator pairing enforcement
+- [x] `allocator.c3` - BEAM allocator wrappers
+  - [x] BeamAllocator struct implementing C3 Allocator interface
+  - [x] Convenience functions (`alloc`, `calloc`, `realloc`, `free`)
+  - [x] Aligned allocation support for SIMD operations
+  - [x] Thread-safety documentation
+  - [x] VM memory tracking (visible in `erlang:memory()`)
+  - [x] Strict allocator pairing documentation
 
 ### Safety Hardening
 - [ ] `safety.c3` - Error isolation
@@ -149,6 +153,7 @@ This document tracks the development progress of C3nif.
 - [x] `test/integration/resource_cleanup_test.exs` - Destructor message passing (Zigler pattern)
 - [x] `test/integration/resource_keep_test.exs` - Keep/release reference counting
 - [x] `test/integration/resource_monitor_test.exs` - Down callbacks (process monitoring)
+- [x] `test/integration/allocator_test.exs` - BEAM allocator operations
 
 ### Safety Tests
 - [ ] `test/safety/crash_test.exs` - Errors become exceptions, not BEAM crash
