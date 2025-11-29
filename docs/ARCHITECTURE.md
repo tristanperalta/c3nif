@@ -169,54 +169,46 @@ end
 
 ## Compilation Pipeline
 
+```mermaid
+flowchart TD
+    subgraph A["Elixir Module"]
+        A1["use C3nif, otp_app: :my_app"]
+        A2["~c3 sigil with NIF code"]
+    end
+
+    subgraph B["@before_compile Hook"]
+        B1["Collect @c3_code_parts"]
+        B2["Create staging directory"]
+    end
+
+    subgraph C["Staging Directory"]
+        C1["project.json"]
+        C2["Elixir.MyModule.c3"]
+        C3["lib/c3nif.c3l → symlink"]
+    end
+
+    subgraph D["c3c build"]
+        D1["Compile to .so"]
+    end
+
+    subgraph E["Generated Elixir"]
+        E1["__load_nifs__/0"]
+        E2[":erlang.load_nif/2"]
+    end
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
 ```
-┌─────────────────────────────────────────────────────────────┐
-│ Elixir Module with `use C3nif, otp_app: :my_app`           │
-│                                                             │
-│   ~c3"""                                                    │
-│   module my_nif;                                            │
-│   import c3nif;                                             │
-│   // ... NIF code                                           │
-│   """                                                       │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│ @before_compile (C3nif.Compiler)                           │
-│                                                             │
-│ 1. Collect @c3_code_parts                                  │
-│ 2. Create staging directory: /tmp/.c3nif_compiler/Module   │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Staging Directory Structure                                 │
-│                                                             │
-│ /tmp/.c3nif_compiler/Elixir.MyModule/                      │
-│ ├── project.json          # Generated C3 project config    │
-│ ├── Elixir.MyModule.c3    # User's C3 code                 │
-│ └── lib/                                                    │
-│     └── c3nif.c3l -> /path/to/c3nif/c3nif.c3l (symlink)   │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│ c3c build                                                   │
-│                                                             │
-│ Compiles C3 code to shared library:                        │
-│ build/Elixir.MyModule.so                                   │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Generated Elixir Code                                       │
-│                                                             │
-│ def __load_nifs__ do                                       │
-│   nif_path = Application.app_dir(@otp_app, "priv")         │
-│              |> Path.join(@nif_name)                       │
-│   :erlang.load_nif(nif_path, 0)                            │
-│ end                                                         │
-└─────────────────────────────────────────────────────────────┘
+
+**Staging Directory Structure:**
+```
+/tmp/.c3nif_compiler/Elixir.MyModule/
+├── project.json          # Generated C3 project config
+├── Elixir.MyModule.c3    # User's C3 code
+└── lib/
+    └── c3nif.c3l -> /path/to/c3nif/c3nif.c3l (symlink)
 ```
 
 ## Project Structure
