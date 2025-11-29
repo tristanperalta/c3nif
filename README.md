@@ -12,6 +12,9 @@ C3nif is a library for writing Erlang/Elixir Native Implemented Functions (NIFs)
 - Compilation pipeline with staging directories
 - Test infrastructure
 
+**Phase 2 In Progress** - Advanced runtime features:
+- Resource management with type registration, destructor callbacks, and reference counting
+
 ## Why C3nif?
 
 - **Performance**: Compiles to efficient native code, comparable to C
@@ -143,6 +146,55 @@ term::Term? updated = map.map_put(&e, key, value);
 if (term1 == term2) { ... }
 ```
 
+### Resource Management
+
+Resources let you wrap native data structures and pass them to Erlang as opaque references:
+
+```c3
+import c3nif::resource;
+
+// Define your native struct
+struct Counter {
+    int value;
+}
+
+// Destructor called when resource is garbage collected
+fn void counter_dtor(ErlNifEnv* env, void* obj) {
+    // Cleanup code here (Counter memory is freed automatically)
+}
+
+// Register in on_load callback
+fn CInt on_load(ErlNifEnv* env_raw, void** priv, ErlNifTerm load_info) {
+    env::Env e = env::wrap(env_raw);
+    resource::register_type(&e, "Counter", &counter_dtor)!!;
+    return 0;
+}
+
+// Create a resource
+fn ErlNifTerm create_counter(ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv) {
+    env::Env e = env::wrap(env_raw);
+
+    void* ptr = resource::alloc("Counter", Counter.sizeof)!!;
+    Counter* c = (Counter*)ptr;
+    c.value = 42;
+
+    term::Term t = resource::make_term(&e, ptr);
+    resource::release(ptr);  // Term now owns the reference
+    return t.raw();
+}
+
+// Use a resource
+fn ErlNifTerm get_counter(ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv) {
+    env::Env e = env::wrap(env_raw);
+    term::Term arg = term::wrap(argv[0]);
+
+    void* ptr = resource::get("Counter", &e, arg)!!;
+    Counter* c = (Counter*)ptr;
+
+    return term::make_int(&e, c.value).raw();
+}
+```
+
 ## Supported Types
 
 | Erlang/Elixir | C3 Type | Operations |
@@ -156,6 +208,7 @@ if (term1 == term2) { ... }
 | `map()` | - | `make_new_map`, `map_put`, `map_get` |
 | `reference()` | - | `make_ref`, `is_ref` |
 | `pid()` | `ErlNifPid` | `get_local_pid` |
+| `resource()` | `void*` | `resource::alloc`, `resource::get`, `resource::make_term` |
 
 ## Project Structure
 
@@ -196,11 +249,8 @@ cd c3nif
 # Install dependencies
 mix deps.get
 
-# Run tests
+# Run tests (automatically compiles C3 library)
 mix test
-
-# Build the C3 library
-cd c3nif.c3l && c3c build
 ```
 
 ## Requirements

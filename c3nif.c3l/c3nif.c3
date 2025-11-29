@@ -29,6 +29,7 @@ module c3nif;
 import c3nif::erl_nif;
 import c3nif::env;
 import c3nif::term;
+import c3nif::resource;
 
 // =============================================================================
 // Version Information
@@ -45,8 +46,17 @@ alias ErlNifTerm = erl_nif::ErlNifTerm;
 alias ErlNifEnv = erl_nif::ErlNifEnv;
 alias ErlNifEntry = erl_nif::ErlNifEntry;
 alias ErlNifFunc = erl_nif::ErlNifFunc;
+alias ErlNifResourceType = erl_nif::ErlNifResourceType;
 alias Env = env::Env;
 alias Term = term::Term;
+
+// Re-export resource functions for convenience
+alias register_resource_type = resource::register_type;
+alias alloc_resource = resource::alloc;
+alias make_resource_term = resource::make_term;
+alias get_resource = resource::get;
+alias keep_resource = resource::keep;
+alias release_resource = resource::release;
 
 // =============================================================================
 // NIF Entry Helpers

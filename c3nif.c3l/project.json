@@ -13,7 +13,8 @@
     "c3nif.c3",
     "erl_nif.c3",
     "env.c3",
-    "term.c3"
+    "term.c3",
+    "resource.c3"
   ],
   "output": ".",
   "targets": {
