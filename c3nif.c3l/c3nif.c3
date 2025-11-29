@@ -30,6 +30,7 @@ import c3nif::erl_nif;
 import c3nif::env;
 import c3nif::term;
 import c3nif::resource;
+import c3nif::binary;
 
 // =============================================================================
 // Version Information
@@ -65,6 +66,15 @@ alias compare_monitors = resource::compare_monitors;
 
 // Re-export monitor type
 alias ErlNifMonitor = erl_nif::ErlNifMonitor;
+
+// Re-export binary type and functions
+alias Binary = binary::Binary;
+alias alloc_binary = binary::alloc;
+alias inspect_binary = binary::inspect;
+alias inspect_iolist = binary::inspect_iolist;
+alias make_new_binary = binary::make_new;
+alias make_sub_binary = binary::make_sub;
+alias binary_from_slice = binary::from_slice;
 
 // =============================================================================
 // NIF Entry Helpers

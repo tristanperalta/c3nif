@@ -69,12 +69,15 @@ This document tracks the development progress of C3nif.
 ## Phase 2: Advanced Runtime Features
 
 ### Binary Handling
-- [ ] `priv/c3nif/binary.c3` - Binary handling
-  - [ ] Zero-copy binary inspection
-  - [ ] Reference-counted binary handling
-  - [ ] enif_keep_binary/enif_release_binary
-  - [ ] Sub-binary creation
-  - [ ] Heap vs refc binary threshold (64 bytes)
+- [x] `c3nif.c3l/binary.c3` - Binary handling
+  - [x] Zero-copy binary inspection (`inspect`, `inspect_iolist`)
+  - [x] Reference-counted binary handling (`alloc`, `release`, `realloc`)
+  - [ ] enif_keep_binary (skipped for now, rarely needed)
+  - [x] Sub-binary creation (`make_sub`)
+  - [x] Heap vs refc binary threshold (64 bytes) - documented
+  - [x] Ownership semantics (borrowed vs owned)
+  - [x] C3 slice integration (`as_slice`, `as_mut_slice`)
+  - [x] Convenience helpers (`from_slice`, `copy`)
 
 ### Resource Management
 - [x] `resource.c3` - Full resource management
@@ -141,7 +144,7 @@ This document tracks the development progress of C3nif.
 ### Integration Tests
 - [x] `test/integration/nif_loading_test.exs` - End-to-end NIF compilation, loading, and execution
 - [ ] `test/integration/primitives_test.exs` - Type marshalling
-- [ ] `test/integration/binary_test.exs` - Binary handling
+- [x] `test/integration/binary_test.exs` - Binary handling
 - [x] `test/integration/resource_basic_test.exs` - Basic resource operations and atomic counter pattern
 - [x] `test/integration/resource_cleanup_test.exs` - Destructor message passing (Zigler pattern)
 - [x] `test/integration/resource_keep_test.exs` - Keep/release reference counting

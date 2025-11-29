@@ -4,17 +4,6 @@
 
 C3nif is a library for writing Erlang/Elixir Native Implemented Functions (NIFs) using the [C3 programming language](https://c3-lang.org). It provides a safe, modern alternative to writing NIFs in C while maintaining excellent performance and familiar syntax.
 
-## Status
-
-**Phase 1 Complete** - Core foundation implemented:
-- C3 runtime library with FFI bindings, environment management, and term operations
-- Mix integration with `use C3nif` macro and `~c3` sigil
-- Compilation pipeline with staging directories
-- Test infrastructure
-
-**Phase 2 In Progress** - Advanced runtime features:
-- Resource management with type registration, destructor callbacks, and reference counting
-
 ## Why C3nif?
 
 - **Performance**: Compiles to efficient native code, comparable to C
@@ -210,29 +199,6 @@ fn ErlNifTerm get_counter(ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv) {
 | `pid()` | `ErlNifPid` | `get_local_pid` |
 | `resource()` | `void*` | `resource::alloc`, `resource::get`, `resource::make_term` |
 
-## Project Structure
-
-```
-my_app/
-├── lib/
-│   └── my_app/
-│       └── nif.ex                  # Module with use C3nif
-├── priv/
-│   └── libElixir.MyApp.Nif.so      # Compiled NIF (after build)
-└── mix.exs
-```
-
-## Comparison with Other NIF Libraries
-
-| Feature | C3nif | Rustler | Zigler | C NIFs |
-|---------|-------|---------|--------|--------|
-| **Syntax** | C-like | Rust | Zig | C |
-| **Memory Safety** | Optionals | Ownership | Optionals | Manual |
-| **Learning Curve** | Low | High | Medium | Low |
-| **Performance** | Excellent | Excellent | Excellent | Excellent |
-| **Ecosystem** | New | Mature | Growing | Native |
-| **Error Handling** | Built-in | Result types | Built-in | Manual |
-
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md) - Internal architecture and design decisions
@@ -258,7 +224,7 @@ mix test
 
 - Elixir 1.18+
 - C3 compiler 0.7.7+
-- Linux x86_64 (other platforms coming soon)
+- Linux x86_64
 
 ## Safety Considerations
 
