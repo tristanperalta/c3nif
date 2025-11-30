@@ -228,8 +228,15 @@ defmodule C3nif.Compiler do
       "cc" => "cc",
       "linker" => "cc",
       "link-libc" => true,
-      "opt" => "O0"
+      "opt" => optimization_level()
     }
+  end
+
+  defp optimization_level do
+    case Mix.env() do
+      :prod -> "O3"
+      _ -> "O0"
+    end
   end
 
   defp nif_name(module) do
