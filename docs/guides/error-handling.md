@@ -126,8 +126,8 @@ safety::require_tuple(&e, arg0)!;     // Fails if not tuple
 safety::require_map(&e, arg0)!;       // Fails if not map
 
 // Extract typed values
-erl_nif::ErlNifBinary bin = safety::require_binary(&e, arg0)!;
-erl_nif::ErlNifPid pid = safety::require_pid(&e, arg0)!;
+ErlNifBinary bin = safety::require_binary(&e, arg0)!;
+ErlNifPid pid = safety::require_pid(&e, arg0)!;
 ```
 
 ## Return Value Patterns
@@ -163,7 +163,7 @@ return term::make_error_atom(&e, "invalid_input").raw();
 For more explicit error handling, use `NifResult`:
 
 ```c3
-fn safety::NifResult process_data(Env* e, Term arg) {
+fn NifResult process_data(Env* e, Term arg) {
     int? value = arg.get_int(e);
     if (catch err = value) {
         return safety::badarg(e);
@@ -177,7 +177,7 @@ fn safety::NifResult process_data(Env* e, Term arg) {
 }
 
 // In the NIF:
-safety::NifResult result = process_data(&e, arg);
+NifResult result = process_data(&e, arg);
 if (result.is_error) {
     return result.value.raw();
 }

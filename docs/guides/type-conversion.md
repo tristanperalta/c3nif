@@ -329,7 +329,7 @@ usz? size = arg.get_map_size(&e);
 ### Extracting PIDs
 
 ```c3
-erl_nif::ErlNifPid? pid = arg.get_local_pid(&e);
+ErlNifPid? pid = arg.get_local_pid(&e);
 if (catch err = pid) {
     return term::make_badarg(&e).raw();
 }

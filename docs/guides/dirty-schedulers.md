@@ -77,7 +77,7 @@ fn ErlNifTerm process_data(
     Term arg = term::wrap(argv[0]);
 
     // Check data size
-    erl_nif::ErlNifBinary? bin = arg.inspect_binary(&e);
+    ErlNifBinary? bin = arg.inspect_binary(&e);
     if (catch err = bin) {
         return term::make_badarg(&e).raw();
     }

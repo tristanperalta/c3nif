@@ -67,8 +67,8 @@ faultdef NO_PROCESS;
 faultdef ALLOC_FAILED;
 
 // Safe operations
-fn erl_nif::ErlNifPid? Env.self(&self) {
-    erl_nif::ErlNifPid pid;
+fn ErlNifPid? Env.self(&self) {
+    ErlNifPid pid;
     if (erl_nif::enif_self(self.inner, &pid) == null) {
         return NO_PROCESS?;
     }

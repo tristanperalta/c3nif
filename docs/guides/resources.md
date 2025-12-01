@@ -25,7 +25,7 @@ Resource types must be registered in your `on_load` callback:
 ```c3
 import c3nif::resource;
 
-erl_nif::ErlNifResourceType* g_my_resource_type;
+ErlNifResourceType* g_my_resource_type;
 
 fn CInt on_load(
     ErlNifEnv* raw_env,
@@ -34,7 +34,7 @@ fn CInt on_load(
 ) {
     Env e = env::wrap(raw_env);
 
-    erl_nif::ErlNifResourceType*? rt = resource::register_type(
+    ErlNifResourceType*? rt = resource::register_type(
         &e,
         "MyResource",
         &my_resource_destructor
@@ -249,8 +249,8 @@ Resources can monitor Erlang processes and receive callbacks when they die:
 fn void my_down_callback(
     ErlNifEnv* env,
     void* obj,
-    erl_nif::ErlNifPid* pid,
-    erl_nif::ErlNifMonitor* monitor
+    ErlNifPid* pid,
+    ErlNifMonitor* monitor
 ) {
     MyData* data = (MyData*)obj;
     // Handle the process death
@@ -261,7 +261,7 @@ fn CInt on_load(ErlNifEnv* raw_env, void** priv, ErlNifTerm load_info) {
     Env e = env::wrap(raw_env);
 
     // Use register_type_full for down callback support
-    erl_nif::ErlNifResourceTypeInit init = {
+    ErlNifResourceTypeInit init = {
         .dtor = &my_destructor,
         .stop = null,
         .down = &my_down_callback,
@@ -269,7 +269,7 @@ fn CInt on_load(ErlNifEnv* raw_env, void** priv, ErlNifTerm load_info) {
         .dyncall = null
     };
 
-    erl_nif::ErlNifResourceType*? rt = resource::register_type_full(
+    ErlNifResourceType*? rt = resource::register_type_full(
         &e,
         "MonitoredResource",
         &init
@@ -291,7 +291,7 @@ fn ErlNifTerm monitor_owner(
     Env e = env::wrap(raw_env);
 
     void* ptr = resource::get("MonitoredResource", &e, term::wrap(argv[0]))!;
-    erl_nif::ErlNifPid? owner_pid = term::wrap(argv[1]).get_local_pid(&e);
+    ErlNifPid? owner_pid = term::wrap(argv[1]).get_local_pid(&e);
     if (catch err = owner_pid) {
         return term::make_badarg(&e).raw();
     }
@@ -367,7 +367,7 @@ struct Counter {
     int value;
 }
 
-erl_nif::ErlNifResourceType* g_counter_type;
+ErlNifResourceType* g_counter_type;
 
 fn void counter_destructor(ErlNifEnv* env, void* obj) {
     // Nothing to clean up for this simple struct
@@ -376,7 +376,7 @@ fn void counter_destructor(ErlNifEnv* env, void* obj) {
 fn CInt on_load(ErlNifEnv* raw_env, void** priv, ErlNifTerm load_info) {
     Env e = env::wrap(raw_env);
 
-    erl_nif::ErlNifResourceType*? rt = resource::register_type(
+    ErlNifResourceType*? rt = resource::register_type(
         &e,
         "Counter",
         &counter_destructor
