@@ -71,9 +71,16 @@ defmodule C3nif.MixProject do
   end
 
   defp aliases do
-    [
-      compile: ["compile.c3nif", "compile"],
-      test: ["compile.c3nif", "test"]
-    ]
+    # Only apply compile/test aliases when c3nif is the root project.
+    # When used as a dependency, these aliases would interfere with
+    # the parent project's compilation.
+    if Mix.Project.config()[:app] == :c3nif do
+      [
+        compile: ["compile.c3nif", "compile"],
+        test: ["compile.c3nif", "test"]
+      ]
+    else
+      []
+    end
   end
 end
