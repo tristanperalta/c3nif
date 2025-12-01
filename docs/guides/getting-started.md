@@ -51,7 +51,7 @@ Create a new module with a simple NIF that adds two integers:
 defmodule MyNifApp.Math do
   use C3nif, otp_app: :my_nif_app
 
-  ~c3"""
+  ~n"""
   module math;
 
   import c3nif;
@@ -107,9 +107,11 @@ This sets up the module for NIF compilation. The `:otp_app` option tells C3nif w
 
 See [External C3 Sources](#external-c3-sources) for more on `:c3_sources`.
 
-### The ~c3 Sigil
+### The ~n Sigil
 
-The `~c3` sigil contains your C3 code. It will be extracted and compiled during the Mix build process.
+The `~n` sigil (for "nif") contains your C3 code. It will be extracted and compiled during the Mix build process.
+
+> **Note**: Elixir only supports single-letter sigil names, so we use `~n` rather than `~c3`.
 
 ### NIF Annotation
 
@@ -198,7 +200,7 @@ The `make_badarg` function signals an argument error to the Erlang VM.
 
 ## External C3 Sources
 
-For larger projects, you can organize your C3 code in external files instead of embedding everything in the `~c3` sigil. Use the `:c3_sources` option to include additional C3 source files:
+For larger projects, you can organize your C3 code in external files instead of embedding everything in the `~n` sigil. Use the `:c3_sources` option to include additional C3 source files:
 
 ```elixir
 defmodule MyNifApp.Math do
@@ -209,7 +211,7 @@ defmodule MyNifApp.Math do
       "c3_src/utils/**/*.c3"
     ]
 
-  ~c3"""
+  ~n"""
   module math;
 
   import c3nif;

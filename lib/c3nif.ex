@@ -9,30 +9,33 @@ defmodule C3nif do
   ## Basic Usage
 
   Add `use C3nif` to your module with the `:otp_app` option, then use the
-  `~c3` sigil to write inline C3 code:
+  `~n` sigil (for "nif") to write inline C3 code:
 
       defmodule MyNif do
         use C3nif, otp_app: :my_app
 
-        ~c3\"\"\"
+        ~n\"\"\"
         module mynif;
 
         import c3nif;
+        import c3nif::env;
+        import c3nif::term;
 
-        fn c3nif::ErlNifTerm add_one(
-            c3nif::ErlNifEnv* raw_env,
+        <* nif: arity = 1 *>
+        fn ErlNifTerm add_one(
+            ErlNifEnv* raw_env,
             CInt argc,
-            c3nif::ErlNifTerm* argv
-        ) @nif {
-            c3nif::Env e = c3nif::env::wrap(raw_env);
-            c3nif::Term arg0 = c3nif::term::wrap(argv[0]);
+            ErlNifTerm* argv
+        ) {
+            Env e = env::wrap(raw_env);
+            Term arg0 = term::wrap(argv[0]);
 
             int? value = arg0.get_int(&e);
             if (catch err = value) {
-                return c3nif::term::make_badarg(&e).raw();
+                return term::make_badarg(&e).raw();
             }
 
-            return c3nif::term::make_int(&e, value + 1).raw();
+            return term::make_int(&e, value + 1).raw();
         }
         \"\"\"
       end
@@ -46,10 +49,10 @@ defmodule C3nif do
 
   ## C3 NIF Conventions
 
-  - NIF functions should be marked with the `@nif` attribute
-  - Use dirty schedulers with `@nif("name", dirty: .cpu)` or `dirty: .io`
+  - NIF functions use `<* nif: arity = N *>` doc comment annotations
+  - Use dirty schedulers with `<* nif: arity = N, dirty = cpu *>` or `dirty = io`
   - Return `ErlNifTerm` from NIF functions
-  - Use `c3nif::term::make_badarg()` for argument errors
+  - Use `term::make_badarg()` for argument errors
   """
 
   @spec __using__(keyword) :: Macro.t()
@@ -70,7 +73,7 @@ defmodule C3nif do
     quote do
       @c3nif_opts unquote(opts)
 
-      import C3nif, only: [sigil_c3: 2]
+      import C3nif, only: [sigil_n: 2]
       @on_load :__load_nifs__
       @before_compile C3nif.Compiler
     end
@@ -79,19 +82,25 @@ defmodule C3nif do
   @doc """
   Declares a string block to be included in the module's C3 source file.
 
+  The `~n` sigil (for "nif") allows you to write inline C3 code that will be
+  compiled into a NIF library.
+
   ## Example
 
-      ~c3\"\"\"
+      ~n\"\"\"
       module mymodule;
 
       import c3nif;
 
-      fn c3nif::ErlNifTerm my_nif(...) @nif {
+      fn ErlNifTerm my_nif(...) @nif {
           // NIF implementation
       }
       \"\"\"
+
+  Note: The sigil name is `~n` (single letter) because Elixir only supports
+  single-letter sigil names.
   """
-  defmacro sigil_c3({:<<>>, meta, [c3_code]}, []) do
+  defmacro sigil_n({:<<>>, meta, [c3_code]}, []) do
     line = meta[:line]
     module = __CALLER__.module
     file = Path.relative_to_cwd(__CALLER__.file)

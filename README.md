@@ -18,7 +18,7 @@ C3nif is a library for writing Erlang/Elixir Native Implemented Functions (NIFs)
 defmodule MyApp.Math do
   use C3nif, otp_app: :my_app
 
-  ~c3"""
+  ~n"""
   module math_nif;
 
   import c3nif;

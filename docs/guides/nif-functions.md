@@ -92,7 +92,7 @@ Every NIF needs a corresponding Elixir function stub:
 defmodule MyModule do
   use C3nif, otp_app: :my_app
 
-  ~c3"""
+  ~n"""
   // ... C3 code ...
   """
 
@@ -206,7 +206,7 @@ You can define multiple NIFs in a single module:
 defmodule MyApp.Math do
   use C3nif, otp_app: :my_app
 
-  ~c3"""
+  ~n"""
   module math;
 
   import c3nif;
@@ -236,14 +236,14 @@ end
 
 ## Code Organization
 
-For larger NIFs, split your C3 code into multiple `~c3` blocks:
+For larger NIFs, split your C3 code into multiple `~n` blocks:
 
 ```elixir
 defmodule MyApp.Nif do
   use C3nif, otp_app: :my_app
 
   # Module declaration and imports
-  ~c3"""
+  ~n"""
   module mynif;
 
   import c3nif;
@@ -253,14 +253,14 @@ defmodule MyApp.Nif do
   """
 
   # Helper functions
-  ~c3"""
+  ~n"""
   fn int helper_function(int x) {
       return x * 2;
   }
   """
 
   # NIF implementations
-  ~c3"""
+  ~n"""
   <* nif: arity = 1 *>
   fn ErlNifTerm process(
       ErlNifEnv* raw_env,
@@ -276,7 +276,7 @@ defmodule MyApp.Nif do
 end
 ```
 
-All `~c3` blocks are concatenated before compilation.
+All `~n` blocks are concatenated before compilation.
 
 ### External Source Files
 
@@ -291,7 +291,7 @@ defmodule MyApp.Nif do
       "c3_src/utils/**/*.c3"
     ]
 
-  ~c3"""
+  ~n"""
   module mynif;
 
   import c3nif;

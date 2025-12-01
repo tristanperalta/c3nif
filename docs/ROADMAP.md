@@ -42,7 +42,7 @@ This document tracks the development progress of C3nif.
 ### Mix Integration (`lib/`)
 - [x] Main module (`c3nif.ex`)
   - [x] `use C3nif` macro with `:otp_app` option
-  - [x] `~c3` sigil for inline C3 code
+  - [x] `~n` sigil for inline C3 code
   - [x] Code accumulation via module attributes
   - [x] NIF extension detection per platform
 - [x] Compiler module (`c3nif/compiler.ex`)

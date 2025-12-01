@@ -116,7 +116,7 @@ Elixir modules for compilation and integration:
 
 ```
 lib/
-├── c3nif.ex              # Main module with use macro and ~c3 sigil
+├── c3nif.ex              # Main module with use macro and ~n sigil
 └── c3nif/
     └── compiler.ex       # Compilation orchestration
 ```
@@ -131,14 +131,14 @@ defmodule C3nif do
     # Set up @on_load and @before_compile hooks
     quote do
       @c3nif_opts unquote(opts)
-      import C3nif, only: [sigil_c3: 2]
+      import C3nif, only: [sigil_n: 2]
       @on_load :__load_nifs__
       @before_compile C3nif.Compiler
     end
   end
 
   # Sigil for inline C3 code
-  defmacro sigil_c3({:<<>>, meta, [c3_code]}, []) do
+  defmacro sigil_n({:<<>>, meta, [c3_code]}, []) do
     quote do
       @c3_code_parts "// ref #{file}:#{line}\n"
       @c3_code_parts c3_code
@@ -173,7 +173,7 @@ end
 flowchart TD
     subgraph A["Elixir Module"]
         A1["use C3nif, otp_app: :my_app"]
-        A2["~c3 sigil with NIF code"]
+        A2["~n sigil with NIF code"]
     end
 
     subgraph B["@before_compile Hook"]
@@ -218,7 +218,7 @@ flowchart TD
 ```
 c3nif/
 ├── lib/
-│   ├── c3nif.ex                    # Main module, use macro, ~c3 sigil
+│   ├── c3nif.ex                    # Main module, use macro, ~n sigil
 │   └── c3nif/
 │       └── compiler.ex             # Compilation orchestration
 ├── c3nif.c3l/                      # C3 runtime library
@@ -437,5 +437,5 @@ C3 currently uses lld (LLVM linker) directly for dynamic libraries even when `"l
 ### From Zigler
 
 - **Staged compilation**: Never compile in-place, use temp directories
-- **Sigil-based code**: `~Z` / `~c3` for inline native code
+- **Sigil-based code**: `~Z` / `~n` for inline native code
 - **Before compile hook**: Compile during module compilation phase
