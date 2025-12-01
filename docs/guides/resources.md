@@ -28,11 +28,11 @@ import c3nif::resource;
 erl_nif::ErlNifResourceType* g_my_resource_type;
 
 fn CInt on_load(
-    erl_nif::ErlNifEnv* raw_env,
+    ErlNifEnv* raw_env,
     void** priv,
-    erl_nif::ErlNifTerm load_info
+    ErlNifTerm load_info
 ) {
-    env::Env e = env::wrap(raw_env);
+    Env e = env::wrap(raw_env);
 
     erl_nif::ErlNifResourceType*? rt = resource::register_type(
         &e,
@@ -63,7 +63,7 @@ struct MyData {
 
 ```c3
 fn void my_resource_destructor(
-    erl_nif::ErlNifEnv* env,
+    ErlNifEnv* env,
     void* obj
 ) {
     MyData* data = (MyData*)obj;
@@ -81,13 +81,13 @@ fn void my_resource_destructor(
 
 ```c3
 <* nif: arity = 1 *>
-fn erl_nif::ErlNifTerm create_resource(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm create_resource(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
-    term::Term arg = term::wrap(argv[0]);
+    Env e = env::wrap(raw_env);
+    Term arg = term::wrap(argv[0]);
 
     int? value = arg.get_int(&e);
     if (catch err = value) {
@@ -107,7 +107,7 @@ fn erl_nif::ErlNifTerm create_resource(
     data.initialized = true;
 
     // Create term and release our reference
-    term::Term result = resource::make_term(&e, ptr);
+    Term result = resource::make_term(&e, ptr);
     resource::release(ptr);  // Term now owns the reference
 
     return result.raw();
@@ -118,13 +118,13 @@ fn erl_nif::ErlNifTerm create_resource(
 
 ```c3
 <* nif: arity = 1 *>
-fn erl_nif::ErlNifTerm get_value(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm get_value(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
-    term::Term arg = term::wrap(argv[0]);
+    Env e = env::wrap(raw_env);
+    Term arg = term::wrap(argv[0]);
 
     // Extract the resource
     void*? ptr = resource::get("MyResource", &e, arg);
@@ -159,7 +159,7 @@ MyStruct* data = (MyStruct*)ptr;
 data.field = value;
 
 // Create term (ref count = 2)
-term::Term t = resource::make_term(&e, ptr);
+Term t = resource::make_term(&e, ptr);
 
 // Release our reference (ref count = 1, term owns it)
 resource::release(ptr);
@@ -188,7 +188,7 @@ g_my_global_ptr = null;
 Destructors are called when the resource's reference count reaches zero:
 
 ```c3
-fn void my_destructor(erl_nif::ErlNifEnv* env, void* obj) {
+fn void my_destructor(ErlNifEnv* env, void* obj) {
     MyData* data = (MyData*)obj;
 
     // Free any nested allocations
@@ -216,16 +216,16 @@ fn void my_destructor(erl_nif::ErlNifEnv* env, void* obj) {
 ### Sending Messages from Destructors
 
 ```c3
-fn void cleanup_destructor(erl_nif::ErlNifEnv* env, void* obj) {
+fn void cleanup_destructor(ErlNifEnv* env, void* obj) {
     MyData* data = (MyData*)obj;
 
     if (data.notify_pid_valid) {
         // Create a private environment for the message
-        erl_nif::ErlNifEnv* msg_env = erl_nif::enif_alloc_env();
+        ErlNifEnv* msg_env = erl_nif::enif_alloc_env();
 
         // Build message in the private environment
-        env::Env e = env::wrap(msg_env);
-        term::Term msg = term::make_tuple_from_array(&e, (erl_nif::ErlNifTerm[2]){
+        Env e = env::wrap(msg_env);
+        Term msg = term::make_tuple_from_array(&e, (ErlNifTerm[2]){
             term::make_atom(&e, "resource_destroyed").raw(),
             term::make_int(&e, data.id).raw()
         }[0:2]);
@@ -247,7 +247,7 @@ Resources can monitor Erlang processes and receive callbacks when they die:
 
 ```c3
 fn void my_down_callback(
-    erl_nif::ErlNifEnv* env,
+    ErlNifEnv* env,
     void* obj,
     erl_nif::ErlNifPid* pid,
     erl_nif::ErlNifMonitor* monitor
@@ -257,8 +257,8 @@ fn void my_down_callback(
     data.owner_alive = false;
 }
 
-fn CInt on_load(erl_nif::ErlNifEnv* raw_env, void** priv, erl_nif::ErlNifTerm load_info) {
-    env::Env e = env::wrap(raw_env);
+fn CInt on_load(ErlNifEnv* raw_env, void** priv, ErlNifTerm load_info) {
+    Env e = env::wrap(raw_env);
 
     // Use register_type_full for down callback support
     erl_nif::ErlNifResourceTypeInit init = {
@@ -283,12 +283,12 @@ fn CInt on_load(erl_nif::ErlNifEnv* raw_env, void** priv, erl_nif::ErlNifTerm lo
 
 ```c3
 <* nif: arity = 2 *>
-fn erl_nif::ErlNifTerm monitor_owner(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm monitor_owner(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
+    Env e = env::wrap(raw_env);
 
     void* ptr = resource::get("MonitoredResource", &e, term::wrap(argv[0]))!;
     erl_nif::ErlNifPid? owner_pid = term::wrap(argv[1]).get_local_pid(&e);
@@ -369,12 +369,12 @@ struct Counter {
 
 erl_nif::ErlNifResourceType* g_counter_type;
 
-fn void counter_destructor(erl_nif::ErlNifEnv* env, void* obj) {
+fn void counter_destructor(ErlNifEnv* env, void* obj) {
     // Nothing to clean up for this simple struct
 }
 
-fn CInt on_load(erl_nif::ErlNifEnv* raw_env, void** priv, erl_nif::ErlNifTerm load_info) {
-    env::Env e = env::wrap(raw_env);
+fn CInt on_load(ErlNifEnv* raw_env, void** priv, ErlNifTerm load_info) {
+    Env e = env::wrap(raw_env);
 
     erl_nif::ErlNifResourceType*? rt = resource::register_type(
         &e,
@@ -391,12 +391,12 @@ fn CInt on_load(erl_nif::ErlNifEnv* raw_env, void** priv, erl_nif::ErlNifTerm lo
 }
 
 <* nif: arity = 1 *>
-fn erl_nif::ErlNifTerm new_counter(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm new_counter(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
+    Env e = env::wrap(raw_env);
 
     int? initial = term::wrap(argv[0]).get_int(&e);
     if (catch err = initial) {
@@ -411,19 +411,19 @@ fn erl_nif::ErlNifTerm new_counter(
     Counter* counter = (Counter*)ptr;
     counter.value = initial;
 
-    term::Term result = resource::make_term(&e, ptr);
+    Term result = resource::make_term(&e, ptr);
     resource::release(ptr);
 
     return result.raw();
 }
 
 <* nif: arity = 1 *>
-fn erl_nif::ErlNifTerm get_counter(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm get_counter(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
+    Env e = env::wrap(raw_env);
 
     void*? ptr = resource::get("Counter", &e, term::wrap(argv[0]));
     if (catch err = ptr) {
@@ -435,12 +435,12 @@ fn erl_nif::ErlNifTerm get_counter(
 }
 
 <* nif: arity = 2 *>
-fn erl_nif::ErlNifTerm increment_counter(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm increment_counter(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
+    Env e = env::wrap(raw_env);
 
     void*? ptr = resource::get("Counter", &e, term::wrap(argv[0]));
     if (catch err = ptr) {

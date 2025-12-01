@@ -32,7 +32,7 @@ if (catch err = value) {
 Use `!` to propagate faults to the caller:
 
 ```c3
-fn int? add_values(env::Env* e, term::Term a, term::Term b) {
+fn int? add_values(Env* e, Term a, Term b) {
     int val_a = a.get_int(e)!;  // Propagates fault if fails
     int val_b = b.get_int(e)!;
     return val_a + val_b;
@@ -47,23 +47,23 @@ Every NIF should use this pattern for safety:
 import c3nif::safety;
 
 // INNER function - uses optionals, propagates faults
-fn term::Term? double_impl(env::Env* e, erl_nif::ErlNifTerm* argv, CInt argc) {
-    term::Term arg = safety::get_arg(argv, argc, 0)!;
+fn Term? double_impl(Env* e, ErlNifTerm* argv, CInt argc) {
+    Term arg = safety::get_arg(argv, argc, 0)!;
     int value = safety::require_int(e, arg)!;
     return term::make_int(e, value * 2);
 }
 
 // OUTER function - fault barrier
 <* nif: arity = 1 *>
-fn erl_nif::ErlNifTerm double_value(
-    erl_nif::ErlNifEnv* env_raw,
+fn ErlNifTerm double_value(
+    ErlNifEnv* env_raw,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(env_raw);
+    Env e = env::wrap(env_raw);
 
     // Catch ALL faults at the boundary
-    term::Term? result = double_impl(&e, argv, argc);
+    Term? result = double_impl(&e, argv, argc);
     if (catch fault = result) {
         return term::make_badarg(&e).raw();
     }
@@ -107,8 +107,8 @@ import c3nif::safety;
 safety::require_argc(2, argc)!;
 
 // Safe argument access
-term::Term arg0 = safety::get_arg(argv, argc, 0)!;
-term::Term arg1 = safety::get_arg(argv, argc, 1)!;
+Term arg0 = safety::get_arg(argv, argc, 0)!;
+Term arg1 = safety::get_arg(argv, argc, 1)!;
 
 // Type-validated extraction
 int a = safety::require_int(&e, arg0)!;
@@ -163,7 +163,7 @@ return term::make_error_atom(&e, "invalid_input").raw();
 For more explicit error handling, use `NifResult`:
 
 ```c3
-fn safety::NifResult process_data(env::Env* e, term::Term arg) {
+fn safety::NifResult process_data(Env* e, Term arg) {
     int? value = arg.get_int(e);
     if (catch err = value) {
         return safety::badarg(e);
@@ -189,7 +189,7 @@ return result.value.raw();
 Convert faults to error tuples:
 
 ```c3
-term::Term? result = risky_operation(&e);
+Term? result = risky_operation(&e);
 if (catch fault = result) {
     // Convert fault to appropriate error
     return safety::make_badarg_error(&e).raw();
@@ -226,13 +226,13 @@ import c3nif::term;
 import c3nif::safety;
 
 // Inner implementation - clean, uses fault propagation
-fn term::Term? divide_impl(env::Env* e, erl_nif::ErlNifTerm* argv, CInt argc) {
+fn Term? divide_impl(Env* e, ErlNifTerm* argv, CInt argc) {
     // Validate argument count
     safety::require_argc(2, argc)!;
 
     // Extract arguments safely
-    term::Term arg0 = safety::get_arg(argv, argc, 0)!;
-    term::Term arg1 = safety::get_arg(argv, argc, 1)!;
+    Term arg0 = safety::get_arg(argv, argc, 0)!;
+    Term arg1 = safety::get_arg(argv, argc, 1)!;
 
     int numerator = safety::require_int(e, arg0)!;
     int denominator = safety::require_int(e, arg1)!;
@@ -247,14 +247,14 @@ fn term::Term? divide_impl(env::Env* e, erl_nif::ErlNifTerm* argv, CInt argc) {
 
 // Outer NIF - fault barrier
 <* nif: arity = 2 *>
-fn erl_nif::ErlNifTerm divide(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm divide(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
+    Env e = env::wrap(raw_env);
 
-    term::Term? result = divide_impl(&e, argv, argc);
+    Term? result = divide_impl(&e, argv, argc);
     if (catch fault = result) {
         // All faults become badarg - or use more specific handling
         return term::make_badarg(&e).raw();

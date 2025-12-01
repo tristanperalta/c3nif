@@ -54,12 +54,12 @@ Safe wrappers around environment operations:
 ```c3
 // Process-bound environment wrapper
 struct Env {
-    erl_nif::ErlNifEnv* inner;
+    ErlNifEnv* inner;
 }
 
 // Process-independent environment for async operations
 struct OwnedEnv {
-    erl_nif::ErlNifEnv* inner;
+    ErlNifEnv* inner;
 }
 
 // Fault definitions for error handling
@@ -82,7 +82,7 @@ Type-safe term encoding and decoding:
 
 ```c3
 struct Term {
-    erl_nif::ErlNifTerm inner;
+    ErlNifTerm inner;
 }
 
 // Fault definitions
@@ -91,12 +91,12 @@ faultdef OVERFLOW;
 faultdef ENCODING;
 
 // Type checking
-fn bool Term.is_atom(&self, env::Env* e) {
+fn bool Term.is_atom(&self, Env* e) {
     return erl_nif::enif_is_atom(e.inner, self.inner) != 0;
 }
 
 // Safe extraction with optionals
-fn int? Term.get_int(&self, env::Env* e) {
+fn int? Term.get_int(&self, Env* e) {
     CInt result;
     if (erl_nif::enif_get_int(e.inner, self.inner, &result) == 0) {
         return BADARG?;
@@ -278,7 +278,7 @@ my_app/
 C3nif uses C3's optional types for safe error handling:
 
 ```c3
-fn int? Term.get_int(&self, env::Env* e) {
+fn int? Term.get_int(&self, Env* e) {
     CInt result;
     if (erl_nif::enif_get_int(e.inner, self.inner, &result) == 0) {
         return BADARG?;  // Return fault
@@ -369,7 +369,7 @@ fn int? get_value() {
 
 ```c3
 // Type? indicates optional return
-fn int? Term.get_int(&self, env::Env* e) {
+fn int? Term.get_int(&self, Env* e) {
     // ...
 }
 

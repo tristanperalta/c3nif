@@ -7,10 +7,10 @@ This guide covers how to define and configure NIF functions in C3nif.
 Every NIF function must follow this exact signature:
 
 ```c3
-fn erl_nif::ErlNifTerm function_name(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm function_name(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 )
 ```
 
@@ -24,10 +24,10 @@ NIF functions are marked with the `<* nif: ... *>` annotation in C3 doc comment 
 
 ```c3
 <* nif: arity = 2 *>
-fn erl_nif::ErlNifTerm add(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm add(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
     // implementation
 }
@@ -47,10 +47,10 @@ Use `name` to expose a different name to Elixir:
 
 ```c3
 <* nif: name = "my_function", arity = 1 *>
-fn erl_nif::ErlNifTerm internal_impl(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm internal_impl(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
     // ...
 }
@@ -64,19 +64,19 @@ For long-running operations, use dirty schedulers:
 
 ```c3
 <* nif: arity = 1, dirty = cpu *>
-fn erl_nif::ErlNifTerm cpu_intensive(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm cpu_intensive(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
     // CPU-bound work
 }
 
 <* nif: arity = 1, dirty = io *>
-fn erl_nif::ErlNifTerm io_bound(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm io_bound(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
     // I/O operations
 }
@@ -112,9 +112,9 @@ These stubs:
 Wrap raw arguments before use:
 
 ```c3
-env::Env e = env::wrap(raw_env);
-term::Term arg0 = term::wrap(argv[0]);
-term::Term arg1 = term::wrap(argv[1]);
+Env e = env::wrap(raw_env);
+Term arg0 = term::wrap(argv[0]);
+Term arg1 = term::wrap(argv[1]);
 ```
 
 ### Using Safety Helpers
@@ -124,12 +124,12 @@ C3nif provides helpers for safer argument access:
 ```c3
 import c3nif::safety;
 
-fn erl_nif::ErlNifTerm my_nif(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm my_nif(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
+    Env e = env::wrap(raw_env);
 
     // Validate argument count
     if (safety::require_argc(argc, 2)) |err| {
@@ -153,7 +153,7 @@ fn erl_nif::ErlNifTerm my_nif(
 
 ## Return Values
 
-Always return an `erl_nif::ErlNifTerm`. Use the `.raw()` method on wrapped terms:
+Always return an `ErlNifTerm`. Use the `.raw()` method on wrapped terms:
 
 ```c3
 // Return an integer
@@ -179,9 +179,9 @@ C3nif automatically detects `on_load` and `on_unload` callbacks:
 ```c3
 // Called when NIF is loaded
 fn CInt on_load(
-    erl_nif::ErlNifEnv* env,
+    ErlNifEnv* env,
     void** priv,
-    erl_nif::ErlNifTerm load_info
+    ErlNifTerm load_info
 ) {
     // Initialize resources, state, etc.
     return 0;  // 0 = success
@@ -189,7 +189,7 @@ fn CInt on_load(
 
 // Called when NIF is unloaded
 fn void on_unload(
-    erl_nif::ErlNifEnv* env,
+    ErlNifEnv* env,
     void* priv
 ) {
     // Cleanup resources
@@ -215,16 +215,16 @@ defmodule MyApp.Math do
   import c3nif::term;
 
   <* nif: arity = 2 *>
-  fn erl_nif::ErlNifTerm add(...) { /* ... */ }
+  fn ErlNifTerm add(...) { /* ... */ }
 
   <* nif: arity = 2 *>
-  fn erl_nif::ErlNifTerm subtract(...) { /* ... */ }
+  fn ErlNifTerm subtract(...) { /* ... */ }
 
   <* nif: arity = 2 *>
-  fn erl_nif::ErlNifTerm multiply(...) { /* ... */ }
+  fn ErlNifTerm multiply(...) { /* ... */ }
 
   <* nif: arity = 2 *>
-  fn erl_nif::ErlNifTerm divide(...) { /* ... */ }
+  fn ErlNifTerm divide(...) { /* ... */ }
   """
 
   def add(_a, _b), do: :erlang.nif_error(:nif_not_loaded)
@@ -262,12 +262,12 @@ defmodule MyApp.Nif do
   # NIF implementations
   ~c3"""
   <* nif: arity = 1 *>
-  fn erl_nif::ErlNifTerm process(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm process(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(raw_env);
+      Env e = env::wrap(raw_env);
       // ...
   }
   """
@@ -299,7 +299,7 @@ defmodule MyApp.Nif do
   import helpers;  // External module
 
   <* nif: arity = 1 *>
-  fn erl_nif::ErlNifTerm process(...) { /* ... */ }
+  fn ErlNifTerm process(...) { /* ... */ }
   """
 
   def process(_data), do: :erlang.nif_error(:nif_not_loaded)

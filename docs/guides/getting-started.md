@@ -60,14 +60,14 @@ defmodule MyNifApp.Math do
   import c3nif::term;
 
   <* nif: arity = 2 *>
-  fn erl_nif::ErlNifTerm add(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm add(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(raw_env);
-      term::Term arg0 = term::wrap(argv[0]);
-      term::Term arg1 = term::wrap(argv[1]);
+      Env e = env::wrap(raw_env);
+      Term arg0 = term::wrap(argv[0]);
+      Term arg1 = term::wrap(argv[1]);
 
       int? a = arg0.get_int(&e);
       if (catch err = a) {
@@ -124,10 +124,10 @@ This annotation marks a function as a NIF. The `arity` specifies how many Elixir
 Every NIF function has the same signature:
 
 ```c3
-fn erl_nif::ErlNifTerm function_name(
-    erl_nif::ErlNifEnv* raw_env,  // The environment handle
+fn ErlNifTerm function_name(
+    ErlNifEnv* raw_env,  // The environment handle
     CInt argc,                      // Number of arguments
-    erl_nif::ErlNifTerm* argv       // Array of argument terms
+    ErlNifTerm* argv       // Array of argument terms
 )
 ```
 
@@ -136,8 +136,8 @@ fn erl_nif::ErlNifTerm function_name(
 C3nif provides safe wrappers around the raw NIF API:
 
 ```c3
-env::Env e = env::wrap(raw_env);           // Wrap the environment
-term::Term arg0 = term::wrap(argv[0]);     // Wrap a term
+Env e = env::wrap(raw_env);           // Wrap the environment
+Term arg0 = term::wrap(argv[0]);     // Wrap a term
 ```
 
 ### Extracting Values
@@ -219,12 +219,12 @@ defmodule MyNifApp.Math do
   import math_helpers;  // Import external module
 
   <* nif: arity = 2 *>
-  fn erl_nif::ErlNifTerm multiply(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm multiply(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(raw_env);
+      Env e = env::wrap(raw_env);
       // ... use functions from math_helpers ...
   }
   """

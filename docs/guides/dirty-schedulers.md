@@ -28,24 +28,24 @@ The simplest approach: declare the NIF as dirty at compile time:
 
 ```c3
 <* nif: arity = 1, dirty = cpu *>
-fn erl_nif::ErlNifTerm heavy_compute(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm heavy_compute(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
+    Env e = env::wrap(raw_env);
     // This always runs on a dirty CPU scheduler
     // ...expensive computation...
     return term::make_int(&e, result).raw();
 }
 
 <* nif: arity = 1, dirty = io *>
-fn erl_nif::ErlNifTerm blocking_io(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm blocking_io(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
+    Env e = env::wrap(raw_env);
     // This always runs on a dirty I/O scheduler
     // ...blocking I/O operation...
     return term::make_int(&e, result).raw();
@@ -68,13 +68,13 @@ Sometimes you want to decide at runtime whether to use a dirty scheduler:
 import c3nif::scheduler;
 
 <* nif: arity = 1 *>
-fn erl_nif::ErlNifTerm process_data(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm process_data(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
-    term::Term arg = term::wrap(argv[0]);
+    Env e = env::wrap(raw_env);
+    Term arg = term::wrap(argv[0]);
 
     // Check data size
     erl_nif::ErlNifBinary? bin = arg.inspect_binary(&e);
@@ -123,22 +123,22 @@ Check which scheduler type you're running on:
 import c3nif::scheduler;
 
 <* nif: arity = 0 *>
-fn erl_nif::ErlNifTerm get_scheduler_type(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm get_scheduler_type(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
+    Env e = env::wrap(raw_env);
 
-    scheduler::ThreadType t = scheduler::current_thread_type();
+    ThreadType t = scheduler::current_thread_type();
 
     char* name;
     switch (t) {
-        case scheduler::ThreadType.NORMAL:
+        case ThreadType.NORMAL:
             name = "normal";
-        case scheduler::ThreadType.DIRTY_CPU:
+        case ThreadType.DIRTY_CPU:
             name = "dirty_cpu";
-        case scheduler::ThreadType.DIRTY_IO:
+        case ThreadType.DIRTY_IO:
             name = "dirty_io";
         default:
             name = "undefined";
@@ -168,12 +168,12 @@ On dirty schedulers, the calling process can terminate while the NIF runs:
 
 ```c3
 <* nif: arity = 1, dirty = cpu *>
-fn erl_nif::ErlNifTerm long_computation(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm long_computation(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
+    Env e = env::wrap(raw_env);
 
     for (int i = 0; i < 1000000; i++) {
         // Periodically check if process is still alive
@@ -206,12 +206,12 @@ Always check `is_process_alive()` in long-running dirty NIFs to avoid wasted wor
 For normal schedulers, consume timeslices to cooperate with the scheduler:
 
 ```c3
-fn erl_nif::ErlNifTerm cooperative_nif(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm cooperative_nif(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
+    Env e = env::wrap(raw_env);
 
     for (int i = 0; i < iterations; i++) {
         // Do a chunk of work
@@ -245,12 +245,12 @@ struct ComputeContext {
 }
 
 <* nif: arity = 1 *>
-fn erl_nif::ErlNifTerm start_compute(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm start_compute(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
+    Env e = env::wrap(raw_env);
 
     int? total = term::wrap(argv[0]).get_int(&e);
     if (catch err = total) {
@@ -269,11 +269,11 @@ fn erl_nif::ErlNifTerm start_compute(
     ctx.result = 0;
 
     // Create resource term
-    term::Term ctx_term = resource::make_term(&e, ptr);
+    Term ctx_term = resource::make_term(&e, ptr);
     resource::release(ptr);
 
     // Schedule the continuation with context as argument
-    erl_nif::ErlNifTerm[1] new_argv = { ctx_term.raw() };
+    ErlNifTerm[1] new_argv = { ctx_term.raw() };
     return scheduler::schedule_normal(
         &e,
         "compute_chunk",
@@ -283,12 +283,12 @@ fn erl_nif::ErlNifTerm start_compute(
     ).raw();
 }
 
-fn erl_nif::ErlNifTerm compute_chunk(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm compute_chunk(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
+    Env e = env::wrap(raw_env);
 
     void*? ptr = resource::get("ComputeContext", &e, term::wrap(argv[0]));
     if (catch err = ptr) {
@@ -393,14 +393,14 @@ import c3nif::binary;
 
 // Hash a large binary - uses dirty CPU scheduler
 <* nif: arity = 1, dirty = cpu *>
-fn erl_nif::ErlNifTerm hash_binary(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm hash_binary(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
+    Env e = env::wrap(raw_env);
 
-    binary::Binary? bin = binary::inspect(&e, term::wrap(argv[0]));
+    Binary? bin = binary::inspect(&e, term::wrap(argv[0]));
     if (catch err = bin) {
         return term::make_badarg(&e).raw();
     }

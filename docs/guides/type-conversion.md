@@ -40,7 +40,7 @@ Term result = term::make_ulong(&e, 18446744073709551615);
 All extraction methods return optionals (`?` types) that fail with `BADARG` if the term is not the expected type:
 
 ```c3
-term::Term arg = term::wrap(argv[0]);
+Term arg = term::wrap(argv[0]);
 
 // Extract signed int
 int? value = arg.get_int(&e);
@@ -129,7 +129,7 @@ Binaries are the most efficient way to pass byte data between Elixir and C3.
 import c3nif::binary;
 
 // Get read-only access to binary data
-binary::Binary? bin = binary::inspect(&e, arg);
+Binary? bin = binary::inspect(&e, arg);
 if (catch err = bin) {
     return term::make_badarg(&e).raw();
 }
@@ -169,7 +169,7 @@ char[] my_data = "Hello, World!";
 Term result = binary::from_slice(&e, my_data);
 
 // Copy existing data
-binary::Binary source = /* ... */;
+Binary source = /* ... */;
 Term copy = binary::copy(&e, &source);
 ```
 
@@ -190,7 +190,7 @@ Term sub = term::make_sub_binary(&e, parent_term, offset, length);
 For large binaries, use `binary::alloc` for reference-counted allocation:
 
 ```c3
-binary::Binary? bin = binary::alloc(1024 * 1024);  // 1MB
+Binary? bin = binary::alloc(1024 * 1024);  // 1MB
 if (catch err = bin) {
     return term::make_badarg(&e).raw();
 }
@@ -207,7 +207,7 @@ Term result = binary::make_new(&e, &bin);
 Term empty = term::make_empty_list(&e);
 
 // From array
-erl_nif::ErlNifTerm[3] items = {
+ErlNifTerm[3] items = {
     term::make_int(&e, 1).raw(),
     term::make_int(&e, 2).raw(),
     term::make_int(&e, 3).raw()
@@ -255,7 +255,7 @@ if (catch err = len) {
 
 ```c3
 // From array
-erl_nif::ErlNifTerm[2] elements = {
+ErlNifTerm[2] elements = {
     term::make_atom(&e, "ok").raw(),
     term::make_int(&e, 42).raw()
 };
@@ -266,7 +266,7 @@ Term tuple = term::make_tuple_from_array(&e, elements[0:2]);
 ### Extracting Tuples
 
 ```c3
-erl_nif::ErlNifTerm* elements;
+ErlNifTerm* elements;
 int? arity = arg.get_tuple(&e, &elements);
 if (catch err = arity) {
     return term::make_badarg(&e).raw();

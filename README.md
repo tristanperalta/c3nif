@@ -26,13 +26,13 @@ defmodule MyApp.Math do
   import c3nif::env;
   import c3nif::term;
 
-  fn erl_nif::ErlNifTerm add_one(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm add_one(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(raw_env);
-      term::Term arg0 = term::wrap(argv[0]);
+      Env e = env::wrap(raw_env);
+      Term arg0 = term::wrap(argv[0]);
 
       int? value = arg0.get_int(&e);
       if (catch err = value) {
@@ -74,13 +74,13 @@ Ensure you have the C3 compiler installed:
 C3nif provides safe conversions between Erlang terms and C3 types using C3's optional types:
 
 ```c3
-fn erl_nif::ErlNifTerm safe_double(
-    erl_nif::ErlNifEnv* raw_env,
+fn ErlNifTerm safe_double(
+    ErlNifEnv* raw_env,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    env::Env e = env::wrap(raw_env);
-    term::Term arg = term::wrap(argv[0]);
+    Env e = env::wrap(raw_env);
+    Term arg = term::wrap(argv[0]);
 
     // Safe extraction - returns optional
     int? value = arg.get_int(&e);
@@ -98,14 +98,14 @@ Process-bound and process-independent environments:
 
 ```c3
 // Process-bound (standard NIF call)
-env::Env e = env::wrap(raw_env);
+Env e = env::wrap(raw_env);
 
 // Process-independent (for async operations)
 env::OwnedEnv? owned = env::new_owned_env();
 if (catch err = owned) {
     // Handle allocation failure
 }
-env::Env async_env = owned.as_env();
+Env async_env = owned.as_env();
 // ... build terms, send messages ...
 owned.free();
 ```
@@ -120,16 +120,16 @@ if (arg.is_atom(&e)) { ... }
 if (arg.is_list(&e)) { ... }
 
 // Integer operations
-term::Term result = term::make_int(&e, 42);
+Term result = term::make_int(&e, 42);
 int? extracted = arg.get_int(&e);
 
 // List operations
-term::Term empty = term::make_empty_list(&e);
-term::Term list = term::make_list_cell(&e, head, tail);
+Term empty = term::make_empty_list(&e);
+Term list = term::make_list_cell(&e, head, tail);
 
 // Map operations
-term::Term map = term::make_new_map(&e);
-term::Term? updated = map.map_put(&e, key, value);
+Term map = term::make_new_map(&e);
+Term? updated = map.map_put(&e, key, value);
 
 // Comparison (with operator overloading)
 if (term1 == term2) { ... }
@@ -154,28 +154,28 @@ fn void counter_dtor(ErlNifEnv* env, void* obj) {
 
 // Register in on_load callback
 fn CInt on_load(ErlNifEnv* env_raw, void** priv, ErlNifTerm load_info) {
-    env::Env e = env::wrap(env_raw);
+    Env e = env::wrap(env_raw);
     resource::register_type(&e, "Counter", &counter_dtor)!!;
     return 0;
 }
 
 // Create a resource
 fn ErlNifTerm create_counter(ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv) {
-    env::Env e = env::wrap(env_raw);
+    Env e = env::wrap(env_raw);
 
     void* ptr = resource::alloc("Counter", Counter.sizeof)!!;
     Counter* c = (Counter*)ptr;
     c.value = 42;
 
-    term::Term t = resource::make_term(&e, ptr);
+    Term t = resource::make_term(&e, ptr);
     resource::release(ptr);  // Term now owns the reference
     return t.raw();
 }
 
 // Use a resource
 fn ErlNifTerm get_counter(ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv) {
-    env::Env e = env::wrap(env_raw);
-    term::Term arg = term::wrap(argv[0]);
+    Env e = env::wrap(env_raw);
+    Term arg = term::wrap(argv[0]);
 
     void* ptr = resource::get("Counter", &e, arg)!!;
     Counter* c = (Counter*)ptr;
