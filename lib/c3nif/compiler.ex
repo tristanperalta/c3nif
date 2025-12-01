@@ -54,6 +54,8 @@ defmodule C3nif.Compiler do
     write_manifest_entry(module, otp_app, c3_code, c3_sources, file)
 
     quote do
+      require Logger
+
       @c3_file_path unquote(c3_file_path)
       @nif_path unquote(nif_path)
       @nif_name unquote(nif_name)
