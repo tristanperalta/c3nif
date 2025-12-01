@@ -34,21 +34,21 @@ defmodule C3nif.IntegrationTest.ResourceCleanupTest do
 
   // Resource that holds a PID and sends message on destruction
   struct Notifier {
-      erl_nif::ErlNifPid pid;
+      ErlNifPid pid;
   }
 
   // Destructor callback - sends :cleaned message to stored PID
-  fn void notifier_dtor(erl_nif::ErlNifEnv* env_raw, void* obj) {
+  fn void notifier_dtor(ErlNifEnv* env_raw, void* obj) {
       Notifier* notifier = (Notifier*)obj;
 
       // Create a new environment for sending (destructor env is special)
-      erl_nif::ErlNifEnv* msg_env = erl_nif::enif_alloc_env();
+      ErlNifEnv* msg_env = erl_nif::enif_alloc_env();
       if (msg_env == null) {
           return;
       }
 
       // Create the :cleaned atom
-      erl_nif::ErlNifTerm atom = erl_nif::enif_make_atom(msg_env, "cleaned");
+      ErlNifTerm atom = erl_nif::enif_make_atom(msg_env, "cleaned");
 
       // Send the message
       erl_nif::enif_send(null, &notifier.pid, msg_env, atom);
@@ -58,8 +58,8 @@ defmodule C3nif.IntegrationTest.ResourceCleanupTest do
   }
 
   // on_load: register resource type
-  fn CInt on_load(erl_nif::ErlNifEnv* env_raw, void** priv, erl_nif::ErlNifTerm load_info) {
-      env::Env e = env::wrap(env_raw);
+  fn CInt on_load(ErlNifEnv* env_raw, void** priv, ErlNifTerm load_info) {
+      Env e = env::wrap(env_raw);
       if (catch err = resource::register_type(&e, "Notifier", &notifier_dtor)) {
           return 1;
       }
@@ -67,13 +67,13 @@ defmodule C3nif.IntegrationTest.ResourceCleanupTest do
   }
 
   // NIF: create_notifier(pid) -> resource
-  fn erl_nif::ErlNifTerm create_notifier(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm create_notifier(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
       // Get the PID from argument
-      erl_nif::ErlNifPid pid;
+      ErlNifPid pid;
       if (erl_nif::enif_get_local_pid(env_raw, argv[0], &pid) == 0) {
           return term::make_badarg(&e).raw();
       }
@@ -82,19 +82,19 @@ defmodule C3nif.IntegrationTest.ResourceCleanupTest do
       Notifier* notifier = (Notifier*)ptr;
       notifier.pid = pid;
 
-      term::Term t = resource::make_term(&e, ptr);
+      Term t = resource::make_term(&e, ptr);
       resource::release(ptr);  // Term now owns the reference
       return t.raw();
   }
 
   // NIF function table
-  erl_nif::ErlNifFunc[1] nif_funcs = {
+  ErlNifFunc[1] nif_funcs = {
       { .name = "create_notifier", .arity = 1, .fptr = &create_notifier, .flags = 0 },
   };
 
-  erl_nif::ErlNifEntry nif_entry;
+  ErlNifEntry nif_entry;
 
-  fn erl_nif::ErlNifEntry* nif_init() @export("nif_init") {
+  fn ErlNifEntry* nif_init() @export("nif_init") {
       nif_entry = c3nif::make_nif_entry(
           "Elixir.C3nif.IntegrationTest.ResourceCleanupNif",
           &nif_funcs,

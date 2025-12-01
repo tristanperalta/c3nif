@@ -56,29 +56,29 @@ defmodule C3nif.IntegrationTest.MacrosTest do
   // =============================================================================
 
   // Implementation function for @nif_entry
-  fn term::Term? add_impl(env::Env* e, erl_nif::ErlNifTerm* argv, CInt argc) {
+  fn Term? add_impl(Env* e, ErlNifTerm* argv, CInt argc) {
       int a = macros::@require_arg_int(e, argv, argc, 0)!;
       int b = macros::@require_arg_int(e, argv, argc, 1)!;
       return term::make_int(e, a + b);
   }
 
   // NIF using nif_entry macro
-  fn erl_nif::ErlNifTerm add_with_macro(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm add_with_macro(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
       return macros::nif_entry(env_raw, argc, argv, &add_impl);
   }
 
   // Implementation with intentional failure for custom error test
-  fn term::Term? add_with_custom_error_impl(env::Env* e, erl_nif::ErlNifTerm* argv, CInt argc) {
+  fn Term? add_with_custom_error_impl(Env* e, ErlNifTerm* argv, CInt argc) {
       int a = macros::@require_arg_int(e, argv, argc, 0)!;
       int b = macros::@require_arg_int(e, argv, argc, 1)!;
       return term::make_int(e, a + b);
   }
 
   // NIF using nif_entry with custom error reason
-  fn erl_nif::ErlNifTerm add_with_custom_error(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm add_with_custom_error(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
       return macros::nif_entry(env_raw, argc, argv, &add_with_custom_error_impl, "custom_error");
   }
@@ -87,10 +87,10 @@ defmodule C3nif.IntegrationTest.MacrosTest do
   // @require_arg_* Macro Tests
   // =============================================================================
 
-  fn erl_nif::ErlNifTerm require_arg_int_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm require_arg_int_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
       int? value = macros::@require_arg_int(&e, argv, argc, 0);
       if (catch err = value) {
@@ -100,10 +100,10 @@ defmodule C3nif.IntegrationTest.MacrosTest do
       return term::make_ok_tuple(&e, term::make_int(&e, value)).raw();
   }
 
-  fn erl_nif::ErlNifTerm require_arg_long_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm require_arg_long_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
       long? value = macros::@require_arg_long(&e, argv, argc, 0);
       if (catch err = value) {
@@ -113,10 +113,10 @@ defmodule C3nif.IntegrationTest.MacrosTest do
       return term::make_ok_tuple(&e, term::make_long(&e, value)).raw();
   }
 
-  fn erl_nif::ErlNifTerm require_arg_double_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm require_arg_double_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
       double? value = macros::@require_arg_double(&e, argv, argc, 0);
       if (catch err = value) {
@@ -126,10 +126,10 @@ defmodule C3nif.IntegrationTest.MacrosTest do
       return term::make_ok_tuple(&e, term::make_double(&e, value)).raw();
   }
 
-  fn erl_nif::ErlNifTerm require_arg_uint_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm require_arg_uint_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
       uint? value = macros::@require_arg_uint(&e, argv, argc, 0);
       if (catch err = value) {
@@ -143,12 +143,12 @@ defmodule C3nif.IntegrationTest.MacrosTest do
   // @require_type Macro Tests
   // =============================================================================
 
-  fn erl_nif::ErlNifTerm require_atom_macro(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm require_atom_macro(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
-      term::Term? arg = macros::@require_arg(&e, argv, argc, 0);
+      Term? arg = macros::@require_arg(&e, argv, argc, 0);
       if (catch err = arg) {
           return safety::make_badarg_error(&e).raw();
       }
@@ -160,12 +160,12 @@ defmodule C3nif.IntegrationTest.MacrosTest do
       return term::make_atom(&e, "ok").raw();
   }
 
-  fn erl_nif::ErlNifTerm require_list_macro(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm require_list_macro(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
-      term::Term? arg = macros::@require_arg(&e, argv, argc, 0);
+      Term? arg = macros::@require_arg(&e, argv, argc, 0);
       if (catch err = arg) {
           return safety::make_badarg_error(&e).raw();
       }
@@ -177,12 +177,12 @@ defmodule C3nif.IntegrationTest.MacrosTest do
       return term::make_atom(&e, "ok").raw();
   }
 
-  fn erl_nif::ErlNifTerm require_map_macro(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm require_map_macro(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
-      term::Term? arg = macros::@require_arg(&e, argv, argc, 0);
+      Term? arg = macros::@require_arg(&e, argv, argc, 0);
       if (catch err = arg) {
           return safety::make_badarg_error(&e).raw();
       }
@@ -202,12 +202,12 @@ defmodule C3nif.IntegrationTest.MacrosTest do
       int value;
   }
 
-  erl_nif::ErlNifResourceType* counter_resource_type;
+  ErlNifResourceType* counter_resource_type;
 
-  fn erl_nif::ErlNifTerm create_counter(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm create_counter(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
       void* ptr = erl_nif::enif_alloc_resource(counter_resource_type, Counter.sizeof);
       if (ptr == null) {
@@ -217,18 +217,18 @@ defmodule C3nif.IntegrationTest.MacrosTest do
       Counter* counter = (Counter*)ptr;
       counter.value = 42;
 
-      term::Term t = resource::make_term(&e, ptr);
+      Term t = resource::make_term(&e, ptr);
       resource::release(ptr);
 
       return term::make_ok_tuple(&e, t).raw();
   }
 
-  fn erl_nif::ErlNifTerm get_counter_value(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_counter_value(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
-      term::Term? arg = macros::@require_arg(&e, argv, argc, 0);
+      Term? arg = macros::@require_arg(&e, argv, argc, 0);
       if (catch err = arg) {
           return safety::make_badarg_error(&e).raw();
       }
@@ -247,8 +247,8 @@ defmodule C3nif.IntegrationTest.MacrosTest do
   // NIF on_load callback
   // =============================================================================
 
-  fn CInt on_load(erl_nif::ErlNifEnv* env, void** priv, erl_nif::ErlNifTerm load_info) {
-      env::Env e = env::wrap(env);
+  fn CInt on_load(ErlNifEnv* env, void** priv, ErlNifTerm load_info) {
+      Env e = env::wrap(env);
 
       // Register the counter resource type
       erl_nif::ErlNifResourceTypeInit init = {
@@ -279,7 +279,7 @@ defmodule C3nif.IntegrationTest.MacrosTest do
   // NIF Entry
   // =============================================================================
 
-  erl_nif::ErlNifFunc[10] nif_funcs = {
+  ErlNifFunc[10] nif_funcs = {
       { .name = "add_with_macro", .arity = 2, .fptr = &add_with_macro, .flags = 0 },
       { .name = "add_with_custom_error", .arity = 2, .fptr = &add_with_custom_error, .flags = 0 },
       { .name = "require_arg_int_test", .arity = 1, .fptr = &require_arg_int_test, .flags = 0 },
@@ -292,9 +292,9 @@ defmodule C3nif.IntegrationTest.MacrosTest do
       { .name = "create_counter", .arity = 0, .fptr = &create_counter, .flags = 0 },
   };
 
-  erl_nif::ErlNifEntry nif_entry;
+  ErlNifEntry nif_entry;
 
-  fn erl_nif::ErlNifEntry* nif_init() @export("nif_init") {
+  fn ErlNifEntry* nif_init() @export("nif_init") {
       nif_entry = c3nif::make_nif_entry(
           "Elixir.C3nif.IntegrationTest.MacrosNif",
           &nif_funcs,

@@ -35,40 +35,40 @@ defmodule C3nif.IntegrationTest.ResourceMonitorTest do
 
   // Resource that monitors a process and notifies another when it dies
   struct Monitor {
-      erl_nif::ErlNifPid notify_pid;   // PID to notify on process death
-      erl_nif::ErlNifPid monitored_pid; // PID being monitored
-      erl_nif::ErlNifMonitor monitor;   // Monitor handle
+      ErlNifPid notify_pid;   // PID to notify on process death
+      ErlNifPid monitored_pid; // PID being monitored
+      ErlNifMonitor monitor;   // Monitor handle
   }
 
   // Global counter for down callback invocations
   int g_down_count;
 
   // Destructor - just cleanup, no special logic needed
-  fn void monitor_dtor(erl_nif::ErlNifEnv* env_raw, void* obj) {
+  fn void monitor_dtor(ErlNifEnv* env_raw, void* obj) {
       // Resource cleanup happens automatically
   }
 
   // Down callback - called when monitored process dies
   fn void monitor_down(
-      erl_nif::ErlNifEnv* env_raw,
+      ErlNifEnv* env_raw,
       void* obj,
-      erl_nif::ErlNifPid* dead_pid,
-      erl_nif::ErlNifMonitor* monitor
+      ErlNifPid* dead_pid,
+      ErlNifMonitor* monitor
   ) {
       Monitor* m = (Monitor*)obj;
       g_down_count++;
 
       // Send notification message to notify_pid
-      erl_nif::ErlNifEnv* msg_env = erl_nif::enif_alloc_env();
+      ErlNifEnv* msg_env = erl_nif::enif_alloc_env();
       if (msg_env == null) {
           return;
       }
 
       // Create tuple {:process_down, dead_pid}
-      erl_nif::ErlNifTerm atom = erl_nif::enif_make_atom(msg_env, "process_down");
-      erl_nif::ErlNifTerm pid_term = erl_nif::make_pid(msg_env, dead_pid);
-      erl_nif::ErlNifTerm[2] tuple_elems = { atom, pid_term };
-      erl_nif::ErlNifTerm msg = erl_nif::enif_make_tuple_from_array(msg_env, &tuple_elems, 2);
+      ErlNifTerm atom = erl_nif::enif_make_atom(msg_env, "process_down");
+      ErlNifTerm pid_term = erl_nif::make_pid(msg_env, dead_pid);
+      ErlNifTerm[2] tuple_elems = { atom, pid_term };
+      ErlNifTerm msg = erl_nif::enif_make_tuple_from_array(msg_env, &tuple_elems, 2);
 
       // Send the message
       erl_nif::enif_send(null, &m.notify_pid, msg_env, msg);
@@ -77,8 +77,8 @@ defmodule C3nif.IntegrationTest.ResourceMonitorTest do
   }
 
   // on_load: register resource type with down callback
-  fn CInt on_load(erl_nif::ErlNifEnv* env_raw, void** priv, erl_nif::ErlNifTerm load_info) {
-      env::Env e = env::wrap(env_raw);
+  fn CInt on_load(ErlNifEnv* env_raw, void** priv, ErlNifTerm load_info) {
+      Env e = env::wrap(env_raw);
 
       // Use register_type_full to enable down callback
       // .members >= 3 is required for down callback support
@@ -98,19 +98,19 @@ defmodule C3nif.IntegrationTest.ResourceMonitorTest do
 
   // NIF: create_monitored_resource(owner_pid, notify_pid) -> resource
   // Creates a resource that monitors owner_pid and notifies notify_pid when owner dies
-  fn erl_nif::ErlNifTerm create_monitored_resource(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm create_monitored_resource(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
       // Get owner_pid (the process to monitor)
-      erl_nif::ErlNifPid owner_pid;
+      ErlNifPid owner_pid;
       if (erl_nif::enif_get_local_pid(env_raw, argv[0], &owner_pid) == 0) {
           return term::make_badarg(&e).raw();
       }
 
       // Get notify_pid (the process to notify on death)
-      erl_nif::ErlNifPid notify_pid;
+      ErlNifPid notify_pid;
       if (erl_nif::enif_get_local_pid(env_raw, argv[1], &notify_pid) == 0) {
           return term::make_badarg(&e).raw();
       }
@@ -128,28 +128,28 @@ defmodule C3nif.IntegrationTest.ResourceMonitorTest do
           return term::make_badarg(&e).raw();
       }
 
-      term::Term t = resource::make_term(&e, ptr);
+      Term t = resource::make_term(&e, ptr);
       resource::release(ptr);  // Term now owns the reference
       return t.raw();
   }
 
   // NIF: get_down_count() -> integer
-  fn erl_nif::ErlNifTerm get_down_count_nif(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_down_count_nif(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
       return term::make_int(&e, g_down_count).raw();
   }
 
   // NIF function table
-  erl_nif::ErlNifFunc[2] nif_funcs = {
+  ErlNifFunc[2] nif_funcs = {
       { .name = "create_monitored_resource", .arity = 2, .fptr = &create_monitored_resource, .flags = 0 },
       { .name = "get_down_count", .arity = 0, .fptr = &get_down_count_nif, .flags = 0 },
   };
 
-  erl_nif::ErlNifEntry nif_entry;
+  ErlNifEntry nif_entry;
 
-  fn erl_nif::ErlNifEntry* nif_init() @export("nif_init") {
+  fn ErlNifEntry* nif_init() @export("nif_init") {
       nif_entry = c3nif::make_nif_entry(
           "Elixir.C3nif.IntegrationTest.ResourceMonitorNif",
           &nif_funcs,

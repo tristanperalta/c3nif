@@ -38,14 +38,14 @@ defmodule C3nif.IntegrationTest.ExternalSourcesTest do
   import math_helpers;
 
   <* nif: arity = 2 *>
-  fn erl_nif::ErlNifTerm multiply(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm multiply(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(raw_env);
-      term::Term arg0 = term::wrap(argv[0]);
-      term::Term arg1 = term::wrap(argv[1]);
+      Env e = env::wrap(raw_env);
+      Term arg0 = term::wrap(argv[0]);
+      Term arg1 = term::wrap(argv[1]);
 
       int? val0 = arg0.get_int(&e);
       if (catch err = val0) {
@@ -63,13 +63,13 @@ defmodule C3nif.IntegrationTest.ExternalSourcesTest do
   }
 
   <* nif: arity = 1 *>
-  fn erl_nif::ErlNifTerm square(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm square(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(raw_env);
-      term::Term arg0 = term::wrap(argv[0]);
+      Env e = env::wrap(raw_env);
+      Term arg0 = term::wrap(argv[0]);
 
       int? val = arg0.get_int(&e);
       if (catch err = val) {
@@ -193,16 +193,16 @@ defmodule C3nif.IntegrationTest.GlobPatternTest do
   import nested_helper;
 
   <* nif: arity = 1 *>
-  fn erl_nif::ErlNifTerm get_string_length(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm get_string_length(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(raw_env);
-      term::Term arg0 = term::wrap(argv[0]);
+      Env e = env::wrap(raw_env);
+      Term arg0 = term::wrap(argv[0]);
 
       // Get binary data from argument
-      erl_nif::ErlNifBinary bin;
+      ErlNifBinary bin;
       if (!erl_nif::enif_inspect_binary(raw_env, argv[0], &bin)) {
           return term::make_badarg(&e).raw();
       }
@@ -213,13 +213,13 @@ defmodule C3nif.IntegrationTest.GlobPatternTest do
   }
 
   <* nif: arity = 1 *>
-  fn erl_nif::ErlNifTerm increment(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm increment(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(raw_env);
-      term::Term arg0 = term::wrap(argv[0]);
+      Env e = env::wrap(raw_env);
+      Term arg0 = term::wrap(argv[0]);
 
       int? val = arg0.get_int(&e);
       if (catch err = val) {

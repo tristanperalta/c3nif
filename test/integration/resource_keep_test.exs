@@ -49,13 +49,13 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
   void* g_native_resource;
 
   // Destructor - decrements live count
-  fn void tracked_dtor(erl_nif::ErlNifEnv* env_raw, void* obj) {
+  fn void tracked_dtor(ErlNifEnv* env_raw, void* obj) {
       g_live_count--;
   }
 
   // on_load: register resource type
-  fn CInt on_load(erl_nif::ErlNifEnv* env_raw, void** priv, erl_nif::ErlNifTerm load_info) {
-      env::Env e = env::wrap(env_raw);
+  fn CInt on_load(ErlNifEnv* env_raw, void** priv, ErlNifTerm load_info) {
+      Env e = env::wrap(env_raw);
       if (catch err = resource::register_type(&e, "Tracked", &tracked_dtor)) {
           return 1;
       }
@@ -64,11 +64,11 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
   }
 
   // NIF: create_tracked(initial_value) -> resource
-  fn erl_nif::ErlNifTerm create_tracked(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm create_tracked(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
       int? initial = arg.get_int(&e);
       if (catch err = initial) {
@@ -80,17 +80,17 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
       tracked.value = initial;
       g_live_count++;
 
-      term::Term t = resource::make_term(&e, ptr);
+      Term t = resource::make_term(&e, ptr);
       resource::release(ptr);  // Term now owns the reference
       return t.raw();
   }
 
   // NIF: get_tracked(resource) -> integer
-  fn erl_nif::ErlNifTerm get_tracked(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_tracked(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
       void* ptr = resource::get("Tracked", &e, arg)!!;
       Tracked* tracked = (Tracked*)ptr;
@@ -100,11 +100,11 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
 
   // NIF: keep_in_native(resource) -> :ok
   // Stores resource pointer in native global and calls keep() to prevent GC
-  fn erl_nif::ErlNifTerm keep_in_native(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm keep_in_native(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
       // Release any previously kept resource
       if (g_native_resource != null) {
@@ -123,10 +123,10 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
 
   // NIF: release_from_native() -> :ok | :error
   // Releases the native-side reference
-  fn erl_nif::ErlNifTerm release_from_native(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm release_from_native(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
       if (g_native_resource == null) {
           return term::make_atom(&e, "error").raw();
@@ -140,10 +140,10 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
 
   // NIF: get_native_value() -> integer | nil
   // Gets value from native-side stored resource
-  fn erl_nif::ErlNifTerm get_native_value(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_native_value(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
       if (g_native_resource == null) {
           return term::make_atom(&e, "nil").raw();
@@ -154,15 +154,15 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
   }
 
   // NIF: get_live_count() -> integer
-  fn erl_nif::ErlNifTerm get_live_count_nif(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_live_count_nif(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
       return term::make_int(&e, g_live_count).raw();
   }
 
   // NIF function table
-  erl_nif::ErlNifFunc[6] nif_funcs = {
+  ErlNifFunc[6] nif_funcs = {
       { .name = "create_tracked", .arity = 1, .fptr = &create_tracked, .flags = 0 },
       { .name = "get_tracked", .arity = 1, .fptr = &get_tracked, .flags = 0 },
       { .name = "keep_in_native", .arity = 1, .fptr = &keep_in_native, .flags = 0 },
@@ -171,9 +171,9 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
       { .name = "get_live_count", .arity = 0, .fptr = &get_live_count_nif, .flags = 0 },
   };
 
-  erl_nif::ErlNifEntry nif_entry;
+  ErlNifEntry nif_entry;
 
-  fn erl_nif::ErlNifEntry* nif_init() @export("nif_init") {
+  fn ErlNifEntry* nif_init() @export("nif_init") {
       nif_entry = c3nif::make_nif_entry(
           "Elixir.C3nif.IntegrationTest.ResourceKeepNif",
           &nif_funcs,

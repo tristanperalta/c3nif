@@ -11,8 +11,8 @@ defmodule C3nif.ParserTest do
       import c3nif;
 
       <* nif: arity = 2 *>
-      fn erl_nif::ErlNifTerm add(
-          erl_nif::ErlNifEnv* env, CInt argc, erl_nif::ErlNifTerm* argv
+      fn ErlNifTerm add(
+          ErlNifEnv* env, CInt argc, ErlNifTerm* argv
       ) {
           return term::make_int(env, 42);
       }
@@ -32,18 +32,18 @@ defmodule C3nif.ParserTest do
       module test;
 
       <* nif: arity = 2 *>
-      fn erl_nif::ErlNifTerm add(
-          erl_nif::ErlNifEnv* env, CInt argc, erl_nif::ErlNifTerm* argv
+      fn ErlNifTerm add(
+          ErlNifEnv* env, CInt argc, ErlNifTerm* argv
       ) { return 0; }
 
       <* nif: arity = 1 *>
-      fn erl_nif::ErlNifTerm negate(
-          erl_nif::ErlNifEnv* env, CInt argc, erl_nif::ErlNifTerm* argv
+      fn ErlNifTerm negate(
+          ErlNifEnv* env, CInt argc, ErlNifTerm* argv
       ) { return 0; }
 
       <* nif: arity = 3 *>
-      fn erl_nif::ErlNifTerm multiply(
-          erl_nif::ErlNifEnv* env, CInt argc, erl_nif::ErlNifTerm* argv
+      fn ErlNifTerm multiply(
+          ErlNifEnv* env, CInt argc, ErlNifTerm* argv
       ) { return 0; }
       """
 
@@ -59,8 +59,8 @@ defmodule C3nif.ParserTest do
       module test;
 
       <* nif: arity = 1, dirty = cpu *>
-      fn erl_nif::ErlNifTerm heavy_compute(
-          erl_nif::ErlNifEnv* env, CInt argc, erl_nif::ErlNifTerm* argv
+      fn ErlNifTerm heavy_compute(
+          ErlNifEnv* env, CInt argc, ErlNifTerm* argv
       ) { return 0; }
       """
 
@@ -75,8 +75,8 @@ defmodule C3nif.ParserTest do
       module test;
 
       <* nif: arity = 1, dirty = io *>
-      fn erl_nif::ErlNifTerm read_file(
-          erl_nif::ErlNifEnv* env, CInt argc, erl_nif::ErlNifTerm* argv
+      fn ErlNifTerm read_file(
+          ErlNifEnv* env, CInt argc, ErlNifTerm* argv
       ) { return 0; }
       """
 
@@ -90,8 +90,8 @@ defmodule C3nif.ParserTest do
       module test;
 
       <* nif: name = "custom_name", arity = 2 *>
-      fn erl_nif::ErlNifTerm internal_impl(
-          erl_nif::ErlNifEnv* env, CInt argc, erl_nif::ErlNifTerm* argv
+      fn ErlNifTerm internal_impl(
+          ErlNifEnv* env, CInt argc, ErlNifTerm* argv
       ) { return 0; }
       """
 
@@ -106,8 +106,8 @@ defmodule C3nif.ParserTest do
       module test;
 
       <* nif: name = "compute", arity = 3, dirty = cpu *>
-      fn erl_nif::ErlNifTerm internal_compute(
-          erl_nif::ErlNifEnv* env, CInt argc, erl_nif::ErlNifTerm* argv
+      fn ErlNifTerm internal_compute(
+          ErlNifEnv* env, CInt argc, ErlNifTerm* argv
       ) { return 0; }
       """
 
@@ -124,13 +124,13 @@ defmodule C3nif.ParserTest do
       module test;
 
       // This function has NIF signature but no annotation
-      fn erl_nif::ErlNifTerm helper(
-          erl_nif::ErlNifEnv* env, CInt argc, erl_nif::ErlNifTerm* argv
+      fn ErlNifTerm helper(
+          ErlNifEnv* env, CInt argc, ErlNifTerm* argv
       ) { return 0; }
 
       <* nif: arity = 1 *>
-      fn erl_nif::ErlNifTerm exported(
-          erl_nif::ErlNifEnv* env, CInt argc, erl_nif::ErlNifTerm* argv
+      fn ErlNifTerm exported(
+          ErlNifEnv* env, CInt argc, ErlNifTerm* argv
       ) { return 0; }
       """
 
@@ -147,8 +147,8 @@ defmodule C3nif.ParserTest do
       <* nif: arity = 1 *>
 
       // Some other comment in between
-      fn erl_nif::ErlNifTerm func(
-          erl_nif::ErlNifEnv* env, CInt argc, erl_nif::ErlNifTerm* argv
+      fn ErlNifTerm func(
+          ErlNifEnv* env, CInt argc, ErlNifTerm* argv
       ) { return 0; }
       """
 
@@ -170,8 +170,8 @@ defmodule C3nif.ParserTest do
        * nif: arity = 2
        * It adds two numbers.
        *>
-      fn erl_nif::ErlNifTerm add(
-          erl_nif::ErlNifEnv* env, CInt argc, erl_nif::ErlNifTerm* argv
+      fn ErlNifTerm add(
+          ErlNifEnv* env, CInt argc, ErlNifTerm* argv
       ) { return 0; }
       """
 
@@ -200,7 +200,7 @@ defmodule C3nif.ParserTest do
       c3_source = """
       module test;
 
-      fn CInt on_load(erl_nif::ErlNifEnv* env, void** priv, erl_nif::ErlNifTerm load_info) {
+      fn CInt on_load(ErlNifEnv* env, void** priv, ErlNifTerm load_info) {
           return 0;
       }
       """
@@ -214,7 +214,7 @@ defmodule C3nif.ParserTest do
       c3_source = """
       module test;
 
-      fn void on_unload(erl_nif::ErlNifEnv* env, void* priv) {
+      fn void on_unload(ErlNifEnv* env, void* priv) {
           // cleanup
       }
       """
@@ -228,11 +228,11 @@ defmodule C3nif.ParserTest do
       c3_source = """
       module test;
 
-      fn CInt on_load(erl_nif::ErlNifEnv* env, void** priv, erl_nif::ErlNifTerm load_info) {
+      fn CInt on_load(ErlNifEnv* env, void** priv, ErlNifTerm load_info) {
           return 0;
       }
 
-      fn void on_unload(erl_nif::ErlNifEnv* env, void* priv) {
+      fn void on_unload(ErlNifEnv* env, void* priv) {
           // cleanup
       }
       """
@@ -263,11 +263,11 @@ defmodule C3nif.ParserTest do
       module test;
 
       <* nif: arity = 2 *>
-      fn erl_nif::ErlNifTerm add(
-          erl_nif::ErlNifEnv* env, CInt argc, erl_nif::ErlNifTerm* argv
+      fn ErlNifTerm add(
+          ErlNifEnv* env, CInt argc, ErlNifTerm* argv
       ) { return 0; }
 
-      fn CInt on_load(erl_nif::ErlNifEnv* env, void** priv, erl_nif::ErlNifTerm load_info) {
+      fn CInt on_load(ErlNifEnv* env, void** priv, ErlNifTerm load_info) {
           return 0;
       }
       """

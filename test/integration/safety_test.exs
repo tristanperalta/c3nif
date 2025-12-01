@@ -49,12 +49,12 @@ defmodule C3nif.IntegrationTest.SafetyTest do
   // =============================================================================
 
   // NIF: get_int(value) -> {:ok, value} | {:error, :badarg}
-  fn erl_nif::ErlNifTerm get_int(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_int(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
-      term::Term? arg = safety::get_arg(argv, argc, 0);
+      Term? arg = safety::get_arg(argv, argc, 0);
       if (catch err = arg) {
           return safety::make_badarg_error(&e).raw();
       }
@@ -72,17 +72,17 @@ defmodule C3nif.IntegrationTest.SafetyTest do
   // =============================================================================
 
   // NIF: get_two_ints(a, b) -> {:ok, sum} | {:error, :badarg}
-  fn erl_nif::ErlNifTerm get_two_ints(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_two_ints(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
-      term::Term? arg0 = safety::get_arg(argv, argc, 0);
+      Term? arg0 = safety::get_arg(argv, argc, 0);
       if (catch err = arg0) {
           return safety::make_badarg_error(&e).raw();
       }
 
-      term::Term? arg1 = safety::get_arg(argv, argc, 1);
+      Term? arg1 = safety::get_arg(argv, argc, 1);
       if (catch err = arg1) {
           return safety::make_badarg_error(&e).raw();
       }
@@ -105,12 +105,12 @@ defmodule C3nif.IntegrationTest.SafetyTest do
   // =============================================================================
 
   // NIF: require_positive(value) -> {:ok, value} | {:error, :badarg}
-  fn erl_nif::ErlNifTerm require_positive(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm require_positive(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
-      term::Term? arg = safety::get_arg(argv, argc, 0);
+      Term? arg = safety::get_arg(argv, argc, 0);
       if (catch err = arg) {
           return safety::make_badarg_error(&e).raw();
       }
@@ -124,22 +124,22 @@ defmodule C3nif.IntegrationTest.SafetyTest do
   }
 
   // NIF: require_range(value, min, max) -> {:ok, value} | {:error, :badarg}
-  fn erl_nif::ErlNifTerm require_range(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm require_range(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
-      term::Term? arg = safety::get_arg(argv, argc, 0);
+      Term? arg = safety::get_arg(argv, argc, 0);
       if (catch err = arg) {
           return safety::make_badarg_error(&e).raw();
       }
 
-      term::Term? min_arg = safety::get_arg(argv, argc, 1);
+      Term? min_arg = safety::get_arg(argv, argc, 1);
       if (catch err = min_arg) {
           return safety::make_badarg_error(&e).raw();
       }
 
-      term::Term? max_arg = safety::get_arg(argv, argc, 2);
+      Term? max_arg = safety::get_arg(argv, argc, 2);
       if (catch err = max_arg) {
           return safety::make_badarg_error(&e).raw();
       }
@@ -169,17 +169,17 @@ defmodule C3nif.IntegrationTest.SafetyTest do
   faultdef DIVIDE_BY_ZERO;
 
   // NIF: safe_divide(a, b) -> {:ok, result} | {:error, :badarg} | {:error, :divide_by_zero}
-  fn erl_nif::ErlNifTerm safe_divide(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm safe_divide(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
-      term::Term? arg0 = safety::get_arg(argv, argc, 0);
+      Term? arg0 = safety::get_arg(argv, argc, 0);
       if (catch err = arg0) {
           return safety::make_badarg_error(&e).raw();
       }
 
-      term::Term? arg1 = safety::get_arg(argv, argc, 1);
+      Term? arg1 = safety::get_arg(argv, argc, 1);
       if (catch err = arg1) {
           return safety::make_badarg_error(&e).raw();
       }
@@ -213,12 +213,12 @@ defmodule C3nif.IntegrationTest.SafetyTest do
   }
 
   // NIF: nested_faults(value) -> {:ok, doubled} | {:error, :badarg} | {:error, :overflow}
-  fn erl_nif::ErlNifTerm nested_faults(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm nested_faults(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
-      term::Term? arg = safety::get_arg(argv, argc, 0);
+      Term? arg = safety::get_arg(argv, argc, 0);
       if (catch err = arg) {
           return safety::make_badarg_error(&e).raw();
       }
@@ -244,12 +244,12 @@ defmodule C3nif.IntegrationTest.SafetyTest do
   // =============================================================================
 
   // NIF: require_atom_test(value) -> :ok | {:error, :badarg}
-  fn erl_nif::ErlNifTerm require_atom_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm require_atom_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
-      term::Term? arg = safety::get_arg(argv, argc, 0);
+      Term? arg = safety::get_arg(argv, argc, 0);
       if (catch err = arg) {
           return safety::make_badarg_error(&e).raw();
       }
@@ -262,12 +262,12 @@ defmodule C3nif.IntegrationTest.SafetyTest do
   }
 
   // NIF: require_list_test(value) -> :ok | {:error, :badarg}
-  fn erl_nif::ErlNifTerm require_list_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm require_list_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
-      term::Term? arg = safety::get_arg(argv, argc, 0);
+      Term? arg = safety::get_arg(argv, argc, 0);
       if (catch err = arg) {
           return safety::make_badarg_error(&e).raw();
       }
@@ -283,7 +283,7 @@ defmodule C3nif.IntegrationTest.SafetyTest do
   // NIF Entry
   // =============================================================================
 
-  erl_nif::ErlNifFunc[8] nif_funcs = {
+  ErlNifFunc[8] nif_funcs = {
       { .name = "get_int", .arity = 1, .fptr = &get_int, .flags = 0 },
       { .name = "get_two_ints", .arity = 2, .fptr = &get_two_ints, .flags = 0 },
       { .name = "require_positive", .arity = 1, .fptr = &require_positive, .flags = 0 },
@@ -294,9 +294,9 @@ defmodule C3nif.IntegrationTest.SafetyTest do
       { .name = "require_list_test", .arity = 1, .fptr = &require_list_test, .flags = 0 },
   };
 
-  erl_nif::ErlNifEntry nif_entry;
+  ErlNifEntry nif_entry;
 
-  fn erl_nif::ErlNifEntry* nif_init() @export("nif_init") {
+  fn ErlNifEntry* nif_init() @export("nif_init") {
       nif_entry = c3nif::make_nif_entry(
           "Elixir.C3nif.IntegrationTest.SafetyNif",
           &nif_funcs,

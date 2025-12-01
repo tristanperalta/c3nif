@@ -36,14 +36,14 @@ defmodule C3nif.IntegrationTest.CodegenTest do
   import c3nif::term;
 
   <* nif: arity = 2 *>
-  fn erl_nif::ErlNifTerm add(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm add(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(raw_env);
-      term::Term arg0 = term::wrap(argv[0]);
-      term::Term arg1 = term::wrap(argv[1]);
+      Env e = env::wrap(raw_env);
+      Term arg0 = term::wrap(argv[0]);
+      Term arg1 = term::wrap(argv[1]);
 
       int? val0 = arg0.get_int(&e);
       if (catch err = val0) {
@@ -59,10 +59,10 @@ defmodule C3nif.IntegrationTest.CodegenTest do
   }
 
   <* nif: name = "custom_name", arity = 1 *>
-  fn erl_nif::ErlNifTerm internal_echo(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm internal_echo(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
       return argv[0];
   }
@@ -158,18 +158,18 @@ defmodule C3nif.IntegrationTest.CodegenWithCallbackTest do
   int load_counter = 0;
 
   // on_load callback - should be auto-detected by function name
-  fn CInt on_load(erl_nif::ErlNifEnv* raw_env, void** priv, erl_nif::ErlNifTerm load_info) {
+  fn CInt on_load(ErlNifEnv* raw_env, void** priv, ErlNifTerm load_info) {
       load_counter = 42;
       return 0;
   }
 
   <* nif: arity = 0 *>
-  fn erl_nif::ErlNifTerm get_counter(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm get_counter(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(raw_env);
+      Env e = env::wrap(raw_env);
       return term::make_int(&e, load_counter).raw();
   }
   """
@@ -248,40 +248,40 @@ defmodule C3nif.IntegrationTest.CodegenDirtySchedulerTest do
   import c3nif::scheduler;
 
   <* nif: arity = 0, dirty = cpu *>
-  fn erl_nif::ErlNifTerm dirty_cpu_annotated(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm dirty_cpu_annotated(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(raw_env);
-      scheduler::ThreadType t = scheduler::current_thread_type();
+      Env e = env::wrap(raw_env);
+      ThreadType t = scheduler::current_thread_type();
 
       char* thread_name;
       switch (t) {
-          case scheduler::ThreadType.DIRTY_CPU: thread_name = "dirty_cpu";
-          case scheduler::ThreadType.DIRTY_IO: thread_name = "dirty_io";
-          case scheduler::ThreadType.NORMAL: thread_name = "normal";
-          case scheduler::ThreadType.UNDEFINED: thread_name = "undefined";
+          case ThreadType.DIRTY_CPU: thread_name = "dirty_cpu";
+          case ThreadType.DIRTY_IO: thread_name = "dirty_io";
+          case ThreadType.NORMAL: thread_name = "normal";
+          case ThreadType.UNDEFINED: thread_name = "undefined";
       }
 
       return term::make_ok_tuple(&e, term::make_atom(&e, thread_name)).raw();
   }
 
   <* nif: arity = 0, dirty = io *>
-  fn erl_nif::ErlNifTerm dirty_io_annotated(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm dirty_io_annotated(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(raw_env);
-      scheduler::ThreadType t = scheduler::current_thread_type();
+      Env e = env::wrap(raw_env);
+      ThreadType t = scheduler::current_thread_type();
 
       char* thread_name;
       switch (t) {
-          case scheduler::ThreadType.DIRTY_CPU: thread_name = "dirty_cpu";
-          case scheduler::ThreadType.DIRTY_IO: thread_name = "dirty_io";
-          case scheduler::ThreadType.NORMAL: thread_name = "normal";
-          case scheduler::ThreadType.UNDEFINED: thread_name = "undefined";
+          case ThreadType.DIRTY_CPU: thread_name = "dirty_cpu";
+          case ThreadType.DIRTY_IO: thread_name = "dirty_io";
+          case ThreadType.NORMAL: thread_name = "normal";
+          case ThreadType.UNDEFINED: thread_name = "undefined";
       }
 
       return term::make_ok_tuple(&e, term::make_atom(&e, thread_name)).raw();

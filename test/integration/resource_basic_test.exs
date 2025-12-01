@@ -44,13 +44,13 @@ defmodule C3nif.IntegrationTest.ResourceBasicTest do
   int g_resource_count;
 
   // Destructor callback - decrements resource count
-  fn void counter_dtor(erl_nif::ErlNifEnv* env_raw, void* obj) {
+  fn void counter_dtor(ErlNifEnv* env_raw, void* obj) {
       g_resource_count--;
   }
 
   // on_load: register resource type
-  fn CInt on_load(erl_nif::ErlNifEnv* env_raw, void** priv, erl_nif::ErlNifTerm load_info) {
-      env::Env e = env::wrap(env_raw);
+  fn CInt on_load(ErlNifEnv* env_raw, void** priv, ErlNifTerm load_info) {
+      Env e = env::wrap(env_raw);
       if (catch err = resource::register_type(&e, "Counter", &counter_dtor)) {
           return 1;
       }
@@ -58,11 +58,11 @@ defmodule C3nif.IntegrationTest.ResourceBasicTest do
   }
 
   // NIF: create_counter(initial_value) -> resource
-  fn erl_nif::ErlNifTerm create_counter(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm create_counter(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
       int? initial = arg.get_int(&e);
       if (catch err = initial) {
@@ -74,17 +74,17 @@ defmodule C3nif.IntegrationTest.ResourceBasicTest do
       counter.value = initial;
       g_resource_count++;  // Track allocation
 
-      term::Term t = resource::make_term(&e, ptr);
+      Term t = resource::make_term(&e, ptr);
       resource::release(ptr);  // Term now owns the reference
       return t.raw();
   }
 
   // NIF: get_counter(resource) -> integer
-  fn erl_nif::ErlNifTerm get_counter(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_counter(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
       void* ptr = resource::get("Counter", &e, arg)!!;
       Counter* counter = (Counter*)ptr;
@@ -93,11 +93,11 @@ defmodule C3nif.IntegrationTest.ResourceBasicTest do
   }
 
   // NIF: increment_counter(resource) -> :ok
-  fn erl_nif::ErlNifTerm increment_counter(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm increment_counter(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
       void* ptr = resource::get("Counter", &e, arg)!!;
       Counter* counter = (Counter*)ptr;
@@ -107,24 +107,24 @@ defmodule C3nif.IntegrationTest.ResourceBasicTest do
   }
 
   // NIF: get_resource_count() -> integer (for verifying destructor calls)
-  fn erl_nif::ErlNifTerm get_resource_count_nif(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_resource_count_nif(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
       return term::make_int(&e, g_resource_count).raw();
   }
 
   // NIF function table
-  erl_nif::ErlNifFunc[4] nif_funcs = {
+  ErlNifFunc[4] nif_funcs = {
       { .name = "create_counter", .arity = 1, .fptr = &create_counter, .flags = 0 },
       { .name = "get_counter", .arity = 1, .fptr = &get_counter, .flags = 0 },
       { .name = "increment_counter", .arity = 1, .fptr = &increment_counter, .flags = 0 },
       { .name = "get_resource_count", .arity = 0, .fptr = &get_resource_count_nif, .flags = 0 },
   };
 
-  erl_nif::ErlNifEntry nif_entry;
+  ErlNifEntry nif_entry;
 
-  fn erl_nif::ErlNifEntry* nif_init() @export("nif_init") {
+  fn ErlNifEntry* nif_init() @export("nif_init") {
       nif_entry = c3nif::make_nif_entry(
           "Elixir.C3nif.IntegrationTest.ResourceBasicNif",
           &nif_funcs,

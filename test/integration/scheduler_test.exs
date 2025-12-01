@@ -55,30 +55,30 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
   // =============================================================================
 
   // NIF: get_thread_type() -> :undefined | :normal | :dirty_cpu | :dirty_io
-  fn erl_nif::ErlNifTerm get_thread_type(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_thread_type(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
-      scheduler::ThreadType t = scheduler::current_thread_type();
+      ThreadType t = scheduler::current_thread_type();
       // C3 switch is exhaustive for enums - no fall-through, implicit break
       switch (t) {
-          case scheduler::ThreadType.UNDEFINED:
+          case ThreadType.UNDEFINED:
               return term::make_atom(&e, "undefined").raw();
-          case scheduler::ThreadType.NORMAL:
+          case ThreadType.NORMAL:
               return term::make_atom(&e, "normal").raw();
-          case scheduler::ThreadType.DIRTY_CPU:
+          case ThreadType.DIRTY_CPU:
               return term::make_atom(&e, "dirty_cpu").raw();
-          case scheduler::ThreadType.DIRTY_IO:
+          case ThreadType.DIRTY_IO:
               return term::make_atom(&e, "dirty_io").raw();
       }
   }
 
   // NIF: is_dirty_scheduler() -> boolean
-  fn erl_nif::ErlNifTerm is_dirty_scheduler(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm is_dirty_scheduler(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
       bool is_dirty = scheduler::is_dirty_scheduler();
       if (is_dirty) {
           return term::make_atom(&e, "true").raw();
@@ -87,10 +87,10 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
   }
 
   // NIF: is_normal_scheduler() -> boolean
-  fn erl_nif::ErlNifTerm is_normal_scheduler(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm is_normal_scheduler(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
       bool is_normal = scheduler::is_normal_scheduler();
       if (is_normal) {
           return term::make_atom(&e, "true").raw();
@@ -103,10 +103,10 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
   // =============================================================================
 
   // NIF: is_process_alive() -> boolean
-  fn erl_nif::ErlNifTerm is_process_alive(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm is_process_alive(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
       bool alive = scheduler::is_process_alive(&e);
       if (alive) {
           return term::make_atom(&e, "true").raw();
@@ -119,12 +119,12 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
   // =============================================================================
 
   // NIF: consume_timeslice(percent) -> :continue | :yield
-  fn erl_nif::ErlNifTerm consume_timeslice(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm consume_timeslice(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
-      term::Term? arg = c3nif::get_arg(argv, argc, 0);
+      Term? arg = c3nif::get_arg(argv, argc, 0);
       if (catch err = arg) {
           return c3nif::make_badarg_error(&e).raw();
       }
@@ -147,20 +147,20 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
 
   // NIF: dirty_cpu_work() -> {:ok, :dirty_cpu}
   // Declared with ERL_NIF_DIRTY_JOB_CPU_BOUND flag
-  fn erl_nif::ErlNifTerm dirty_cpu_work(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm dirty_cpu_work(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
       // Verify we're on a dirty CPU scheduler
-      scheduler::ThreadType t = scheduler::current_thread_type();
+      ThreadType t = scheduler::current_thread_type();
       char* thread_name;
       // C3 switch assigns to variable - no fall-through
       switch (t) {
-          case scheduler::ThreadType.DIRTY_CPU: thread_name = "dirty_cpu";
-          case scheduler::ThreadType.DIRTY_IO: thread_name = "dirty_io";
-          case scheduler::ThreadType.NORMAL: thread_name = "normal";
-          case scheduler::ThreadType.UNDEFINED: thread_name = "undefined";
+          case ThreadType.DIRTY_CPU: thread_name = "dirty_cpu";
+          case ThreadType.DIRTY_IO: thread_name = "dirty_io";
+          case ThreadType.NORMAL: thread_name = "normal";
+          case ThreadType.UNDEFINED: thread_name = "undefined";
       }
 
       return term::make_ok_tuple(&e, term::make_atom(&e, thread_name)).raw();
@@ -168,19 +168,19 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
 
   // NIF: dirty_io_work() -> {:ok, :dirty_io}
   // Declared with ERL_NIF_DIRTY_JOB_IO_BOUND flag
-  fn erl_nif::ErlNifTerm dirty_io_work(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm dirty_io_work(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
 
       // Verify we're on a dirty IO scheduler
-      scheduler::ThreadType t = scheduler::current_thread_type();
+      ThreadType t = scheduler::current_thread_type();
       char* thread_name;
       switch (t) {
-          case scheduler::ThreadType.DIRTY_CPU: thread_name = "dirty_cpu";
-          case scheduler::ThreadType.DIRTY_IO: thread_name = "dirty_io";
-          case scheduler::ThreadType.NORMAL: thread_name = "normal";
-          case scheduler::ThreadType.UNDEFINED: thread_name = "undefined";
+          case ThreadType.DIRTY_CPU: thread_name = "dirty_cpu";
+          case ThreadType.DIRTY_IO: thread_name = "dirty_io";
+          case ThreadType.NORMAL: thread_name = "normal";
+          case ThreadType.UNDEFINED: thread_name = "undefined";
       }
 
       return term::make_ok_tuple(&e, term::make_atom(&e, thread_name)).raw();
@@ -191,68 +191,68 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
   // =============================================================================
 
   // Helper: actual CPU work after scheduling
-  fn erl_nif::ErlNifTerm do_cpu_work(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm do_cpu_work(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      scheduler::ThreadType t = scheduler::current_thread_type();
+      Env e = env::wrap(env_raw);
+      ThreadType t = scheduler::current_thread_type();
 
-      if (t == scheduler::ThreadType.DIRTY_CPU) {
+      if (t == ThreadType.DIRTY_CPU) {
           return term::make_ok_tuple(&e, term::make_atom(&e, "dirty_cpu")).raw();
       }
       return term::make_error_atom(&e, "wrong_scheduler").raw();
   }
 
   // Helper: actual IO work after scheduling
-  fn erl_nif::ErlNifTerm do_io_work(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm do_io_work(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      scheduler::ThreadType t = scheduler::current_thread_type();
+      Env e = env::wrap(env_raw);
+      ThreadType t = scheduler::current_thread_type();
 
-      if (t == scheduler::ThreadType.DIRTY_IO) {
+      if (t == ThreadType.DIRTY_IO) {
           return term::make_ok_tuple(&e, term::make_atom(&e, "dirty_io")).raw();
       }
       return term::make_error_atom(&e, "wrong_scheduler").raw();
   }
 
   // NIF: dispatch_to_dirty_cpu() -> {:ok, :dirty_cpu}
-  fn erl_nif::ErlNifTerm dispatch_to_dirty_cpu(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm dispatch_to_dirty_cpu(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
       return scheduler::schedule_dirty_cpu(&e, "do_cpu_work", &do_cpu_work, 0, null).raw();
   }
 
   // NIF: dispatch_to_dirty_io() -> {:ok, :dirty_io}
-  fn erl_nif::ErlNifTerm dispatch_to_dirty_io(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm dispatch_to_dirty_io(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
       return scheduler::schedule_dirty_io(&e, "do_io_work", &do_io_work, 0, null).raw();
   }
 
   // Helper: run on normal after dirty
-  fn erl_nif::ErlNifTerm finish_on_normal(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm finish_on_normal(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      scheduler::ThreadType t = scheduler::current_thread_type();
+      Env e = env::wrap(env_raw);
+      ThreadType t = scheduler::current_thread_type();
 
-      if (t == scheduler::ThreadType.NORMAL) {
+      if (t == ThreadType.NORMAL) {
           return term::make_ok_tuple(&e, term::make_atom(&e, "back_to_normal")).raw();
       }
       return term::make_error_atom(&e, "still_dirty").raw();
   }
 
   // Helper: work on dirty, then schedule back to normal
-  fn erl_nif::ErlNifTerm dirty_work_then_normal(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm dirty_work_then_normal(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      scheduler::ThreadType t = scheduler::current_thread_type();
+      Env e = env::wrap(env_raw);
+      ThreadType t = scheduler::current_thread_type();
 
-      if (t != scheduler::ThreadType.DIRTY_CPU) {
+      if (t != ThreadType.DIRTY_CPU) {
           return term::make_error_atom(&e, "not_on_dirty").raw();
       }
 
@@ -261,10 +261,10 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
   }
 
   // NIF: dirty_then_normal() -> {:ok, :back_to_normal}
-  fn erl_nif::ErlNifTerm dirty_then_normal(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm dirty_then_normal(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
       // First schedule to dirty CPU
       return scheduler::schedule_dirty_cpu(&e, "dirty_work_then_normal", &dirty_work_then_normal, 0, null).raw();
   }
@@ -273,7 +273,7 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
   // NIF Entry
   // =============================================================================
 
-  erl_nif::ErlNifFunc[10] nif_funcs = {
+  ErlNifFunc[10] nif_funcs = {
       { .name = "get_thread_type", .arity = 0, .fptr = &get_thread_type, .flags = 0 },
       { .name = "is_dirty_scheduler", .arity = 0, .fptr = &is_dirty_scheduler, .flags = 0 },
       { .name = "is_normal_scheduler", .arity = 0, .fptr = &is_normal_scheduler, .flags = 0 },
@@ -286,9 +286,9 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
       { .name = "dirty_then_normal", .arity = 0, .fptr = &dirty_then_normal, .flags = 0 },
   };
 
-  erl_nif::ErlNifEntry nif_entry;
+  ErlNifEntry nif_entry;
 
-  fn erl_nif::ErlNifEntry* nif_init() @export("nif_init") {
+  fn ErlNifEntry* nif_init() @export("nif_init") {
       nif_entry = c3nif::make_nif_entry(
           "Elixir.C3nif.IntegrationTest.SchedulerNif",
           &nif_funcs,

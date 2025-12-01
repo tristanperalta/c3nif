@@ -81,14 +81,14 @@ defmodule C3nif.IntegrationTest.TermTest do
   /**
    * Returns a map with all type check results for the given term.
    */
-  fn erl_nif::ErlNifTerm type_checks(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm type_checks(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term t = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term t = term::wrap(argv[0]);
 
       // Build a map with all type check results
-      term::Term map = term::make_new_map(&e);
+      Term map = term::make_new_map(&e);
 
       // Add each type check result
       map = map.map_put(&e, term::make_atom(&e, "is_atom"), make_bool(&e, t.is_atom(&e)))!!;
@@ -112,7 +112,7 @@ defmodule C3nif.IntegrationTest.TermTest do
       return map.raw();
   }
 
-  fn term::Term make_bool(env::Env* e, bool value) {
+  fn Term make_bool(Env* e, bool value) {
       if (value) {
           return term::make_atom(e, "true");
       } else {
@@ -144,12 +144,12 @@ defmodule C3nif.IntegrationTest.TermTest do
   /**
    * Test term equality using == operator.
    */
-  fn erl_nif::ErlNifTerm term_equals(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm term_equals(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term a = term::wrap(argv[0]);
-      term::Term b = term::wrap(argv[1]);
+      Env e = env::wrap(env_raw);
+      Term a = term::wrap(argv[0]);
+      Term b = term::wrap(argv[1]);
 
       if (a == b) {
           return term::make_atom(&e, "true").raw();
@@ -161,12 +161,12 @@ defmodule C3nif.IntegrationTest.TermTest do
   /**
    * Test term comparison for ordering.
    */
-  fn erl_nif::ErlNifTerm term_compare(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm term_compare(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term a = term::wrap(argv[0]);
-      term::Term b = term::wrap(argv[1]);
+      Env e = env::wrap(env_raw);
+      Term a = term::wrap(argv[0]);
+      Term b = term::wrap(argv[1]);
 
       int cmp = a.compare_to(b);
       if (cmp < 0) {
@@ -182,11 +182,11 @@ defmodule C3nif.IntegrationTest.TermTest do
   // Integer Tests
   // =============================================================================
 
-  fn erl_nif::ErlNifTerm get_uint_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_uint_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term t = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term t = term::wrap(argv[0]);
 
       uint? value = t.get_uint(&e);
       if (catch err = value) {
@@ -195,11 +195,11 @@ defmodule C3nif.IntegrationTest.TermTest do
       return term::make_ok_tuple(&e, term::make_uint(&e, value)).raw();
   }
 
-  fn erl_nif::ErlNifTerm get_long_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_long_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term t = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term t = term::wrap(argv[0]);
 
       long? value = t.get_long(&e);
       if (catch err = value) {
@@ -208,11 +208,11 @@ defmodule C3nif.IntegrationTest.TermTest do
       return term::make_ok_tuple(&e, term::make_long(&e, value)).raw();
   }
 
-  fn erl_nif::ErlNifTerm get_ulong_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_ulong_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term t = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term t = term::wrap(argv[0]);
 
       ulong? value = t.get_ulong(&e);
       if (catch err = value) {
@@ -221,11 +221,11 @@ defmodule C3nif.IntegrationTest.TermTest do
       return term::make_ok_tuple(&e, term::make_ulong(&e, value)).raw();
   }
 
-  fn erl_nif::ErlNifTerm make_ulong_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm make_ulong_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term t = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term t = term::wrap(argv[0]);
 
       ulong? value = t.get_ulong(&e);
       if (catch err = value) {
@@ -243,14 +243,14 @@ defmodule C3nif.IntegrationTest.TermTest do
    * Create atom from binary with explicit length.
    * Takes a binary and length, creates atom from first N bytes.
    */
-  fn erl_nif::ErlNifTerm make_atom_len_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm make_atom_len_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term bin_term = term::wrap(argv[0]);
-      term::Term len_term = term::wrap(argv[1]);
+      Env e = env::wrap(env_raw);
+      Term bin_term = term::wrap(argv[0]);
+      Term len_term = term::wrap(argv[1]);
 
-      erl_nif::ErlNifBinary? bin = bin_term.inspect_binary(&e);
+      ErlNifBinary? bin = bin_term.inspect_binary(&e);
       if (catch err = bin) {
           return term::make_error_atom(&e, "badarg").raw();
       }
@@ -266,13 +266,13 @@ defmodule C3nif.IntegrationTest.TermTest do
   /**
    * Test make_existing_atom - only creates if atom already exists.
    */
-  fn erl_nif::ErlNifTerm make_existing_atom_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm make_existing_atom_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term bin_term = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term bin_term = term::wrap(argv[0]);
 
-      erl_nif::ErlNifBinary? bin = bin_term.inspect_binary(&e);
+      ErlNifBinary? bin = bin_term.inspect_binary(&e);
       if (catch err = bin) {
           return term::make_error_atom(&e, "badarg").raw();
       }
@@ -289,7 +289,7 @@ defmodule C3nif.IntegrationTest.TermTest do
       }
       buf[bin.size] = 0;
 
-      term::Term? atom = term::make_existing_atom(&e, &buf);
+      Term? atom = term::make_existing_atom(&e, &buf);
       if (catch err = atom) {
           return term::make_error_atom(&e, "not_found").raw();
       }
@@ -299,11 +299,11 @@ defmodule C3nif.IntegrationTest.TermTest do
   /**
    * Get the length of an atom's name.
    */
-  fn erl_nif::ErlNifTerm get_atom_length_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_atom_length_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term t = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term t = term::wrap(argv[0]);
 
       uint? len = t.get_atom_length(&e);
       if (catch err = len) {
@@ -319,13 +319,13 @@ defmodule C3nif.IntegrationTest.TermTest do
   /**
    * Create a charlist from a binary.
    */
-  fn erl_nif::ErlNifTerm make_string_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm make_string_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term bin_term = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term bin_term = term::wrap(argv[0]);
 
-      erl_nif::ErlNifBinary? bin = bin_term.inspect_binary(&e);
+      ErlNifBinary? bin = bin_term.inspect_binary(&e);
       if (catch err = bin) {
           return term::make_error_atom(&e, "badarg").raw();
       }
@@ -347,14 +347,14 @@ defmodule C3nif.IntegrationTest.TermTest do
   /**
    * Create a charlist from a binary with explicit length.
    */
-  fn erl_nif::ErlNifTerm make_string_len_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm make_string_len_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term bin_term = term::wrap(argv[0]);
-      term::Term len_term = term::wrap(argv[1]);
+      Env e = env::wrap(env_raw);
+      Term bin_term = term::wrap(argv[0]);
+      Term len_term = term::wrap(argv[1]);
 
-      erl_nif::ErlNifBinary? bin = bin_term.inspect_binary(&e);
+      ErlNifBinary? bin = bin_term.inspect_binary(&e);
       if (catch err = bin) {
           return term::make_error_atom(&e, "badarg").raw();
       }
@@ -374,22 +374,22 @@ defmodule C3nif.IntegrationTest.TermTest do
   /**
    * Create an empty list.
    */
-  fn erl_nif::ErlNifTerm make_empty_list_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm make_empty_list_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
       return term::make_empty_list(&e).raw();
   }
 
   /**
    * Create a list cell [head | tail].
    */
-  fn erl_nif::ErlNifTerm list_cell_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm list_cell_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term head = term::wrap(argv[0]);
-      term::Term tail = term::wrap(argv[1]);
+      Env e = env::wrap(env_raw);
+      Term head = term::wrap(argv[0]);
+      Term tail = term::wrap(argv[1]);
 
       return term::make_list_cell(&e, head, tail).raw();
   }
@@ -397,31 +397,31 @@ defmodule C3nif.IntegrationTest.TermTest do
   /**
    * Get the head and tail of a list.
    */
-  fn erl_nif::ErlNifTerm get_list_cell_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_list_cell_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term list = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term list = term::wrap(argv[0]);
 
-      term::Term head;
-      term::Term tail;
+      Term head;
+      Term tail;
       if (catch err = list.get_list_cell(&e, &head, &tail)) {
           return term::make_error_atom(&e, "badarg").raw();
       }
 
       // Return {head, tail}
-      erl_nif::ErlNifTerm[2] elements = { head.raw(), tail.raw() };
+      ErlNifTerm[2] elements = { head.raw(), tail.raw() };
       return term::make_tuple_from_array(&e, elements[0:2]).raw();
   }
 
   /**
    * Get the length of a list.
    */
-  fn erl_nif::ErlNifTerm get_list_length_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_list_length_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term list = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term list = term::wrap(argv[0]);
 
       uint? len = list.get_list_length(&e);
       if (catch err = len) {
@@ -433,11 +433,11 @@ defmodule C3nif.IntegrationTest.TermTest do
   /**
    * Create a list from an array of integers [1, 2, 3, ..., count].
    */
-  fn erl_nif::ErlNifTerm make_list_from_array_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm make_list_from_array_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term count_term = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term count_term = term::wrap(argv[0]);
 
       int? count = count_term.get_int(&e);
       if (catch err = count) {
@@ -449,7 +449,7 @@ defmodule C3nif.IntegrationTest.TermTest do
       }
 
       // Build array of terms
-      erl_nif::ErlNifTerm[100] arr;
+      ErlNifTerm[100] arr;
       for (int i = 0; i < count; i++) {
           arr[i] = term::make_int(&e, i + 1).raw();
       }
@@ -464,20 +464,20 @@ defmodule C3nif.IntegrationTest.TermTest do
   /**
    * Get tuple elements as a list.
    */
-  fn erl_nif::ErlNifTerm get_tuple_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_tuple_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term tuple = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term tuple = term::wrap(argv[0]);
 
-      erl_nif::ErlNifTerm* elements;
+      ErlNifTerm* elements;
       int? arity = tuple.get_tuple(&e, &elements);
       if (catch err = arity) {
           return term::make_error_atom(&e, "badarg").raw();
       }
 
       // Convert to list
-      term::Term list = term::make_empty_list(&e);
+      Term list = term::make_empty_list(&e);
       // Build list in reverse order
       for (int i = arity - 1; i >= 0; i--) {
           list = term::make_list_cell(&e, term::wrap(elements[i]), list);
@@ -493,25 +493,25 @@ defmodule C3nif.IntegrationTest.TermTest do
   /**
    * Create an empty map.
    */
-  fn erl_nif::ErlNifTerm make_empty_map_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm make_empty_map_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
       return term::make_new_map(&e).raw();
   }
 
   /**
    * Put a key-value pair into a map.
    */
-  fn erl_nif::ErlNifTerm map_put_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm map_put_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term map = term::wrap(argv[0]);
-      term::Term key = term::wrap(argv[1]);
-      term::Term value = term::wrap(argv[2]);
+      Env e = env::wrap(env_raw);
+      Term map = term::wrap(argv[0]);
+      Term key = term::wrap(argv[1]);
+      Term value = term::wrap(argv[2]);
 
-      term::Term? new_map = map.map_put(&e, key, value);
+      Term? new_map = map.map_put(&e, key, value);
       if (catch err = new_map) {
           return term::make_error_atom(&e, "badarg").raw();
       }
@@ -521,14 +521,14 @@ defmodule C3nif.IntegrationTest.TermTest do
   /**
    * Get a value from a map by key.
    */
-  fn erl_nif::ErlNifTerm map_get_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm map_get_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term map = term::wrap(argv[0]);
-      term::Term key = term::wrap(argv[1]);
+      Env e = env::wrap(env_raw);
+      Term map = term::wrap(argv[0]);
+      Term key = term::wrap(argv[1]);
 
-      term::Term? value = map.map_get(&e, key);
+      Term? value = map.map_get(&e, key);
       if (catch err = value) {
           return term::make_error_atom(&e, "not_found").raw();
       }
@@ -538,11 +538,11 @@ defmodule C3nif.IntegrationTest.TermTest do
   /**
    * Get the size of a map.
    */
-  fn erl_nif::ErlNifTerm get_map_size_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_map_size_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term map = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term map = term::wrap(argv[0]);
 
       usz? size = map.get_map_size(&e);
       if (catch err = size) {
@@ -558,10 +558,10 @@ defmodule C3nif.IntegrationTest.TermTest do
   /**
    * Create a unique reference.
    */
-  fn erl_nif::ErlNifTerm make_ref_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm make_ref_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
+      Env e = env::wrap(env_raw);
       return term::make_ref(&e).raw();
   }
 
@@ -574,16 +574,16 @@ defmodule C3nif.IntegrationTest.TermTest do
    * If arg is :raise, raises an exception with reason :test_exception.
    * Otherwise returns :ok.
    */
-  fn erl_nif::ErlNifTerm raise_exception_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm raise_exception_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
       // Check if we should raise
-      term::Term raise_atom = term::make_atom(&e, "raise");
+      Term raise_atom = term::make_atom(&e, "raise");
       if (arg == raise_atom) {
-          term::Term reason = term::make_atom(&e, "test_exception");
+          Term reason = term::make_atom(&e, "test_exception");
           return term::raise_exception(&e, reason).raw();
       }
 
@@ -594,7 +594,7 @@ defmodule C3nif.IntegrationTest.TermTest do
   // NIF Entry
   // =============================================================================
 
-  erl_nif::ErlNifFunc[20] nif_funcs = {
+  ErlNifFunc[20] nif_funcs = {
       // Type checking
       { .name = "type_checks", .arity = 1, .fptr = &type_checks, .flags = 0 },
 
@@ -632,18 +632,18 @@ defmodule C3nif.IntegrationTest.TermTest do
       { .name = "map_put_test", .arity = 3, .fptr = &map_put_test, .flags = 0 },
   };
 
-  erl_nif::ErlNifFunc[3] nif_funcs2 = {
+  ErlNifFunc[3] nif_funcs2 = {
       { .name = "map_get_test", .arity = 2, .fptr = &map_get_test, .flags = 0 },
       { .name = "get_map_size_test", .arity = 1, .fptr = &get_map_size_test, .flags = 0 },
       { .name = "make_ref_test", .arity = 0, .fptr = &make_ref_test, .flags = 0 },
   };
 
-  erl_nif::ErlNifFunc[1] nif_funcs3 = {
+  ErlNifFunc[1] nif_funcs3 = {
       { .name = "raise_exception_test", .arity = 1, .fptr = &raise_exception_test, .flags = 0 },
   };
 
   // Combined function array for entry
-  erl_nif::ErlNifFunc[24] all_nif_funcs = {
+  ErlNifFunc[24] all_nif_funcs = {
       // Type checking
       { .name = "type_checks", .arity = 1, .fptr = &type_checks, .flags = 0 },
       // Comparison
@@ -680,9 +680,9 @@ defmodule C3nif.IntegrationTest.TermTest do
       { .name = "raise_exception_test", .arity = 1, .fptr = &raise_exception_test, .flags = 0 },
   };
 
-  erl_nif::ErlNifEntry nif_entry;
+  ErlNifEntry nif_entry;
 
-  fn erl_nif::ErlNifEntry* nif_init() @export("nif_init") {
+  fn ErlNifEntry* nif_init() @export("nif_init") {
       nif_entry = c3nif::make_nif_entry(
           "Elixir.C3nif.IntegrationTest.TermNif",
           &all_nif_funcs,

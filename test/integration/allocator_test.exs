@@ -45,11 +45,11 @@ defmodule C3nif.IntegrationTest.AllocatorTest do
 
   // NIF: alloc_and_free(size) -> :ok | {:error, reason}
   // Allocates memory, writes a pattern, verifies it, and frees
-  fn erl_nif::ErlNifTerm alloc_and_free(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm alloc_and_free(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
       int? size = arg.get_int(&e);
       if (catch err = size) {
@@ -84,11 +84,11 @@ defmodule C3nif.IntegrationTest.AllocatorTest do
 
   // NIF: calloc_test(size) -> :ok | {:error, reason}
   // Allocates zero-initialized memory and verifies it
-  fn erl_nif::ErlNifTerm calloc_test(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm calloc_test(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
       int? size = arg.get_int(&e);
       if (catch err = size) {
@@ -116,12 +116,12 @@ defmodule C3nif.IntegrationTest.AllocatorTest do
 
   // NIF: realloc_grow(initial_size, final_size) -> :ok | {:error, reason}
   // Allocates, fills, grows, verifies original data preserved
-  fn erl_nif::ErlNifTerm realloc_grow(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm realloc_grow(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term init_arg = term::wrap(argv[0]);
-      term::Term final_arg = term::wrap(argv[1]);
+      Env e = env::wrap(env_raw);
+      Term init_arg = term::wrap(argv[0]);
+      Term final_arg = term::wrap(argv[1]);
 
       int? initial = init_arg.get_int(&e);
       if (catch err = initial) {
@@ -167,12 +167,12 @@ defmodule C3nif.IntegrationTest.AllocatorTest do
 
   // NIF: realloc_shrink(initial_size, final_size) -> :ok | {:error, reason}
   // Allocates, fills, shrinks, verifies remaining data preserved
-  fn erl_nif::ErlNifTerm realloc_shrink(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm realloc_shrink(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term init_arg = term::wrap(argv[0]);
-      term::Term final_arg = term::wrap(argv[1]);
+      Env e = env::wrap(env_raw);
+      Term init_arg = term::wrap(argv[0]);
+      Term final_arg = term::wrap(argv[1]);
 
       int? initial = init_arg.get_int(&e);
       if (catch err = initial) {
@@ -218,12 +218,12 @@ defmodule C3nif.IntegrationTest.AllocatorTest do
 
   // NIF: fill_buffer(size, value) -> binary
   // Allocates, fills with value, returns as binary
-  fn erl_nif::ErlNifTerm fill_buffer(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm fill_buffer(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term size_arg = term::wrap(argv[0]);
-      term::Term value_arg = term::wrap(argv[1]);
+      Env e = env::wrap(env_raw);
+      Term size_arg = term::wrap(argv[0]);
+      Term value_arg = term::wrap(argv[1]);
 
       int? size = size_arg.get_int(&e);
       if (catch err = size) {
@@ -249,7 +249,7 @@ defmodule C3nif.IntegrationTest.AllocatorTest do
 
       // Create binary from buffer
       char[] binary_data;
-      term::Term result = c3nif::make_new_binary(&e, (usz)size, &binary_data);
+      Term result = c3nif::make_new_binary(&e, (usz)size, &binary_data);
 
       // Copy data to binary
       for (int i = 0; i < size; i++) {
@@ -266,7 +266,7 @@ defmodule C3nif.IntegrationTest.AllocatorTest do
   // NIF Entry
   // =============================================================================
 
-  erl_nif::ErlNifFunc[5] nif_funcs = {
+  ErlNifFunc[5] nif_funcs = {
       { .name = "alloc_and_free", .arity = 1, .fptr = &alloc_and_free, .flags = 0 },
       { .name = "calloc_test", .arity = 1, .fptr = &calloc_test, .flags = 0 },
       { .name = "realloc_grow", .arity = 2, .fptr = &realloc_grow, .flags = 0 },
@@ -274,9 +274,9 @@ defmodule C3nif.IntegrationTest.AllocatorTest do
       { .name = "fill_buffer", .arity = 2, .fptr = &fill_buffer, .flags = 0 },
   };
 
-  erl_nif::ErlNifEntry nif_entry;
+  ErlNifEntry nif_entry;
 
-  fn erl_nif::ErlNifEntry* nif_init() @export("nif_init") {
+  fn ErlNifEntry* nif_init() @export("nif_init") {
       nif_entry = c3nif::make_nif_entry(
           "Elixir.C3nif.IntegrationTest.AllocatorNif",
           &nif_funcs,

@@ -10,14 +10,14 @@ defmodule C3nif.Generator do
 
   ```c3
   // === AUTO-GENERATED NIF ENTRY ===
-  erl_nif::ErlNifFunc[N] __c3nif_funcs__ = {
+  ErlNifFunc[N] __c3nif_funcs__ = {
       { .name = "func1", .arity = 1, .fptr = &func1, .flags = 0 },
-      { .name = "func2", .arity = 2, .fptr = &func2, .flags = ERL_NIF_DIRTY_JOB_CPU_BOUND },
+      { .name = "func2", .arity = 2, .fptr = &func2, .flags = erl_nif::ERL_NIF_DIRTY_JOB_CPU_BOUND },
   };
 
-  erl_nif::ErlNifEntry __c3nif_entry__;
+  ErlNifEntry __c3nif_entry__;
 
-  fn erl_nif::ErlNifEntry* nif_init() @export("nif_init") {
+  fn ErlNifEntry* nif_init() @export("nif_init") {
       __c3nif_entry__ = c3nif::make_nif_entry(
           "Elixir.MyModule",
           &__c3nif_funcs__,
@@ -62,7 +62,7 @@ defmodule C3nif.Generator do
 
     #{funcs_array}
 
-    erl_nif::ErlNifEntry __c3nif_entry__;
+    ErlNifEntry __c3nif_entry__;
 
     #{nif_init}
     """
@@ -99,7 +99,7 @@ defmodule C3nif.Generator do
       |> Enum.join(",\n    ")
 
     """
-    erl_nif::ErlNifFunc[#{count}] __c3nif_funcs__ = {
+    ErlNifFunc[#{count}] __c3nif_funcs__ = {
         #{entries}
     };\
     """
@@ -120,7 +120,7 @@ defmodule C3nif.Generator do
     unload_ptr = callback_ptr(callbacks.on_unload)
 
     """
-    fn erl_nif::ErlNifEntry* nif_init() @export("nif_init") {
+    fn ErlNifEntry* nif_init() @export("nif_init") {
         __c3nif_entry__ = c3nif::make_nif_entry(
             "#{module_name}",
             &__c3nif_funcs__,

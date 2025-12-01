@@ -125,8 +125,8 @@ defmodule C3nif.Parser do
   # ===========================================================================
 
   # Pattern to match NIF function signatures
-  # Matches: fn erl_nif::ErlNifTerm function_name(erl_nif::ErlNifEnv*
-  @nif_signature_pattern ~r/fn\s+erl_nif::ErlNifTerm\s+(\w+)\s*\(\s*erl_nif::ErlNifEnv\s*\*/
+  # Matches: fn ErlNifTerm function_name(ErlNifEnv*
+  @nif_signature_pattern ~r/fn\s+ErlNifTerm\s+(\w+)\s*\(\s*ErlNifEnv\s*\*/
 
   defp find_nif_signatures(c3_source) do
     lines = String.split(c3_source, "\n")
@@ -241,11 +241,11 @@ defmodule C3nif.Parser do
   # Callback Detection
   # ===========================================================================
 
-  # Pattern for on_load: fn CInt on_load(erl_nif::ErlNifEnv*
-  @on_load_pattern ~r/fn\s+CInt\s+(on_load)\s*\(\s*erl_nif::ErlNifEnv\s*\*/
+  # Pattern for on_load: fn CInt on_load(ErlNifEnv*
+  @on_load_pattern ~r/fn\s+CInt\s+(on_load)\s*\(\s*ErlNifEnv\s*\*/
 
-  # Pattern for on_unload: fn void on_unload(erl_nif::ErlNifEnv*
-  @on_unload_pattern ~r/fn\s+void\s+(on_unload)\s*\(\s*erl_nif::ErlNifEnv\s*\*/
+  # Pattern for on_unload: fn void on_unload(ErlNifEnv*
+  @on_unload_pattern ~r/fn\s+void\s+(on_unload)\s*\(\s*ErlNifEnv\s*\*/
 
   defp find_on_load(c3_source) do
     case Regex.run(@on_load_pattern, c3_source) do

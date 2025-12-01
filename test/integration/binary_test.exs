@@ -57,13 +57,13 @@ defmodule C3nif.IntegrationTest.BinaryTest do
   // =============================================================================
 
   // NIF: get_binary_size(binary) -> integer
-  fn erl_nif::ErlNifTerm get_binary_size(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_binary_size(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
-      binary::Binary? bin = binary::inspect(&e, arg);
+      Binary? bin = binary::inspect(&e, arg);
       if (catch err = bin) {
           return term::make_badarg(&e).raw();
       }
@@ -72,13 +72,13 @@ defmodule C3nif.IntegrationTest.BinaryTest do
   }
 
   // NIF: get_first_byte(binary) -> integer | :empty
-  fn erl_nif::ErlNifTerm get_first_byte(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_first_byte(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
-      binary::Binary? bin = binary::inspect(&e, arg);
+      Binary? bin = binary::inspect(&e, arg);
       if (catch err = bin) {
           return term::make_badarg(&e).raw();
       }
@@ -92,13 +92,13 @@ defmodule C3nif.IntegrationTest.BinaryTest do
   }
 
   // NIF: sum_bytes(binary) -> integer
-  fn erl_nif::ErlNifTerm sum_bytes(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm sum_bytes(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
-      binary::Binary? bin = binary::inspect(&e, arg);
+      Binary? bin = binary::inspect(&e, arg);
       if (catch err = bin) {
           return term::make_badarg(&e).raw();
       }
@@ -117,18 +117,18 @@ defmodule C3nif.IntegrationTest.BinaryTest do
   // =============================================================================
 
   // NIF: make_zeros(size) -> binary
-  fn erl_nif::ErlNifTerm make_zeros(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm make_zeros(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
       int? size = arg.get_int(&e);
       if (catch err = size) {
           return term::make_badarg(&e).raw();
       }
 
-      binary::Binary? bin = binary::alloc((usz)size);
+      Binary? bin = binary::alloc((usz)size);
       if (catch err = bin) {
           return term::make_error_atom(&e, "alloc_failed").raw();
       }
@@ -144,7 +144,7 @@ defmodule C3nif.IntegrationTest.BinaryTest do
           slice[i] = 0;
       }
 
-      term::Term? result = bin.to_term(&e);
+      Term? result = bin.to_term(&e);
       if (catch err = result) {
           bin.release();
           return term::make_error_atom(&e, "transfer_failed").raw();
@@ -154,11 +154,11 @@ defmodule C3nif.IntegrationTest.BinaryTest do
   }
 
   // NIF: make_sequence(size) -> binary (bytes 0, 1, 2, ... mod 256)
-  fn erl_nif::ErlNifTerm make_sequence(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm make_sequence(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
       int? size = arg.get_int(&e);
       if (catch err = size) {
@@ -167,7 +167,7 @@ defmodule C3nif.IntegrationTest.BinaryTest do
 
       // Use make_new for one-shot allocation
       char[] data;
-      term::Term result = binary::make_new(&e, (usz)size, &data);
+      Term result = binary::make_new(&e, (usz)size, &data);
 
       for (usz i = 0; i < data.len; i++) {
           data[i] = (char)(i % 256);
@@ -177,25 +177,25 @@ defmodule C3nif.IntegrationTest.BinaryTest do
   }
 
   // NIF: copy_binary(binary) -> binary (tests Binary.copy)
-  fn erl_nif::ErlNifTerm copy_binary(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm copy_binary(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
-      binary::Binary? orig = binary::inspect(&e, arg);
+      Binary? orig = binary::inspect(&e, arg);
       if (catch err = orig) {
           return term::make_badarg(&e).raw();
       }
 
       // Copy borrowed to owned
-      binary::Binary? owned = orig.copy();
+      Binary? owned = orig.copy();
       if (catch err = owned) {
           return term::make_error_atom(&e, "copy_failed").raw();
       }
 
       // Transfer to Erlang
-      term::Term? result = owned.to_term(&e);
+      Term? result = owned.to_term(&e);
       if (catch err = result) {
           owned.release();
           return term::make_error_atom(&e, "transfer_failed").raw();
@@ -209,13 +209,13 @@ defmodule C3nif.IntegrationTest.BinaryTest do
   // =============================================================================
 
   // NIF: get_slice(binary, pos, len) -> binary
-  fn erl_nif::ErlNifTerm get_slice(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm get_slice(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term bin_arg = term::wrap(argv[0]);
-      term::Term pos_arg = term::wrap(argv[1]);
-      term::Term len_arg = term::wrap(argv[2]);
+      Env e = env::wrap(env_raw);
+      Term bin_arg = term::wrap(argv[0]);
+      Term pos_arg = term::wrap(argv[1]);
+      Term len_arg = term::wrap(argv[2]);
 
       int? pos = pos_arg.get_int(&e);
       if (catch err = pos) {
@@ -228,7 +228,7 @@ defmodule C3nif.IntegrationTest.BinaryTest do
       }
 
       // Create zero-copy sub-binary
-      term::Term result = binary::make_sub(&e, bin_arg, (usz)pos, (usz)len);
+      Term result = binary::make_sub(&e, bin_arg, (usz)pos, (usz)len);
       return result.raw();
   }
 
@@ -237,13 +237,13 @@ defmodule C3nif.IntegrationTest.BinaryTest do
   // =============================================================================
 
   // NIF: flatten_iolist(iolist) -> binary
-  fn erl_nif::ErlNifTerm flatten_iolist(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm flatten_iolist(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
-      binary::Binary? bin = binary::inspect_iolist(&e, arg);
+      Binary? bin = binary::inspect_iolist(&e, arg);
       if (catch err = bin) {
           return term::make_badarg(&e).raw();
       }
@@ -257,10 +257,10 @@ defmodule C3nif.IntegrationTest.BinaryTest do
       }
 
       // Build {:ok, size, first_byte} tuple
-      term::Term ok = term::make_atom(&e, "ok");
-      term::Term size_term = term::make_int(&e, (int)size);
-      term::Term first_term = term::make_int(&e, (int)first);
-      erl_nif::ErlNifTerm[3] elements = { ok.raw(), size_term.raw(), first_term.raw() };
+      Term ok = term::make_atom(&e, "ok");
+      Term size_term = term::make_int(&e, (int)size);
+      Term first_term = term::make_int(&e, (int)first);
+      ErlNifTerm[3] elements = { ok.raw(), size_term.raw(), first_term.raw() };
       return term::make_tuple_from_array(&e, elements[0:3]).raw();
   }
 
@@ -269,12 +269,12 @@ defmodule C3nif.IntegrationTest.BinaryTest do
   // =============================================================================
 
   // NIF: make_and_grow(initial_size, final_size) -> binary
-  fn erl_nif::ErlNifTerm make_and_grow(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm make_and_grow(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term init_arg = term::wrap(argv[0]);
-      term::Term final_arg = term::wrap(argv[1]);
+      Env e = env::wrap(env_raw);
+      Term init_arg = term::wrap(argv[0]);
+      Term final_arg = term::wrap(argv[1]);
 
       int? initial = init_arg.get_int(&e);
       if (catch err = initial) {
@@ -287,7 +287,7 @@ defmodule C3nif.IntegrationTest.BinaryTest do
       }
 
       // Allocate initial size
-      binary::Binary? bin = binary::alloc((usz)initial);
+      Binary? bin = binary::alloc((usz)initial);
       if (catch err = bin) {
           return term::make_error_atom(&e, "alloc_failed").raw();
       }
@@ -315,7 +315,7 @@ defmodule C3nif.IntegrationTest.BinaryTest do
       }
 
       // Transfer
-      term::Term? result = bin.to_term(&e);
+      Term? result = bin.to_term(&e);
       if (catch err = result) {
           bin.release();
           return term::make_error_atom(&e, "transfer_failed").raw();
@@ -329,13 +329,13 @@ defmodule C3nif.IntegrationTest.BinaryTest do
   // =============================================================================
 
   // NIF: echo_binary(binary) -> binary (tests from_slice convenience)
-  fn erl_nif::ErlNifTerm echo_binary(
-      erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+  fn ErlNifTerm echo_binary(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(env_raw);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(env_raw);
+      Term arg = term::wrap(argv[0]);
 
-      binary::Binary? bin = binary::inspect(&e, arg);
+      Binary? bin = binary::inspect(&e, arg);
       if (catch err = bin) {
           return term::make_badarg(&e).raw();
       }
@@ -348,7 +348,7 @@ defmodule C3nif.IntegrationTest.BinaryTest do
   // NIF Entry
   // =============================================================================
 
-  erl_nif::ErlNifFunc[10] nif_funcs = {
+  ErlNifFunc[10] nif_funcs = {
       { .name = "get_binary_size", .arity = 1, .fptr = &get_binary_size, .flags = 0 },
       { .name = "get_first_byte", .arity = 1, .fptr = &get_first_byte, .flags = 0 },
       { .name = "sum_bytes", .arity = 1, .fptr = &sum_bytes, .flags = 0 },
@@ -361,9 +361,9 @@ defmodule C3nif.IntegrationTest.BinaryTest do
       { .name = "echo_binary", .arity = 1, .fptr = &echo_binary, .flags = 0 },
   };
 
-  erl_nif::ErlNifEntry nif_entry;
+  ErlNifEntry nif_entry;
 
-  fn erl_nif::ErlNifEntry* nif_init() @export("nif_init") {
+  fn ErlNifEntry* nif_init() @export("nif_init") {
       nif_entry = c3nif::make_nif_entry(
           "Elixir.C3nif.IntegrationTest.BinaryNif",
           &nif_funcs,

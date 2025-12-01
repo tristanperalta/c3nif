@@ -34,14 +34,14 @@ defmodule C3nif.IntegrationTest.NifLoadingTest do
   import c3nif::term;
 
   // Simple add function: add(a, b) -> a + b
-  fn erl_nif::ErlNifTerm add(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm add(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(raw_env);
-      term::Term arg0 = term::wrap(argv[0]);
-      term::Term arg1 = term::wrap(argv[1]);
+      Env e = env::wrap(raw_env);
+      Term arg0 = term::wrap(argv[0]);
+      Term arg1 = term::wrap(argv[1]);
 
       int? val0 = arg0.get_int(&e);
       if (catch err = val0) {
@@ -57,37 +57,37 @@ defmodule C3nif.IntegrationTest.NifLoadingTest do
   }
 
   // Echo function: echo(term) -> term
-  fn erl_nif::ErlNifTerm echo(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm echo(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
       return argv[0];
   }
 
   // Return ok tuple: make_ok(value) -> {:ok, value}
-  fn erl_nif::ErlNifTerm make_ok(
-      erl_nif::ErlNifEnv* raw_env,
+  fn ErlNifTerm make_ok(
+      ErlNifEnv* raw_env,
       CInt argc,
-      erl_nif::ErlNifTerm* argv
+      ErlNifTerm* argv
   ) {
-      env::Env e = env::wrap(raw_env);
-      term::Term arg = term::wrap(argv[0]);
+      Env e = env::wrap(raw_env);
+      Term arg = term::wrap(argv[0]);
       return term::make_ok_tuple(&e, arg).raw();
   }
 
   // NIF function table
-  erl_nif::ErlNifFunc[3] nif_funcs = {
+  ErlNifFunc[3] nif_funcs = {
       { .name = "add", .arity = 2, .fptr = &add, .flags = 0 },
       { .name = "echo", .arity = 1, .fptr = &echo, .flags = 0 },
       { .name = "make_ok", .arity = 1, .fptr = &make_ok, .flags = 0 },
   };
 
   // Static entry - must persist beyond nif_init call
-  erl_nif::ErlNifEntry nif_entry;
+  ErlNifEntry nif_entry;
 
   // Entry point - called by BEAM to get NIF info
-  fn erl_nif::ErlNifEntry* nif_init() @export("nif_init") {
+  fn ErlNifEntry* nif_init() @export("nif_init") {
       nif_entry = c3nif::make_nif_entry(
           "Elixir.C3nif.IntegrationTest.TestNif",
           &nif_funcs,

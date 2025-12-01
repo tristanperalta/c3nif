@@ -19,7 +19,7 @@ defmodule C3nif.GeneratorTest do
       assert result =~ ".arity = 2"
       assert result =~ ".fptr = &add"
       assert result =~ ".flags = 0"
-      assert result =~ "erl_nif::ErlNifFunc[1]"
+      assert result =~ "ErlNifFunc[1]"
       assert result =~ ~s["Elixir.MyNif"]
     end
 
@@ -34,7 +34,7 @@ defmodule C3nif.GeneratorTest do
 
       result = Generator.generate_entry("Elixir.Math", nifs, callbacks)
 
-      assert result =~ "erl_nif::ErlNifFunc[3]"
+      assert result =~ "ErlNifFunc[3]"
       assert result =~ ~s[.name = "add"]
       assert result =~ ~s[.name = "subtract"]
       assert result =~ ~s[.name = "mul"]
@@ -118,7 +118,7 @@ defmodule C3nif.GeneratorTest do
       result = Generator.generate_entry("Elixir.Test", nifs, callbacks)
 
       assert result =~ ~s[@export("nif_init")]
-      assert result =~ "fn erl_nif::ErlNifEntry* nif_init()"
+      assert result =~ "fn ErlNifEntry* nif_init()"
       assert result =~ "return &__c3nif_entry__"
     end
 
@@ -137,8 +137,8 @@ defmodule C3nif.GeneratorTest do
       module test;
       import c3nif;
 
-      fn erl_nif::ErlNifTerm add(
-          erl_nif::ErlNifEnv* env, CInt argc, erl_nif::ErlNifTerm* argv
+      fn ErlNifTerm add(
+          ErlNifEnv* env, CInt argc, ErlNifTerm* argv
       ) { return 0; }
       """
 
