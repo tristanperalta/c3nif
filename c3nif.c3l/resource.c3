@@ -91,7 +91,7 @@ faultdef ALLOC_FAILED;         // Failed to allocate resource
 const usz MAX_RESOURCE_TYPES = 32;
 
 // Module-level registry for resource types
-erl_nif::ErlNifResourceType*[MAX_RESOURCE_TYPES] g_resource_types;
+ErlNifResourceType*[MAX_RESOURCE_TYPES] g_resource_types;
 char*[MAX_RESOURCE_TYPES] g_resource_names;
 usz g_resource_count;
 
@@ -113,10 +113,10 @@ usz g_resource_count;
  * @param dtor Destructor callback, or null for no destructor
  * @return The registered resource type, or fault on failure
  */
-fn erl_nif::ErlNifResourceType*? register_type(
-    env::Env* e,
+fn ErlNifResourceType*? register_type(
+    Env* e,
     char* type_name,
-    erl_nif::ResourceDtorFn dtor
+    ResourceDtorFn dtor
 ) {
     if (g_resource_count >= MAX_RESOURCE_TYPES) {
         return REGISTRATION_FAILED?;
@@ -130,12 +130,12 @@ fn erl_nif::ErlNifResourceType*? register_type(
         .dyncall = null
     };
 
-    erl_nif::ErlNifResourceFlags tried;
-    erl_nif::ErlNifResourceType* rt = erl_nif::enif_init_resource_type(
+    ErlNifResourceFlags tried;
+    ErlNifResourceType* rt = erl_nif::enif_init_resource_type(
         e.raw(),
         type_name,
         &init,
-        erl_nif::ErlNifResourceFlags.RT_CREATE,
+        ErlNifResourceFlags.RT_CREATE,
         &tried
     );
 
@@ -156,8 +156,8 @@ fn erl_nif::ErlNifResourceType*? register_type(
  * Use this when you need stop, down, or dyncall callbacks in addition
  * to the destructor.
  */
-fn erl_nif::ErlNifResourceType*? register_type_full(
-    env::Env* e,
+fn ErlNifResourceType*? register_type_full(
+    Env* e,
     char* type_name,
     erl_nif::ErlNifResourceTypeInit* init
 ) {
@@ -165,12 +165,12 @@ fn erl_nif::ErlNifResourceType*? register_type_full(
         return REGISTRATION_FAILED?;
     }
 
-    erl_nif::ErlNifResourceFlags tried;
-    erl_nif::ErlNifResourceType* rt = erl_nif::enif_init_resource_type(
+    ErlNifResourceFlags tried;
+    ErlNifResourceType* rt = erl_nif::enif_init_resource_type(
         e.raw(),
         type_name,
         init,
-        erl_nif::ErlNifResourceFlags.RT_CREATE,
+        ErlNifResourceFlags.RT_CREATE,
         &tried
     );
 
@@ -192,7 +192,7 @@ fn erl_nif::ErlNifResourceType*? register_type_full(
 /**
  * Look up a registered resource type by name.
  */
-fn erl_nif::ErlNifResourceType*? get_type(char* name) {
+fn ErlNifResourceType*? get_type(char* name) {
     for (usz i = 0; i < g_resource_count; i++) {
         if (streq(g_resource_names[i], name)) {
             return g_resource_types[i];
@@ -231,7 +231,7 @@ fn bool streq(char* a, char* b) {
  * @return Pointer to allocated resource, or fault on failure
  */
 fn void*? alloc(char* type_name, usz size) {
-    erl_nif::ErlNifResourceType* rt = get_type(type_name)!;
+    ErlNifResourceType* rt = get_type(type_name)!;
     void* ptr = erl_nif::enif_alloc_resource(rt, (CULong)size);
     if (ptr == null) {
         return ALLOC_FAILED?;
@@ -243,7 +243,7 @@ fn void*? alloc(char* type_name, usz size) {
  * Allocate a resource using a resource type pointer directly.
  * Useful when you've cached the resource type.
  */
-fn void*? alloc_with_type(erl_nif::ErlNifResourceType* rt, usz size) {
+fn void*? alloc_with_type(ErlNifResourceType* rt, usz size) {
     void* ptr = erl_nif::enif_alloc_resource(rt, (CULong)size);
     if (ptr == null) {
         return ALLOC_FAILED?;
@@ -266,8 +266,8 @@ fn void*? alloc_with_type(erl_nif::ErlNifResourceType* rt, usz size) {
  * @param resource Pointer to the resource
  * @return Term representing the resource
  */
-fn term::Term make_term(env::Env* e, void* resource) {
-    erl_nif::ErlNifTerm t = erl_nif::enif_make_resource(e.raw(), resource);
+fn Term make_term(Env* e, void* resource) {
+    ErlNifTerm t = erl_nif::enif_make_resource(e.raw(), resource);
     return term::wrap(t);
 }
 
@@ -282,8 +282,8 @@ fn term::Term make_term(env::Env* e, void* resource) {
  * @param t Term containing the resource
  * @return Pointer to the resource, or fault if term is not this resource type
  */
-fn void*? get(char* type_name, env::Env* e, term::Term t) {
-    erl_nif::ErlNifResourceType* rt = get_type(type_name)!;
+fn void*? get(char* type_name, Env* e, Term t) {
+    ErlNifResourceType* rt = get_type(type_name)!;
     void* ptr;
     if (erl_nif::enif_get_resource(e.raw(), t.raw(), rt, &ptr) == 0) {
         return term::BADARG?;
@@ -294,7 +294,7 @@ fn void*? get(char* type_name, env::Env* e, term::Term t) {
 /**
  * Extract a resource using a resource type pointer directly.
  */
-fn void*? get_with_type(erl_nif::ErlNifResourceType* rt, env::Env* e, term::Term t) {
+fn void*? get_with_type(ErlNifResourceType* rt, Env* e, Term t) {
     void* ptr;
     if (erl_nif::enif_get_resource(e.raw(), t.raw(), rt, &ptr) == 0) {
         return term::BADARG?;
@@ -360,7 +360,7 @@ fn usz sizeof_resource(void* resource) {
  * @param monitor Output: monitor handle (for later demonitoring)
  * @return true on success, false on failure (e.g., process already dead, no down callback)
  */
-fn bool monitor_process(env::Env* e, void* resource, erl_nif::ErlNifPid* pid, erl_nif::ErlNifMonitor* monitor) {
+fn bool monitor_process(Env* e, void* resource, ErlNifPid* pid, ErlNifMonitor* monitor) {
     return erl_nif::enif_monitor_process(e.raw(), resource, pid, monitor) == 0;
 }
 
@@ -378,7 +378,7 @@ fn bool monitor_process(env::Env* e, void* resource, erl_nif::ErlNifPid* pid, er
  * @param monitor Monitor handle from monitor_process()
  * @return true if successfully demonitored, false if already triggered or invalid
  */
-fn bool demonitor_process(env::Env* e, void* resource, erl_nif::ErlNifMonitor* monitor) {
+fn bool demonitor_process(Env* e, void* resource, ErlNifMonitor* monitor) {
     return erl_nif::enif_demonitor_process(e.raw(), resource, monitor) == 0;
 }
 
@@ -392,6 +392,6 @@ fn bool demonitor_process(env::Env* e, void* resource, erl_nif::ErlNifMonitor* m
  * @param mon2 Second monitor handle
  * @return 0 if equal, negative if mon1 < mon2, positive if mon1 > mon2
  */
-fn CInt compare_monitors(erl_nif::ErlNifMonitor* mon1, erl_nif::ErlNifMonitor* mon2) {
+fn CInt compare_monitors(ErlNifMonitor* mon1, ErlNifMonitor* mon2) {
     return erl_nif::enif_compare_monitors(mon1, mon2);
 }

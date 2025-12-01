@@ -12,17 +12,17 @@
  *
  * Example - static dirty NIF declaration:
  *
- *     erl_nif::ErlNifFunc[1] nif_funcs = {
+ *     ErlNifFunc[1] nif_funcs = {
  *         { .name = "heavy_compute", .arity = 1, .fptr = &heavy_compute,
  *           .flags = erl_nif::ERL_NIF_DIRTY_JOB_CPU_BOUND },
  *     };
  *
  * Example - dynamic scheduling:
  *
- *     fn erl_nif::ErlNifTerm dispatch_heavy_work(
- *         erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+ *     fn ErlNifTerm dispatch_heavy_work(
+ *         ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
  *     ) {
- *         env::Env e = env::wrap(env_raw);
+ *         Env e = env::wrap(env_raw);
  *         // Schedule to run on dirty CPU scheduler
  *         return scheduler::schedule_nif(&e, "heavy_compute",
  *             DirtyFlags.CPU_BOUND, &do_heavy_compute, argc, argv).raw();
@@ -130,15 +130,15 @@ const CInt SCHED_IO_BOUND = 2;    // Dirty I/O-bound scheduler
  * @param argv Arguments to pass to the scheduled NIF
  * @return Term to return from the calling NIF
  */
-fn term::Term schedule_nif(
-    env::Env* e,
+fn Term schedule_nif(
+    Env* e,
     char* fun_name,
     CInt flags,
     erl_nif::NifFuncPtr fp,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
-    erl_nif::ErlNifTerm result = erl_nif::enif_schedule_nif(
+    ErlNifTerm result = erl_nif::enif_schedule_nif(
         e.raw(),
         fun_name,
         flags,
@@ -153,12 +153,12 @@ fn term::Term schedule_nif(
  * Schedule a NIF on a dirty CPU-bound scheduler.
  * Convenience wrapper for schedule_nif with SCHED_CPU_BOUND flag.
  */
-fn term::Term schedule_dirty_cpu(
-    env::Env* e,
+fn Term schedule_dirty_cpu(
+    Env* e,
     char* fun_name,
     erl_nif::NifFuncPtr fp,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
     return schedule_nif(e, fun_name, SCHED_CPU_BOUND, fp, argc, argv);
 }
@@ -167,12 +167,12 @@ fn term::Term schedule_dirty_cpu(
  * Schedule a NIF on a dirty I/O-bound scheduler.
  * Convenience wrapper for schedule_nif with SCHED_IO_BOUND flag.
  */
-fn term::Term schedule_dirty_io(
-    env::Env* e,
+fn Term schedule_dirty_io(
+    Env* e,
     char* fun_name,
     erl_nif::NifFuncPtr fp,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
     return schedule_nif(e, fun_name, SCHED_IO_BOUND, fp, argc, argv);
 }
@@ -181,12 +181,12 @@ fn term::Term schedule_dirty_io(
  * Schedule a NIF on a normal scheduler.
  * Useful for switching back from a dirty scheduler to a normal one.
  */
-fn term::Term schedule_normal(
-    env::Env* e,
+fn Term schedule_normal(
+    Env* e,
     char* fun_name,
     erl_nif::NifFuncPtr fp,
     CInt argc,
-    erl_nif::ErlNifTerm* argv
+    ErlNifTerm* argv
 ) {
     return schedule_nif(e, fun_name, SCHED_NORMAL, fp, argc, argv);
 }
@@ -211,6 +211,6 @@ fn term::Term schedule_normal(
  * Long-running dirty NIFs should periodically check this and abort early
  * if the process has terminated to avoid wasted work.
  */
-fn bool is_process_alive(env::Env* e) {
+fn bool is_process_alive(Env* e) {
     return erl_nif::enif_is_current_process_alive(e.raw()) != 0;
 }

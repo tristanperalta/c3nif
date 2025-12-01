@@ -35,7 +35,7 @@
  *     defer allocator::free(ptr);
  *
  *     // With Allocator interface
- *     allocator::BeamAllocator beam;
+ *     BeamAllocator beam;
  *     List{int} numbers;
  *     numbers.init(&beam);
  *     defer numbers.free();

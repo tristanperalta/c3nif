@@ -8,13 +8,13 @@
  *
  *     import c3nif;
  *
- *     fn c3nif::erl_nif::ErlNifTerm my_nif(
- *         c3nif::erl_nif::ErlNifEnv* raw_env,
+ *     fn c3nif::ErlNifTerm my_nif(
+ *         c3nif::ErlNifEnv* raw_env,
  *         CInt argc,
- *         c3nif::erl_nif::ErlNifTerm* argv
+ *         c3nif::ErlNifTerm* argv
  *     ) {
- *         c3nif::env::Env e = c3nif::env::wrap(raw_env);
- *         c3nif::term::Term arg0 = c3nif::term::wrap(argv[0]);
+ *         c3nif::Env e = c3nif::env::wrap(raw_env);
+ *         c3nif::Term arg0 = c3nif::term::wrap(argv[0]);
  *
  *         int? value = arg0.get_int(&e);
  *         if (catch err = value) {
@@ -46,14 +46,8 @@ const char* C3NIF_VERSION = "0.1.0";
 // Type Aliases for convenience
 // =============================================================================
 
-// Re-export common types
-alias ErlNifTerm = erl_nif::ErlNifTerm;
-alias ErlNifEnv = erl_nif::ErlNifEnv;
-alias ErlNifEntry = erl_nif::ErlNifEntry;
-alias ErlNifFunc = erl_nif::ErlNifFunc;
-alias ErlNifResourceType = erl_nif::ErlNifResourceType;
-alias Env = env::Env;
-alias Term = term::Term;
+// Note: Types are now directly accessible via imports (unqualified names).
+// The types ErlNifTerm, ErlNifEnv, Env, Term, etc. do not need aliases.
 
 // Re-export resource functions for convenience
 alias register_resource_type = resource::register_type;
@@ -69,10 +63,8 @@ alias demonitor_process = resource::demonitor_process;
 alias compare_monitors = resource::compare_monitors;
 
 // Re-export monitor type
-alias ErlNifMonitor = erl_nif::ErlNifMonitor;
 
 // Re-export binary type and functions
-alias Binary = binary::Binary;
 alias alloc_binary = binary::alloc;
 alias inspect_binary = binary::inspect;
 alias inspect_iolist = binary::inspect_iolist;
@@ -81,7 +73,6 @@ alias make_sub_binary = binary::make_sub;
 alias binary_from_slice = binary::from_slice;
 
 // Re-export allocator type and functions
-alias BeamAllocator = allocator::BeamAllocator;
 alias BEAM_ALLOCATOR = allocator::BEAM_ALLOCATOR;
 alias beam_alloc = allocator::alloc;
 alias beam_alloc_try = allocator::alloc_try;
@@ -90,7 +81,6 @@ alias beam_realloc = allocator::realloc;
 alias beam_free = allocator::free;
 
 // Re-export safety types and functions
-alias NifResult = safety::NifResult;
 alias nif_ok = safety::ok;
 alias nif_badarg = safety::badarg;
 alias nif_error = safety::error;
@@ -117,7 +107,6 @@ alias make_resource_error = safety::make_resource_error;
 alias make_unknown_error = safety::make_unknown_error;
 
 // Re-export scheduler types and functions
-alias ThreadType = scheduler::ThreadType;
 alias current_thread_type = scheduler::current_thread_type;
 alias is_dirty_scheduler = scheduler::is_dirty_scheduler;
 alias is_normal_scheduler = scheduler::is_normal_scheduler;
@@ -143,22 +132,22 @@ alias SCHED_IO_BOUND = scheduler::SCHED_IO_BOUND;
 // =============================================================================
 
 // Callback function pointer types
-alias LoadFn = fn CInt(erl_nif::ErlNifEnv*, void**, erl_nif::ErlNifTerm);
-alias UnloadFn = fn void(erl_nif::ErlNifEnv*, void*);
+alias LoadFn = fn CInt(ErlNifEnv*, void**, ErlNifTerm);
+alias UnloadFn = fn void(ErlNifEnv*, void*);
 
 /**
  * Create a properly initialized ErlNifEntry struct.
  *
  * This helper ensures all fields are set correctly for NIF registration.
  */
-fn erl_nif::ErlNifEntry make_nif_entry(
+fn ErlNifEntry make_nif_entry(
     char* name,
-    erl_nif::ErlNifFunc* funcs,
+    ErlNifFunc* funcs,
     int num_funcs,
     LoadFn load,
     UnloadFn unload
 ) {
-    return (erl_nif::ErlNifEntry){
+    return (ErlNifEntry){
         .major = erl_nif::ERL_NIF_MAJOR_VERSION,
         .minor = erl_nif::ERL_NIF_MINOR_VERSION,
         .name = name,

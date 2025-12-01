@@ -41,11 +41,11 @@ import c3nif::resource;
  * The check function should be one of the Term.is_* methods.
  *
  * Example:
- *     term::Term t = term::wrap(argv[0]);
+ *     Term t = term::wrap(argv[0]);
  *     @require_type(t, is_atom, &e)!;  // Returns BADARG if not an atom
  *     @require_type(t, is_list, &e)!;  // Returns BADARG if not a list
  */
-macro void? @require_type(term::Term t, #check_fn, env::Env* e) {
+macro void? @require_type(Term t, #check_fn, Env* e) {
     if (!t.#check_fn(e)) {
         return term::BADARG?;
     }
@@ -64,12 +64,12 @@ macro void? @require_type(term::Term t, #check_fn, env::Env* e) {
  * Example:
  *     struct MyData { int value; }
  *
- *     fn term::Term? use_resource(env::Env* e, term::Term t) {
+ *     fn Term? use_resource(Env* e, Term t) {
  *         MyData* data = (MyData*)get_resource("MyResource", e, t)!;
  *         return term::make_int(e, data.value);
  *     }
  */
-macro void*? get_resource(char* type_name, env::Env* e, term::Term t) {
+macro void*? get_resource(char* type_name, Env* e, Term t) {
     return resource::get(type_name, e, t);
 }
 
@@ -84,17 +84,17 @@ macro void*? get_resource(char* type_name, env::Env* e, term::Term t) {
  * wrapping and fault-to-error conversion automatically.
  *
  * The implementation function should have signature:
- *     fn term::Term? impl(env::Env* e, erl_nif::ErlNifTerm* argv, CInt argc)
+ *     fn Term? impl(Env* e, ErlNifTerm* argv, CInt argc)
  *
  * Example:
- *     fn term::Term? add_impl(env::Env* e, erl_nif::ErlNifTerm* argv, CInt argc) {
+ *     fn Term? add_impl(Env* e, ErlNifTerm* argv, CInt argc) {
  *         int a = term::wrap(argv[0]).get_int(e)!;
  *         int b = term::wrap(argv[1]).get_int(e)!;
  *         return term::make_int(e, a + b);
  *     }
  *
- *     fn erl_nif::ErlNifTerm add_nif(
- *         erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+ *     fn ErlNifTerm add_nif(
+ *         ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
  *     ) {
  *         return nif_entry(env_raw, argc, argv, &add_impl);
  *     }
@@ -102,14 +102,14 @@ macro void*? get_resource(char* type_name, env::Env* e, term::Term t) {
  * With custom error reason:
  *     return nif_entry(env_raw, argc, argv, &my_impl, "my_error");
  */
-macro erl_nif::ErlNifTerm nif_entry(
-    erl_nif::ErlNifEnv* env_raw,
+macro ErlNifTerm nif_entry(
+    ErlNifEnv* env_raw,
     CInt argc,
-    erl_nif::ErlNifTerm* argv,
+    ErlNifTerm* argv,
     impl_fn,
     char* error_reason = "error"
 ) {
-    env::Env e = env::wrap(env_raw);
+    Env e = env::wrap(env_raw);
     if (try result = impl_fn(&e, argv, argc)) {
         return result.raw();
     } else {
@@ -127,12 +127,12 @@ macro erl_nif::ErlNifTerm nif_entry(
  * Returns BADARG if the index is out of bounds.
  *
  * Example:
- *     term::Term arg0 = @require_arg(&e, argv, argc, 0)!;
- *     term::Term arg1 = @require_arg(&e, argv, argc, 1)!;
+ *     Term arg0 = @require_arg(&e, argv, argc, 0)!;
+ *     Term arg1 = @require_arg(&e, argv, argc, 1)!;
  */
-macro term::Term? @require_arg(
-    env::Env* e,
-    erl_nif::ErlNifTerm* argv,
+macro Term? @require_arg(
+    Env* e,
+    ErlNifTerm* argv,
     CInt argc,
     CInt index
 ) {
@@ -151,12 +151,12 @@ macro term::Term? @require_arg(
  *     int value = @require_arg_int(&e, argv, argc, 0)!;
  */
 macro int? @require_arg_int(
-    env::Env* e,
-    erl_nif::ErlNifTerm* argv,
+    Env* e,
+    ErlNifTerm* argv,
     CInt argc,
     CInt index
 ) {
-    term::Term? t = @require_arg(e, argv, argc, index);
+    Term? t = @require_arg(e, argv, argc, index);
     if (catch err = t) {
         return err?;
     }
@@ -170,12 +170,12 @@ macro int? @require_arg_int(
  *     long value = @require_arg_long(&e, argv, argc, 0)!;
  */
 macro long? @require_arg_long(
-    env::Env* e,
-    erl_nif::ErlNifTerm* argv,
+    Env* e,
+    ErlNifTerm* argv,
     CInt argc,
     CInt index
 ) {
-    term::Term? t = @require_arg(e, argv, argc, index);
+    Term? t = @require_arg(e, argv, argc, index);
     if (catch err = t) {
         return err?;
     }
@@ -189,12 +189,12 @@ macro long? @require_arg_long(
  *     double value = @require_arg_double(&e, argv, argc, 0)!;
  */
 macro double? @require_arg_double(
-    env::Env* e,
-    erl_nif::ErlNifTerm* argv,
+    Env* e,
+    ErlNifTerm* argv,
     CInt argc,
     CInt index
 ) {
-    term::Term? t = @require_arg(e, argv, argc, index);
+    Term? t = @require_arg(e, argv, argc, index);
     if (catch err = t) {
         return err?;
     }
@@ -208,12 +208,12 @@ macro double? @require_arg_double(
  *     uint value = @require_arg_uint(&e, argv, argc, 0)!;
  */
 macro uint? @require_arg_uint(
-    env::Env* e,
-    erl_nif::ErlNifTerm* argv,
+    Env* e,
+    ErlNifTerm* argv,
     CInt argc,
     CInt index
 ) {
-    term::Term? t = @require_arg(e, argv, argc, index);
+    Term? t = @require_arg(e, argv, argc, index);
     if (catch err = t) {
         return err?;
     }
@@ -227,12 +227,12 @@ macro uint? @require_arg_uint(
  *     ulong value = @require_arg_ulong(&e, argv, argc, 0)!;
  */
 macro ulong? @require_arg_ulong(
-    env::Env* e,
-    erl_nif::ErlNifTerm* argv,
+    Env* e,
+    ErlNifTerm* argv,
     CInt argc,
     CInt index
 ) {
-    term::Term? t = @require_arg(e, argv, argc, index);
+    Term? t = @require_arg(e, argv, argc, index);
     if (catch err = t) {
         return err?;
     }

@@ -15,18 +15,18 @@
  * Every NIF should use this pattern:
  *
  *     // INNER function - uses optionals, propagates faults with !
- *     fn term::Term? my_nif_impl(env::Env* e, erl_nif::ErlNifTerm* argv, CInt argc) {
- *         term::Term arg0 = safety::get_arg(argv, argc, 0)!;
+ *     fn Term? my_nif_impl(Env* e, ErlNifTerm* argv, CInt argc) {
+ *         Term arg0 = safety::get_arg(argv, argc, 0)!;
  *         int value = safety::require_int(e, arg0)!;
  *         return term::make_int(e, value * 2);
  *     }
  *
  *     // OUTER function - fault barrier, catches ALL faults
- *     fn erl_nif::ErlNifTerm my_nif(
- *         erl_nif::ErlNifEnv* env_raw, CInt argc, erl_nif::ErlNifTerm* argv
+ *     fn ErlNifTerm my_nif(
+ *         ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
  *     ) {
- *         env::Env e = env::wrap(env_raw);
- *         term::Term? result = my_nif_impl(&e, argv, argc);
+ *         Env e = env::wrap(env_raw);
+ *         Term? result = my_nif_impl(&e, argv, argc);
  *         if (catch fault = result) {
  *             return term::make_error_atom(&e, "error").raw();
  *         }
@@ -85,28 +85,28 @@ faultdef ARGC_MISMATCH;    // Wrong number of arguments
  *     // Use result.value safely
  */
 struct NifResult {
-    term::Term value;
+    Term value;
     bool is_error;
 }
 
 /**
  * Create a successful NifResult.
  */
-fn NifResult ok(term::Term t) {
+fn NifResult ok(Term t) {
     return { .value = t, .is_error = false };
 }
 
 /**
  * Create a badarg error NifResult.
  */
-fn NifResult badarg(env::Env* e) {
+fn NifResult badarg(Env* e) {
     return { .value = term::make_badarg(e), .is_error = true };
 }
 
 /**
  * Create an error NifResult with custom error atom.
  */
-fn NifResult error(env::Env* e, char* reason) {
+fn NifResult error(Env* e, char* reason) {
     return { .value = term::make_error_atom(e, reason), .is_error = true };
 }
 
@@ -134,7 +134,7 @@ fn void? require_argc(CInt expected, CInt actual) {
  * Safe argument access with bounds checking.
  * Returns the argument as a Term, or BADARG if index out of bounds.
  */
-fn term::Term? get_arg(erl_nif::ErlNifTerm* argv, CInt argc, CInt index) {
+fn Term? get_arg(ErlNifTerm* argv, CInt argc, CInt index) {
     if (index < 0 || index >= argc) {
         return term::BADARG?;
     }
@@ -144,42 +144,42 @@ fn term::Term? get_arg(erl_nif::ErlNifTerm* argv, CInt argc, CInt index) {
 /**
  * Safe integer extraction - returns BADARG fault instead of crashing.
  */
-fn int? require_int(env::Env* e, term::Term t) {
+fn int? require_int(Env* e, Term t) {
     return t.get_int(e);
 }
 
 /**
  * Safe unsigned integer extraction.
  */
-fn uint? require_uint(env::Env* e, term::Term t) {
+fn uint? require_uint(Env* e, Term t) {
     return t.get_uint(e);
 }
 
 /**
  * Safe long extraction.
  */
-fn long? require_long(env::Env* e, term::Term t) {
+fn long? require_long(Env* e, Term t) {
     return t.get_long(e);
 }
 
 /**
  * Safe unsigned long extraction.
  */
-fn ulong? require_ulong(env::Env* e, term::Term t) {
+fn ulong? require_ulong(Env* e, Term t) {
     return t.get_ulong(e);
 }
 
 /**
  * Safe double extraction.
  */
-fn double? require_double(env::Env* e, term::Term t) {
+fn double? require_double(Env* e, Term t) {
     return t.get_double(e);
 }
 
 /**
  * Require an atom argument.
  */
-fn void? require_atom(env::Env* e, term::Term t) {
+fn void? require_atom(Env* e, Term t) {
     if (!t.is_atom(e)) {
         return term::BADARG?;
     }
@@ -188,14 +188,14 @@ fn void? require_atom(env::Env* e, term::Term t) {
 /**
  * Require a binary argument.
  */
-fn erl_nif::ErlNifBinary? require_binary(env::Env* e, term::Term t) {
+fn ErlNifBinary? require_binary(Env* e, Term t) {
     return t.inspect_binary(e);
 }
 
 /**
  * Require a list argument.
  */
-fn void? require_list(env::Env* e, term::Term t) {
+fn void? require_list(Env* e, Term t) {
     if (!t.is_list(e)) {
         return term::BADARG?;
     }
@@ -204,7 +204,7 @@ fn void? require_list(env::Env* e, term::Term t) {
 /**
  * Require a tuple argument.
  */
-fn void? require_tuple(env::Env* e, term::Term t) {
+fn void? require_tuple(Env* e, Term t) {
     if (!t.is_tuple(e)) {
         return term::BADARG?;
     }
@@ -213,7 +213,7 @@ fn void? require_tuple(env::Env* e, term::Term t) {
 /**
  * Require a map argument.
  */
-fn void? require_map(env::Env* e, term::Term t) {
+fn void? require_map(Env* e, Term t) {
     if (!t.is_map(e)) {
         return term::BADARG?;
     }
@@ -222,7 +222,7 @@ fn void? require_map(env::Env* e, term::Term t) {
 /**
  * Require a PID argument.
  */
-fn erl_nif::ErlNifPid? require_pid(env::Env* e, term::Term t) {
+fn ErlNifPid? require_pid(Env* e, Term t) {
     return t.get_local_pid(e);
 }
 
@@ -233,7 +233,7 @@ fn erl_nif::ErlNifPid? require_pid(env::Env* e, term::Term t) {
 /**
  * Require an integer within a range (inclusive).
  */
-fn int? require_int_range(env::Env* e, term::Term t, int min, int max) {
+fn int? require_int_range(Env* e, Term t, int min, int max) {
     int? val = t.get_int(e);
     if (catch err = val) {
         return err?;
@@ -247,7 +247,7 @@ fn int? require_int_range(env::Env* e, term::Term t, int min, int max) {
 /**
  * Require a non-negative integer.
  */
-fn int? require_non_negative(env::Env* e, term::Term t) {
+fn int? require_non_negative(Env* e, Term t) {
     int? val = t.get_int(e);
     if (catch err = val) {
         return err?;
@@ -261,7 +261,7 @@ fn int? require_non_negative(env::Env* e, term::Term t) {
 /**
  * Require a positive integer (> 0).
  */
-fn int? require_positive(env::Env* e, term::Term t) {
+fn int? require_positive(Env* e, Term t) {
     int? val = t.get_int(e);
     if (catch err = val) {
         return err?;
@@ -279,34 +279,34 @@ fn int? require_positive(env::Env* e, term::Term t) {
 /**
  * Make an error tuple for BADARG fault.
  */
-fn term::Term make_badarg_error(env::Env* e) {
+fn Term make_badarg_error(Env* e) {
     return term::make_error_atom(e, "badarg");
 }
 
 /**
  * Make an error tuple for OVERFLOW fault.
  */
-fn term::Term make_overflow_error(env::Env* e) {
+fn Term make_overflow_error(Env* e) {
     return term::make_error_atom(e, "overflow");
 }
 
 /**
  * Make an error tuple for ALLOC_FAILED fault.
  */
-fn term::Term make_alloc_error(env::Env* e) {
+fn Term make_alloc_error(Env* e) {
     return term::make_error_atom(e, "alloc_failed");
 }
 
 /**
  * Make an error tuple for RESOURCE_ERROR fault.
  */
-fn term::Term make_resource_error(env::Env* e) {
+fn Term make_resource_error(Env* e) {
     return term::make_error_atom(e, "resource_error");
 }
 
 /**
  * Make a generic unknown error tuple.
  */
-fn term::Term make_unknown_error(env::Env* e) {
+fn Term make_unknown_error(Env* e) {
     return term::make_error_atom(e, "unknown_error");
 }

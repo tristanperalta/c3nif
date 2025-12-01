@@ -22,7 +22,7 @@ faultdef ALLOC_FAILED;  // Memory allocation failed
  * environments, see OwnedEnv.
  */
 struct Env {
-    erl_nif::ErlNifEnv* inner;
+    ErlNifEnv* inner;
 }
 
 /**
@@ -32,7 +32,7 @@ struct Env {
  * or stored for later use. The environment must be explicitly freed.
  */
 struct OwnedEnv {
-    erl_nif::ErlNifEnv* inner;
+    ErlNifEnv* inner;
 }
 
 // =============================================================================
@@ -42,14 +42,14 @@ struct OwnedEnv {
 /**
  * Wrap a raw ErlNifEnv pointer in an Env struct.
  */
-fn Env wrap(erl_nif::ErlNifEnv* raw_env) {
+fn Env wrap(ErlNifEnv* raw_env) {
     return (Env){ .inner = raw_env };
 }
 
 /**
  * Get the raw ErlNifEnv pointer.
  */
-fn erl_nif::ErlNifEnv* Env.raw(&self) {
+fn ErlNifEnv* Env.raw(&self) {
     return self.inner;
 }
 
@@ -64,8 +64,8 @@ fn void* Env.priv_data(&self) {
  * Get the PID of the calling process.
  * Returns error if called from a non-process context.
  */
-fn erl_nif::ErlNifPid? Env.self(&self) {
-    erl_nif::ErlNifPid pid;
+fn ErlNifPid? Env.self(&self) {
+    ErlNifPid pid;
     if (erl_nif::enif_self(self.inner, &pid) == null) {
         return NO_PROCESS?;
     }
@@ -80,7 +80,7 @@ fn erl_nif::ErlNifPid? Env.self(&self) {
  * @param msg The message term
  * @return true if send was successful
  */
-fn bool Env.send(&self, erl_nif::ErlNifPid* to_pid, erl_nif::ErlNifEnv* msg_env, erl_nif::ErlNifTerm msg) {
+fn bool Env.send(&self, ErlNifPid* to_pid, ErlNifEnv* msg_env, ErlNifTerm msg) {
     return erl_nif::enif_send(self.inner, to_pid, msg_env, msg) != 0;
 }
 
@@ -129,7 +129,7 @@ fn bool Env.is_process_alive(&self) {
  * Create a new process-independent environment.
  */
 fn OwnedEnv? new_owned_env() {
-    erl_nif::ErlNifEnv* env = erl_nif::enif_alloc_env();
+    ErlNifEnv* env = erl_nif::enif_alloc_env();
     if (env == null) {
         return ALLOC_FAILED?;
     }
@@ -139,7 +139,7 @@ fn OwnedEnv? new_owned_env() {
 /**
  * Get the raw ErlNifEnv pointer.
  */
-fn erl_nif::ErlNifEnv* OwnedEnv.raw(&self) {
+fn ErlNifEnv* OwnedEnv.raw(&self) {
     return self.inner;
 }
 
@@ -160,7 +160,7 @@ fn void OwnedEnv.clear(&self) {
 /**
  * Copy a term from another environment into this one.
  */
-fn erl_nif::ErlNifTerm OwnedEnv.copy_term(&self, erl_nif::ErlNifTerm src_term) {
+fn ErlNifTerm OwnedEnv.copy_term(&self, ErlNifTerm src_term) {
     return erl_nif::enif_make_copy(self.inner, src_term);
 }
 
@@ -172,7 +172,7 @@ fn erl_nif::ErlNifTerm OwnedEnv.copy_term(&self, erl_nif::ErlNifTerm src_term) {
  * @param msg Message to send (must be created in this OwnedEnv)
  * @return true if send was successful
  */
-fn bool OwnedEnv.send(&self, erl_nif::ErlNifEnv* caller_env, erl_nif::ErlNifPid* to_pid, erl_nif::ErlNifTerm msg) {
+fn bool OwnedEnv.send(&self, ErlNifEnv* caller_env, ErlNifPid* to_pid, ErlNifTerm msg) {
     return erl_nif::enif_send(caller_env, to_pid, self.inner, msg) != 0;
 }
 

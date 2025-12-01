@@ -36,7 +36,7 @@
  *     }
  *     char[]? slice = owned.as_mut_slice();
  *     // ... fill in data ...
- *     term::Term result = owned.to_term(&e)!;
+ *     Term result = owned.to_term(&e)!;
  *     return result.raw();
  */
 module c3nif::binary;
@@ -65,7 +65,7 @@ faultdef NOT_OWNED;      // Operation requires owned binary
  * - Owned: Allocated by us (mutable, must release or transfer)
  */
 struct Binary {
-    erl_nif::ErlNifBinary inner;
+    ErlNifBinary inner;
     bool owned;
 }
 
@@ -83,7 +83,7 @@ struct Binary {
  * Thread-safe: Yes
  */
 fn Binary? alloc(usz size) {
-    erl_nif::ErlNifBinary bin;
+    ErlNifBinary bin;
     if (erl_nif::enif_alloc_binary((CULong)size, &bin) == 0) {
         return ALLOC_FAILED?;
     }
@@ -130,8 +130,8 @@ fn void Binary.release(&self) {
  *
  * Thread-safe: Requires environment
  */
-fn Binary? inspect(env::Env* e, term::Term t) {
-    erl_nif::ErlNifBinary bin;
+fn Binary? inspect(Env* e, Term t) {
+    ErlNifBinary bin;
     if (erl_nif::enif_inspect_binary(e.raw(), t.raw(), &bin) == 0) {
         return term::BADARG?;
     }
@@ -146,8 +146,8 @@ fn Binary? inspect(env::Env* e, term::Term t) {
  *
  * Thread-safe: Requires environment
  */
-fn Binary? inspect_iolist(env::Env* e, term::Term t) {
-    erl_nif::ErlNifBinary bin;
+fn Binary? inspect_iolist(Env* e, Term t) {
+    ErlNifBinary bin;
     if (erl_nif::enif_inspect_iolist_as_binary(e.raw(), t.raw(), &bin) == 0) {
         return term::BADARG?;
     }
@@ -166,11 +166,11 @@ fn Binary? inspect_iolist(env::Env* e, term::Term t) {
  *
  * Thread-safe: Requires environment
  */
-fn term::Term? Binary.to_term(&self, env::Env* e) {
+fn Term? Binary.to_term(&self, Env* e) {
     if (!self.owned) {
         return NOT_OWNED?;
     }
-    erl_nif::ErlNifTerm t = erl_nif::enif_make_binary(e.raw(), &self.inner);
+    ErlNifTerm t = erl_nif::enif_make_binary(e.raw(), &self.inner);
     self.owned = false;  // Ownership transferred
     return term::wrap(t);
 }
@@ -184,8 +184,8 @@ fn term::Term? Binary.to_term(&self, env::Env* e) {
  *
  * Thread-safe: Requires environment
  */
-fn term::Term make_new(env::Env* e, usz size, char[]* data_out) {
-    erl_nif::ErlNifTerm t;
+fn Term make_new(Env* e, usz size, char[]* data_out) {
+    ErlNifTerm t;
     char* ptr = erl_nif::enif_make_new_binary(e.raw(), (CULong)size, &t);
     *data_out = ptr[:size];
     return term::wrap(t);
@@ -197,8 +197,8 @@ fn term::Term make_new(env::Env* e, usz size, char[]* data_out) {
  *
  * Thread-safe: Requires environment
  */
-fn term::Term make_sub(env::Env* e, term::Term bin_term, usz pos, usz len) {
-    erl_nif::ErlNifTerm t = erl_nif::enif_make_sub_binary(
+fn Term make_sub(Env* e, Term bin_term, usz pos, usz len) {
+    ErlNifTerm t = erl_nif::enif_make_sub_binary(
         e.raw(), bin_term.raw(), (CULong)pos, (CULong)len
     );
     return term::wrap(t);
@@ -257,9 +257,9 @@ fn bool Binary.is_owned(&self) {
  * Create a binary term by copying from a C3 slice.
  * Returns the term directly (ownership transferred to Erlang).
  */
-fn term::Term from_slice(env::Env* e, char[] data) {
+fn Term from_slice(Env* e, char[] data) {
     char[] dest;
-    term::Term t = make_new(e, data.len, &dest);
+    Term t = make_new(e, data.len, &dest);
     for (usz i = 0; i < data.len; i++) {
         dest[i] = data[i];
     }
