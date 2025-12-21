@@ -1,16 +1,16 @@
 # C3nif
 
-**Safe and ergonomic Erlang/Elixir NIFs using C3**
+**Ergonomic Erlang/Elixir NIFs using C3**
 
-C3nif is a library for writing Erlang/Elixir Native Implemented Functions (NIFs) using the [C3 programming language](https://c3-lang.org). It provides a safe, modern alternative to writing NIFs in C while maintaining excellent performance and familiar syntax.
+C3nif is a library for writing Erlang/Elixir Native Implemented Functions (NIFs) using the [C3 programming language](https://c3-lang.org). If you know C but find raw NIF code tedious, C3nif gives you a cleaner API with less boilerplate.
 
 ## Why C3nif?
 
-- **Performance**: Compiles to efficient native code, comparable to C
-- **Safety**: C3's modern error handling with optionals reduces NIF crashes
-- **Ergonomic**: Clean, readable syntax with type-safe conversions
-- **Familiar**: C-like syntax that's easier to learn than Rust or Zig
-- **Fast Development**: Minimal boilerplate compared to raw C NIFs
+- **Performance**: Compiles to native code, same as C
+- **Less boilerplate**: Wrapper types and helpers cut down on repetitive NIF code
+- **Explicit error handling**: C3's optional types (`int?`) make error paths visible
+- **Familiar syntax**: If you know C, you can read C3
+- **Not Rust**: No borrow checker to fight with (but also no memory safety guarantees)
 
 ## Quick Example
 
@@ -69,12 +69,12 @@ Ensure you have the C3 compiler installed:
 
 ## Core Features
 
-### Type-Safe Conversions
+### Type Conversions
 
-C3nif provides safe conversions between Erlang terms and C3 types using C3's optional types:
+C3nif wraps Erlang terms in a `Term` type with methods that return optionals on failure:
 
 ```c3
-fn ErlNifTerm safe_double(
+fn ErlNifTerm double_it(
     ErlNifEnv* raw_env,
     CInt argc,
     ErlNifTerm* argv
@@ -82,7 +82,7 @@ fn ErlNifTerm safe_double(
     Env e = env::wrap(raw_env);
     Term arg = term::wrap(argv[0]);
 
-    // Safe extraction - returns optional
+    // Returns optional - you handle the error or it won't compile
     int? value = arg.get_int(&e);
     if (catch err = value) {
         return term::make_badarg(&e).raw();
@@ -259,16 +259,32 @@ mix test
 - C3 compiler 0.7.7+
 - Linux x86_64
 
-## Safety Considerations
+## You Can Still Crash the VM
 
-While C3nif is safer than raw C NIFs, you should still:
+C3nif makes NIFs more ergonomic, but it doesn't make them memory-safe. You're still writing native code. Things that will crash your VM:
 
-- Use C3nif's safe conversion functions with optional types
-- Handle all potential errors with `if (catch err = ...)` patterns
-- Keep NIFs under 1ms execution time (or use dirty schedulers)
-- Test thoroughly, especially edge cases
-- Don't store terms beyond their environment's lifetime
-- Don't ignore error returns
+- Segfaults from null pointers or use-after-free
+- Buffer overflows
+- Storing terms beyond their environment's lifetime
+- Using `!!` to unwrap errors instead of handling them
+
+The `!!` operator is convenient but dangerous - it panics on error:
+
+```c3
+// This will crash if allocation fails:
+void* ptr = resource::alloc("Counter", Counter.sizeof)!!;
+
+// Prefer explicit handling:
+void*? ptr = resource::alloc("Counter", Counter.sizeof);
+if (catch err = ptr) {
+    return term::make_error_atom(&e, "alloc_failed").raw();
+}
+```
+
+Other things to remember:
+- Keep NIFs under 1ms (or use dirty schedulers)
+- Test edge cases - bad input shouldn't crash the VM
+- Run with AddressSanitizer during development
 
 ## License
 
