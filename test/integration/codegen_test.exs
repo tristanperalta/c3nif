@@ -23,6 +23,8 @@ end
 defmodule C3nif.IntegrationTest.CodegenTest do
   use C3nif.Case, async: false
 
+  alias C3nif.IntegrationTest.CodegenTestNif
+
   @moduletag :integration
 
   # C3 code with nif: annotations - NO manual entry point!
@@ -86,7 +88,7 @@ defmodule C3nif.IntegrationTest.CodegenTest do
         File.cp!(lib_path, dest_path)
 
         # Load the NIF
-        case C3nif.IntegrationTest.CodegenTestNif.load_nif(priv_dir) do
+        case CodegenTestNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -101,21 +103,21 @@ defmodule C3nif.IntegrationTest.CodegenTest do
 
   describe "auto-generated entry point" do
     test "add/2 works with auto-generated entry" do
-      assert C3nif.IntegrationTest.CodegenTestNif.add(1, 2) == 3
-      assert C3nif.IntegrationTest.CodegenTestNif.add(-5, 10) == 5
-      assert C3nif.IntegrationTest.CodegenTestNif.add(100, 200) == 300
+      assert CodegenTestNif.add(1, 2) == 3
+      assert CodegenTestNif.add(-5, 10) == 5
+      assert CodegenTestNif.add(100, 200) == 300
     end
 
     test "add/2 raises on non-integer" do
       assert_raise ArgumentError, fn ->
-        C3nif.IntegrationTest.CodegenTestNif.add("a", 1)
+        CodegenTestNif.add("a", 1)
       end
     end
 
     test "custom_name/1 calls internal_echo via custom name" do
-      assert C3nif.IntegrationTest.CodegenTestNif.custom_name(42) == 42
-      assert C3nif.IntegrationTest.CodegenTestNif.custom_name(:hello) == :hello
-      assert C3nif.IntegrationTest.CodegenTestNif.custom_name([1, 2, 3]) == [1, 2, 3]
+      assert CodegenTestNif.custom_name(42) == 42
+      assert CodegenTestNif.custom_name(:hello) == :hello
+      assert CodegenTestNif.custom_name([1, 2, 3]) == [1, 2, 3]
     end
   end
 end
@@ -142,6 +144,8 @@ end
 
 defmodule C3nif.IntegrationTest.CodegenWithCallbackTest do
   use C3nif.Case, async: false
+
+  alias C3nif.IntegrationTest.CodegenWithCallbackNif
 
   @moduletag :integration
 
@@ -189,7 +193,7 @@ defmodule C3nif.IntegrationTest.CodegenWithCallbackTest do
         File.mkdir_p!(priv_dir)
         File.cp!(lib_path, dest_path)
 
-        case C3nif.IntegrationTest.CodegenWithCallbackNif.load_nif(priv_dir) do
+        case CodegenWithCallbackNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -205,7 +209,7 @@ defmodule C3nif.IntegrationTest.CodegenWithCallbackTest do
   describe "auto-detected on_load callback" do
     test "on_load was called during NIF loading" do
       # If on_load was properly detected and wired up, load_counter should be 42
-      assert C3nif.IntegrationTest.CodegenWithCallbackNif.get_counter() == 42
+      assert CodegenWithCallbackNif.get_counter() == 42
     end
   end
 end
@@ -234,6 +238,8 @@ end
 
 defmodule C3nif.IntegrationTest.CodegenDirtySchedulerTest do
   use C3nif.Case, async: false
+
+  alias C3nif.IntegrationTest.CodegenDirtySchedulerNif
 
   @moduletag :integration
 
@@ -303,7 +309,7 @@ defmodule C3nif.IntegrationTest.CodegenDirtySchedulerTest do
         File.mkdir_p!(priv_dir)
         File.cp!(lib_path, dest_path)
 
-        case C3nif.IntegrationTest.CodegenDirtySchedulerNif.load_nif(priv_dir) do
+        case CodegenDirtySchedulerNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -318,11 +324,11 @@ defmodule C3nif.IntegrationTest.CodegenDirtySchedulerTest do
 
   describe "dirty scheduler annotations in codegen" do
     test "dirty = cpu annotation runs NIF on dirty CPU scheduler" do
-      assert {:ok, :dirty_cpu} = C3nif.IntegrationTest.CodegenDirtySchedulerNif.dirty_cpu_annotated()
+      assert {:ok, :dirty_cpu} = CodegenDirtySchedulerNif.dirty_cpu_annotated()
     end
 
     test "dirty = io annotation runs NIF on dirty IO scheduler" do
-      assert {:ok, :dirty_io} = C3nif.IntegrationTest.CodegenDirtySchedulerNif.dirty_io_annotated()
+      assert {:ok, :dirty_io} = CodegenDirtySchedulerNif.dirty_io_annotated()
     end
   end
 end

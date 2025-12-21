@@ -30,7 +30,7 @@ defmodule C3nif.Generator do
   ```
   """
 
-  alias C3nif.Parser.{NifFunction, Callbacks}
+  alias C3nif.Parser.{Callbacks, NifFunction}
 
   @doc """
   Generate C3 entry point code for the given NIFs and callbacks.
@@ -93,10 +93,7 @@ defmodule C3nif.Generator do
   # ===========================================================================
 
   defp generate_funcs_array(nifs, count) do
-    entries =
-      nifs
-      |> Enum.map(&generate_func_entry/1)
-      |> Enum.join(",\n    ")
+    entries = Enum.map_join(nifs, ",\n    ", &generate_func_entry/1)
 
     """
     ErlNifFunc[#{count}] __c3nif_funcs__ = {

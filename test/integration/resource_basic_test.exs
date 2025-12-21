@@ -18,11 +18,13 @@ defmodule C3nif.IntegrationTest.ResourceBasicNif do
   def create_counter(_initial), do: :erlang.nif_error(:nif_not_loaded)
   def get_counter(_resource), do: :erlang.nif_error(:nif_not_loaded)
   def increment_counter(_resource), do: :erlang.nif_error(:nif_not_loaded)
-  def get_resource_count(), do: :erlang.nif_error(:nif_not_loaded)
+  def get_resource_count, do: :erlang.nif_error(:nif_not_loaded)
 end
 
 defmodule C3nif.IntegrationTest.ResourceBasicTest do
   use C3nif.Case, async: false
+
+  alias C3nif.IntegrationTest.ResourceBasicNif
 
   @moduletag :integration
 
@@ -150,7 +152,7 @@ defmodule C3nif.IntegrationTest.ResourceBasicTest do
         File.mkdir_p!(priv_dir)
         File.cp!(lib_path, dest_path)
 
-        case C3nif.IntegrationTest.ResourceBasicNif.load_nif(priv_dir) do
+        case ResourceBasicNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -165,62 +167,62 @@ defmodule C3nif.IntegrationTest.ResourceBasicTest do
 
   describe "basic resource operations" do
     test "create and read resource" do
-      resource = C3nif.IntegrationTest.ResourceBasicNif.create_counter(42)
+      resource = ResourceBasicNif.create_counter(42)
       assert is_reference(resource)
-      assert C3nif.IntegrationTest.ResourceBasicNif.get_counter(resource) == 42
+      assert ResourceBasicNif.get_counter(resource) == 42
     end
 
     test "create with different values" do
-      res1 = C3nif.IntegrationTest.ResourceBasicNif.create_counter(0)
-      res2 = C3nif.IntegrationTest.ResourceBasicNif.create_counter(100)
-      res3 = C3nif.IntegrationTest.ResourceBasicNif.create_counter(-50)
+      res1 = ResourceBasicNif.create_counter(0)
+      res2 = ResourceBasicNif.create_counter(100)
+      res3 = ResourceBasicNif.create_counter(-50)
 
-      assert C3nif.IntegrationTest.ResourceBasicNif.get_counter(res1) == 0
-      assert C3nif.IntegrationTest.ResourceBasicNif.get_counter(res2) == 100
-      assert C3nif.IntegrationTest.ResourceBasicNif.get_counter(res3) == -50
+      assert ResourceBasicNif.get_counter(res1) == 0
+      assert ResourceBasicNif.get_counter(res2) == 100
+      assert ResourceBasicNif.get_counter(res3) == -50
     end
 
     test "increment resource" do
-      resource = C3nif.IntegrationTest.ResourceBasicNif.create_counter(0)
-      assert C3nif.IntegrationTest.ResourceBasicNif.get_counter(resource) == 0
+      resource = ResourceBasicNif.create_counter(0)
+      assert ResourceBasicNif.get_counter(resource) == 0
 
-      :ok = C3nif.IntegrationTest.ResourceBasicNif.increment_counter(resource)
-      assert C3nif.IntegrationTest.ResourceBasicNif.get_counter(resource) == 1
+      :ok = ResourceBasicNif.increment_counter(resource)
+      assert ResourceBasicNif.get_counter(resource) == 1
 
-      :ok = C3nif.IntegrationTest.ResourceBasicNif.increment_counter(resource)
-      assert C3nif.IntegrationTest.ResourceBasicNif.get_counter(resource) == 2
+      :ok = ResourceBasicNif.increment_counter(resource)
+      assert ResourceBasicNif.get_counter(resource) == 2
 
-      :ok = C3nif.IntegrationTest.ResourceBasicNif.increment_counter(resource)
-      assert C3nif.IntegrationTest.ResourceBasicNif.get_counter(resource) == 3
+      :ok = ResourceBasicNif.increment_counter(resource)
+      assert ResourceBasicNif.get_counter(resource) == 3
     end
 
     test "multiple resources are independent" do
-      res1 = C3nif.IntegrationTest.ResourceBasicNif.create_counter(10)
-      res2 = C3nif.IntegrationTest.ResourceBasicNif.create_counter(20)
+      res1 = ResourceBasicNif.create_counter(10)
+      res2 = ResourceBasicNif.create_counter(20)
 
-      C3nif.IntegrationTest.ResourceBasicNif.increment_counter(res1)
-      C3nif.IntegrationTest.ResourceBasicNif.increment_counter(res1)
+      ResourceBasicNif.increment_counter(res1)
+      ResourceBasicNif.increment_counter(res1)
 
-      assert C3nif.IntegrationTest.ResourceBasicNif.get_counter(res1) == 12
-      assert C3nif.IntegrationTest.ResourceBasicNif.get_counter(res2) == 20
+      assert ResourceBasicNif.get_counter(res1) == 12
+      assert ResourceBasicNif.get_counter(res2) == 20
     end
   end
 
   describe "destructor tracking" do
     test "resource count tracks allocations" do
-      initial_count = C3nif.IntegrationTest.ResourceBasicNif.get_resource_count()
+      initial_count = ResourceBasicNif.get_resource_count()
 
-      _res1 = C3nif.IntegrationTest.ResourceBasicNif.create_counter(1)
-      _res2 = C3nif.IntegrationTest.ResourceBasicNif.create_counter(2)
+      _res1 = ResourceBasicNif.create_counter(1)
+      _res2 = ResourceBasicNif.create_counter(2)
 
       # Should have 2 more resources
-      assert C3nif.IntegrationTest.ResourceBasicNif.get_resource_count() >= initial_count + 2
+      assert ResourceBasicNif.get_resource_count() >= initial_count + 2
     end
 
     test "mass allocation cleanup (Rustler pattern)" do
       # Create many resources
       for _ <- 1..100 do
-        C3nif.IntegrationTest.ResourceBasicNif.create_counter(0)
+        ResourceBasicNif.create_counter(0)
       end
 
       # Force GC
@@ -228,7 +230,7 @@ defmodule C3nif.IntegrationTest.ResourceBasicTest do
       Process.sleep(50)
 
       # Count should decrease (timing not deterministic, so just check it didn't crash)
-      count = C3nif.IntegrationTest.ResourceBasicNif.get_resource_count()
+      count = ResourceBasicNif.get_resource_count()
       assert is_integer(count)
     end
   end

@@ -31,12 +31,14 @@ defmodule C3nif.IntegrationTest.MacrosNif do
   def require_map_macro(_value), do: :erlang.nif_error(:nif_not_loaded)
 
   # @get_resource macro tests (requires resource setup)
-  def create_counter(), do: :erlang.nif_error(:nif_not_loaded)
+  def create_counter, do: :erlang.nif_error(:nif_not_loaded)
   def get_counter_value(_resource), do: :erlang.nif_error(:nif_not_loaded)
 end
 
 defmodule C3nif.IntegrationTest.MacrosTest do
   use C3nif.Case, async: false
+
+  alias C3nif.IntegrationTest.MacrosNif
 
   @moduletag :integration
 
@@ -320,7 +322,7 @@ defmodule C3nif.IntegrationTest.MacrosTest do
         File.mkdir_p!(priv_dir)
         File.cp!(lib_path, dest_path)
 
-        case C3nif.IntegrationTest.MacrosNif.load_nif(priv_dir) do
+        case MacrosNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -335,131 +337,131 @@ defmodule C3nif.IntegrationTest.MacrosTest do
 
   describe "@nif_entry macro" do
     test "successful call returns result" do
-      assert C3nif.IntegrationTest.MacrosNif.add_with_macro(10, 20) == 30
+      assert MacrosNif.add_with_macro(10, 20) == 30
     end
 
     test "with invalid first argument returns error tuple" do
-      assert C3nif.IntegrationTest.MacrosNif.add_with_macro("not an int", 20) == {:error, :error}
+      assert MacrosNif.add_with_macro("not an int", 20) == {:error, :error}
     end
 
     test "with invalid second argument returns error tuple" do
-      assert C3nif.IntegrationTest.MacrosNif.add_with_macro(10, :atom) == {:error, :error}
+      assert MacrosNif.add_with_macro(10, :atom) == {:error, :error}
     end
 
     test "with custom error reason returns custom error" do
-      assert C3nif.IntegrationTest.MacrosNif.add_with_custom_error("bad", 10) ==
+      assert MacrosNif.add_with_custom_error("bad", 10) ==
                {:error, :custom_error}
     end
   end
 
   describe "@require_arg_int macro" do
     test "with valid integer returns {:ok, value}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_arg_int_test(42) == {:ok, 42}
+      assert MacrosNif.require_arg_int_test(42) == {:ok, 42}
     end
 
     test "with negative integer returns {:ok, value}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_arg_int_test(-100) == {:ok, -100}
+      assert MacrosNif.require_arg_int_test(-100) == {:ok, -100}
     end
 
     test "with non-integer returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_arg_int_test("string") == {:error, :badarg}
+      assert MacrosNif.require_arg_int_test("string") == {:error, :badarg}
     end
 
     test "with float returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_arg_int_test(3.14) == {:error, :badarg}
+      assert MacrosNif.require_arg_int_test(3.14) == {:error, :badarg}
     end
   end
 
   describe "@require_arg_long macro" do
     test "with valid integer returns {:ok, value}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_arg_long_test(9_999_999_999) ==
+      assert MacrosNif.require_arg_long_test(9_999_999_999) ==
                {:ok, 9_999_999_999}
     end
 
     test "with negative returns {:ok, value}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_arg_long_test(-9_999_999_999) ==
+      assert MacrosNif.require_arg_long_test(-9_999_999_999) ==
                {:ok, -9_999_999_999}
     end
 
     test "with non-integer returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_arg_long_test(:atom) == {:error, :badarg}
+      assert MacrosNif.require_arg_long_test(:atom) == {:error, :badarg}
     end
   end
 
   describe "@require_arg_double macro" do
     test "with valid float returns {:ok, value}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_arg_double_test(3.14159) == {:ok, 3.14159}
+      assert MacrosNif.require_arg_double_test(3.14159) == {:ok, 3.14159}
     end
 
     test "with integer returns {:error, :badarg}" do
       # Note: In Erlang NIFs, integers are not automatically converted to doubles
-      assert C3nif.IntegrationTest.MacrosNif.require_arg_double_test(42) == {:error, :badarg}
+      assert MacrosNif.require_arg_double_test(42) == {:error, :badarg}
     end
 
     test "with negative float returns {:ok, value}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_arg_double_test(-2.718) == {:ok, -2.718}
+      assert MacrosNif.require_arg_double_test(-2.718) == {:ok, -2.718}
     end
 
     test "with string returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_arg_double_test("3.14") == {:error, :badarg}
+      assert MacrosNif.require_arg_double_test("3.14") == {:error, :badarg}
     end
   end
 
   describe "@require_arg_uint macro" do
     test "with valid unsigned integer returns {:ok, value}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_arg_uint_test(42) == {:ok, 42}
+      assert MacrosNif.require_arg_uint_test(42) == {:ok, 42}
     end
 
     test "with zero returns {:ok, 0}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_arg_uint_test(0) == {:ok, 0}
+      assert MacrosNif.require_arg_uint_test(0) == {:ok, 0}
     end
 
     test "with negative returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_arg_uint_test(-1) == {:error, :badarg}
+      assert MacrosNif.require_arg_uint_test(-1) == {:error, :badarg}
     end
   end
 
   describe "@require_type macro" do
     test "require_atom with atom returns :ok" do
-      assert C3nif.IntegrationTest.MacrosNif.require_atom_macro(:hello) == :ok
+      assert MacrosNif.require_atom_macro(:hello) == :ok
     end
 
     test "require_atom with string returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_atom_macro("hello") == {:error, :badarg}
+      assert MacrosNif.require_atom_macro("hello") == {:error, :badarg}
     end
 
     test "require_atom with integer returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_atom_macro(42) == {:error, :badarg}
+      assert MacrosNif.require_atom_macro(42) == {:error, :badarg}
     end
 
     test "require_list with list returns :ok" do
-      assert C3nif.IntegrationTest.MacrosNif.require_list_macro([1, 2, 3]) == :ok
+      assert MacrosNif.require_list_macro([1, 2, 3]) == :ok
     end
 
     test "require_list with empty list returns :ok" do
-      assert C3nif.IntegrationTest.MacrosNif.require_list_macro([]) == :ok
+      assert MacrosNif.require_list_macro([]) == :ok
     end
 
     test "require_list with non-list returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_list_macro(:not_a_list) == {:error, :badarg}
+      assert MacrosNif.require_list_macro(:not_a_list) == {:error, :badarg}
     end
 
     test "require_map with map returns :ok" do
-      assert C3nif.IntegrationTest.MacrosNif.require_map_macro(%{a: 1}) == :ok
+      assert MacrosNif.require_map_macro(%{a: 1}) == :ok
     end
 
     test "require_map with empty map returns :ok" do
-      assert C3nif.IntegrationTest.MacrosNif.require_map_macro(%{}) == :ok
+      assert MacrosNif.require_map_macro(%{}) == :ok
     end
 
     test "require_map with non-map returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.MacrosNif.require_map_macro([key: 1]) == {:error, :badarg}
+      assert MacrosNif.require_map_macro([key: 1]) == {:error, :badarg}
     end
   end
 
   describe "resource with macros" do
     test "create_counter returns {:ok, resource}" do
-      assert {:ok, resource} = C3nif.IntegrationTest.MacrosNif.create_counter()
+      assert {:ok, resource} = MacrosNif.create_counter()
       assert is_reference(resource)
     end
   end

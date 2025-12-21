@@ -29,3 +29,4 @@ c3nif-*.tar
 /priv/*.so
 /priv/*.dylib
 /priv/*.dll
+/priv/plts/

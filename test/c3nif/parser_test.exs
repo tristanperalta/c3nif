@@ -2,7 +2,7 @@ defmodule C3nif.ParserTest do
   use ExUnit.Case, async: true
 
   alias C3nif.Parser
-  alias C3nif.Parser.{NifFunction, Callbacks}
+  alias C3nif.Parser.{Callbacks, NifFunction}
 
   describe "parse_nifs/1" do
     test "parses a simple NIF function with nif: annotation" do
@@ -158,7 +158,7 @@ defmodule C3nif.ParserTest do
       # Should still work - only whitespace should be allowed between
       # Let's verify behavior - this may or may not match depending on implementation
       # The current implementation allows any whitespace, not just newlines
-      assert length(nifs) == 0 || length(nifs) == 1
+      assert Enum.empty?(nifs) or match?([_], nifs)
     end
 
     test "handles multiline doc comments" do

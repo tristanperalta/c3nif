@@ -16,11 +16,13 @@ defmodule C3nif.IntegrationTest.ResourceMonitorNif do
   end
 
   def create_monitored_resource(_owner_pid, _notify_pid), do: :erlang.nif_error(:nif_not_loaded)
-  def get_down_count(), do: :erlang.nif_error(:nif_not_loaded)
+  def get_down_count, do: :erlang.nif_error(:nif_not_loaded)
 end
 
 defmodule C3nif.IntegrationTest.ResourceMonitorTest do
   use C3nif.Case, async: false
+
+  alias C3nif.IntegrationTest.ResourceMonitorNif
 
   @moduletag :integration
 
@@ -175,7 +177,7 @@ defmodule C3nif.IntegrationTest.ResourceMonitorTest do
         File.mkdir_p!(priv_dir)
         File.cp!(lib_path, dest_path)
 
-        case C3nif.IntegrationTest.ResourceMonitorNif.load_nif(priv_dir) do
+        case ResourceMonitorNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -202,7 +204,7 @@ defmodule C3nif.IntegrationTest.ResourceMonitorTest do
 
       # Create resource that monitors the process
       _resource =
-        C3nif.IntegrationTest.ResourceMonitorNif.create_monitored_resource(
+        ResourceMonitorNif.create_monitored_resource(
           monitored,
           notify_pid
         )
@@ -215,7 +217,7 @@ defmodule C3nif.IntegrationTest.ResourceMonitorTest do
     end
 
     test "down callback count increments" do
-      initial = C3nif.IntegrationTest.ResourceMonitorNif.get_down_count()
+      initial = ResourceMonitorNif.get_down_count()
 
       # Create and kill monitored processes
       for _ <- 1..3 do
@@ -227,7 +229,7 @@ defmodule C3nif.IntegrationTest.ResourceMonitorTest do
           end)
 
         _resource =
-          C3nif.IntegrationTest.ResourceMonitorNif.create_monitored_resource(
+          ResourceMonitorNif.create_monitored_resource(
             monitored,
             self()
           )
@@ -236,7 +238,7 @@ defmodule C3nif.IntegrationTest.ResourceMonitorTest do
         assert_receive {:process_down, _}, 1000
       end
 
-      final = C3nif.IntegrationTest.ResourceMonitorNif.get_down_count()
+      final = ResourceMonitorNif.get_down_count()
       assert final >= initial + 3
     end
 
@@ -255,7 +257,7 @@ defmodule C3nif.IntegrationTest.ResourceMonitorTest do
 
       # Create resource that monitors the process
       _resource =
-        C3nif.IntegrationTest.ResourceMonitorNif.create_monitored_resource(
+        ResourceMonitorNif.create_monitored_resource(
           monitored,
           notify_pid
         )
@@ -284,7 +286,7 @@ defmodule C3nif.IntegrationTest.ResourceMonitorTest do
       # Monitor each process
       for pid <- pids do
         _resource =
-          C3nif.IntegrationTest.ResourceMonitorNif.create_monitored_resource(
+          ResourceMonitorNif.create_monitored_resource(
             pid,
             notify_pid
           )

@@ -28,6 +28,8 @@ end
 defmodule C3nif.IntegrationTest.AllocatorTest do
   use C3nif.Case, async: false
 
+  alias C3nif.IntegrationTest.AllocatorNif
+
   @moduletag :integration
 
   @c3_code """
@@ -302,7 +304,7 @@ defmodule C3nif.IntegrationTest.AllocatorTest do
         File.mkdir_p!(priv_dir)
         File.cp!(lib_path, dest_path)
 
-        case C3nif.IntegrationTest.AllocatorNif.load_nif(priv_dir) do
+        case AllocatorNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -317,55 +319,55 @@ defmodule C3nif.IntegrationTest.AllocatorTest do
 
   describe "basic allocation" do
     test "alloc_and_free works for small allocations" do
-      assert C3nif.IntegrationTest.AllocatorNif.alloc_and_free(64) == :ok
+      assert AllocatorNif.alloc_and_free(64) == :ok
     end
 
     test "alloc_and_free works for medium allocations" do
-      assert C3nif.IntegrationTest.AllocatorNif.alloc_and_free(1024) == :ok
+      assert AllocatorNif.alloc_and_free(1024) == :ok
     end
 
     test "alloc_and_free works for large allocations" do
-      assert C3nif.IntegrationTest.AllocatorNif.alloc_and_free(1_000_000) == :ok
+      assert AllocatorNif.alloc_and_free(1_000_000) == :ok
     end
   end
 
   describe "zero initialization" do
     test "calloc returns zeroed memory for small size" do
-      assert C3nif.IntegrationTest.AllocatorNif.calloc_test(64) == :ok
+      assert AllocatorNif.calloc_test(64) == :ok
     end
 
     test "calloc returns zeroed memory for large size" do
-      assert C3nif.IntegrationTest.AllocatorNif.calloc_test(10_000) == :ok
+      assert AllocatorNif.calloc_test(10_000) == :ok
     end
   end
 
   describe "reallocation" do
     test "realloc grow preserves data" do
-      assert C3nif.IntegrationTest.AllocatorNif.realloc_grow(100, 1000) == :ok
+      assert AllocatorNif.realloc_grow(100, 1000) == :ok
     end
 
     test "realloc shrink preserves remaining data" do
-      assert C3nif.IntegrationTest.AllocatorNif.realloc_shrink(1000, 100) == :ok
+      assert AllocatorNif.realloc_shrink(1000, 100) == :ok
     end
 
     test "realloc to same size works" do
-      assert C3nif.IntegrationTest.AllocatorNif.realloc_grow(100, 100) == :ok
+      assert AllocatorNif.realloc_grow(100, 100) == :ok
     end
   end
 
   describe "buffer pattern" do
     test "fill_buffer creates correct binary" do
-      result = C3nif.IntegrationTest.AllocatorNif.fill_buffer(5, 42)
+      result = AllocatorNif.fill_buffer(5, 42)
       assert result == <<42, 42, 42, 42, 42>>
     end
 
     test "fill_buffer works with zeros" do
-      result = C3nif.IntegrationTest.AllocatorNif.fill_buffer(3, 0)
+      result = AllocatorNif.fill_buffer(3, 0)
       assert result == <<0, 0, 0>>
     end
 
     test "fill_buffer works with max byte value" do
-      result = C3nif.IntegrationTest.AllocatorNif.fill_buffer(4, 255)
+      result = AllocatorNif.fill_buffer(4, 255)
       assert result == <<255, 255, 255, 255>>
     end
   end
@@ -373,14 +375,14 @@ defmodule C3nif.IntegrationTest.AllocatorTest do
   describe "stress test" do
     test "many small allocations" do
       for _ <- 1..100 do
-        assert C3nif.IntegrationTest.AllocatorNif.alloc_and_free(64) == :ok
+        assert AllocatorNif.alloc_and_free(64) == :ok
       end
     end
 
     test "alternating alloc and realloc" do
       for i <- 1..50 do
         size = i * 100
-        assert C3nif.IntegrationTest.AllocatorNif.realloc_grow(size, size * 2) == :ok
+        assert AllocatorNif.realloc_grow(size, size * 2) == :ok
       end
     end
   end

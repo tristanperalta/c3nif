@@ -1,6 +1,8 @@
 defmodule C3nif.CompilerTest do
   use C3nif.Case, async: false
 
+  alias C3nif.Compiler
+
   describe "compile/1" do
     test "compiles a minimal C3 NIF" do
       c3_code = """
@@ -30,7 +32,7 @@ defmodule C3nif.CompilerTest do
 
   describe "staging_dir/1" do
     test "returns a path in tmp directory" do
-      dir = C3nif.Compiler.staging_dir(SomeModule)
+      dir = Compiler.staging_dir(SomeModule)
       assert String.contains?(dir, "c3nif_compiler")
       assert String.contains?(dir, "SomeModule")
     end

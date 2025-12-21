@@ -18,13 +18,15 @@ defmodule C3nif.IntegrationTest.ResourceKeepNif do
   def create_tracked(_initial), do: :erlang.nif_error(:nif_not_loaded)
   def get_tracked(_resource), do: :erlang.nif_error(:nif_not_loaded)
   def keep_in_native(_resource), do: :erlang.nif_error(:nif_not_loaded)
-  def release_from_native(), do: :erlang.nif_error(:nif_not_loaded)
-  def get_native_value(), do: :erlang.nif_error(:nif_not_loaded)
-  def get_live_count(), do: :erlang.nif_error(:nif_not_loaded)
+  def release_from_native, do: :erlang.nif_error(:nif_not_loaded)
+  def get_native_value, do: :erlang.nif_error(:nif_not_loaded)
+  def get_live_count, do: :erlang.nif_error(:nif_not_loaded)
 end
 
 defmodule C3nif.IntegrationTest.ResourceKeepTest do
   use C3nif.Case, async: false
+
+  alias C3nif.IntegrationTest.ResourceKeepNif
 
   @moduletag :integration
 
@@ -199,7 +201,7 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
         File.mkdir_p!(priv_dir)
         File.cp!(lib_path, dest_path)
 
-        case C3nif.IntegrationTest.ResourceKeepNif.load_nif(priv_dir) do
+        case ResourceKeepNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -214,22 +216,22 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
 
   describe "keep/release reference counting" do
     test "keep prevents destruction when Erlang reference is gone" do
-      initial_count = C3nif.IntegrationTest.ResourceKeepNif.get_live_count()
+      initial_count = ResourceKeepNif.get_live_count()
 
       # Create a resource and keep it in native code
-      resource = C3nif.IntegrationTest.ResourceKeepNif.create_tracked(42)
-      assert C3nif.IntegrationTest.ResourceKeepNif.get_tracked(resource) == 42
+      resource = ResourceKeepNif.create_tracked(42)
+      assert ResourceKeepNif.get_tracked(resource) == 42
 
-      :ok = C3nif.IntegrationTest.ResourceKeepNif.keep_in_native(resource)
+      :ok = ResourceKeepNif.keep_in_native(resource)
 
       # Verify we can access it from native side
-      assert C3nif.IntegrationTest.ResourceKeepNif.get_native_value() == 42
+      assert ResourceKeepNif.get_native_value() == 42
 
       # Now "lose" the Erlang reference and GC
       # Note: We can't actually lose it in this scope, so we test via spawning
       spawn(fn ->
-        res = C3nif.IntegrationTest.ResourceKeepNif.create_tracked(100)
-        C3nif.IntegrationTest.ResourceKeepNif.keep_in_native(res)
+        res = ResourceKeepNif.create_tracked(100)
+        ResourceKeepNif.keep_in_native(res)
       end)
 
       Process.sleep(50)
@@ -237,76 +239,76 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
       Process.sleep(50)
 
       # Native reference should still be valid (value is 100 from spawned process)
-      value = C3nif.IntegrationTest.ResourceKeepNif.get_native_value()
+      value = ResourceKeepNif.get_native_value()
       assert value == 100
 
       # Live count should include the native-kept resource
-      assert C3nif.IntegrationTest.ResourceKeepNif.get_live_count() > initial_count
+      assert ResourceKeepNif.get_live_count() > initial_count
 
       # Release the native reference
-      :ok = C3nif.IntegrationTest.ResourceKeepNif.release_from_native()
+      :ok = ResourceKeepNif.release_from_native()
     end
 
     test "release from native allows destruction" do
-      _initial_count = C3nif.IntegrationTest.ResourceKeepNif.get_live_count()
+      _initial_count = ResourceKeepNif.get_live_count()
 
       # Create and keep in native
       spawn(fn ->
-        res = C3nif.IntegrationTest.ResourceKeepNif.create_tracked(999)
-        C3nif.IntegrationTest.ResourceKeepNif.keep_in_native(res)
+        res = ResourceKeepNif.create_tracked(999)
+        ResourceKeepNif.keep_in_native(res)
       end)
 
       Process.sleep(50)
       :erlang.garbage_collect()
 
       # Should still exist
-      assert C3nif.IntegrationTest.ResourceKeepNif.get_native_value() == 999
+      assert ResourceKeepNif.get_native_value() == 999
 
-      count_before_release = C3nif.IntegrationTest.ResourceKeepNif.get_live_count()
+      count_before_release = ResourceKeepNif.get_live_count()
 
       # Release from native
-      :ok = C3nif.IntegrationTest.ResourceKeepNif.release_from_native()
+      :ok = ResourceKeepNif.release_from_native()
 
       # Force GC
       :erlang.garbage_collect()
       Process.sleep(100)
 
       # Value should be nil (no native resource)
-      assert C3nif.IntegrationTest.ResourceKeepNif.get_native_value() == :nil
+      assert ResourceKeepNif.get_native_value() == :nil
 
       # Live count should decrease (eventually, GC timing is not deterministic)
       # We just verify the release worked and the count is reasonable
-      final_count = C3nif.IntegrationTest.ResourceKeepNif.get_live_count()
+      final_count = ResourceKeepNif.get_live_count()
       assert is_integer(final_count)
       assert final_count <= count_before_release
     end
 
     test "replacing native resource releases previous" do
       # Keep first resource
-      res1 = C3nif.IntegrationTest.ResourceKeepNif.create_tracked(111)
-      :ok = C3nif.IntegrationTest.ResourceKeepNif.keep_in_native(res1)
-      assert C3nif.IntegrationTest.ResourceKeepNif.get_native_value() == 111
+      res1 = ResourceKeepNif.create_tracked(111)
+      :ok = ResourceKeepNif.keep_in_native(res1)
+      assert ResourceKeepNif.get_native_value() == 111
 
       # Keep second resource (should release first)
-      res2 = C3nif.IntegrationTest.ResourceKeepNif.create_tracked(222)
-      :ok = C3nif.IntegrationTest.ResourceKeepNif.keep_in_native(res2)
-      assert C3nif.IntegrationTest.ResourceKeepNif.get_native_value() == 222
+      res2 = ResourceKeepNif.create_tracked(222)
+      :ok = ResourceKeepNif.keep_in_native(res2)
+      assert ResourceKeepNif.get_native_value() == 222
 
       # Keep third resource
-      res3 = C3nif.IntegrationTest.ResourceKeepNif.create_tracked(333)
-      :ok = C3nif.IntegrationTest.ResourceKeepNif.keep_in_native(res3)
-      assert C3nif.IntegrationTest.ResourceKeepNif.get_native_value() == 333
+      res3 = ResourceKeepNif.create_tracked(333)
+      :ok = ResourceKeepNif.keep_in_native(res3)
+      assert ResourceKeepNif.get_native_value() == 333
 
       # Clean up
-      :ok = C3nif.IntegrationTest.ResourceKeepNif.release_from_native()
+      :ok = ResourceKeepNif.release_from_native()
     end
 
     test "release_from_native with no resource returns error" do
       # First ensure no native resource
-      C3nif.IntegrationTest.ResourceKeepNif.release_from_native()
+      ResourceKeepNif.release_from_native()
 
       # Should return error
-      assert C3nif.IntegrationTest.ResourceKeepNif.release_from_native() == :error
+      assert ResourceKeepNif.release_from_native() == :error
     end
   end
 end

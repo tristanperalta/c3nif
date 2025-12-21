@@ -2,7 +2,7 @@ defmodule C3nif.GeneratorTest do
   use ExUnit.Case, async: true
 
   alias C3nif.Generator
-  alias C3nif.Parser.{NifFunction, Callbacks}
+  alias C3nif.Parser.{Callbacks, NifFunction}
 
   describe "generate_entry/3" do
     test "generates entry for single NIF" do

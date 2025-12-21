@@ -18,6 +18,9 @@ defmodule Mix.Tasks.Compile.C3nif do
 
   use Mix.Task
 
+  alias C3nif
+  alias C3nif.Compiler
+
   @shortdoc "Compiles C3 NIF modules"
 
   @impl Mix.Task
@@ -38,7 +41,7 @@ defmodule Mix.Tasks.Compile.C3nif do
   # ===========================================================================
 
   defp compile_nif_modules do
-    manifest_file = C3nif.Compiler.manifest_path()
+    manifest_file = Compiler.manifest_path()
 
     if File.exists?(manifest_file) do
       manifest =
@@ -72,7 +75,7 @@ defmodule Mix.Tasks.Compile.C3nif do
     if nif_needs_recompile?(output_path, all_sources) do
       Mix.shell().info("Compiling NIF #{module}...")
 
-      case C3nif.Compiler.compile(
+      case Compiler.compile(
              module: module,
              otp_app: otp_app,
              c3_code: c3_code,
@@ -90,9 +93,6 @@ defmodule Mix.Tasks.Compile.C3nif do
 
           #{output}
           """)
-
-        {:error, reason} ->
-          Mix.raise("Failed to compile NIF #{module}: #{inspect(reason)}")
       end
     end
   end
@@ -112,10 +112,10 @@ defmodule Mix.Tasks.Compile.C3nif do
       |> Enum.flat_map(fn pattern ->
         abs_pattern = Path.expand(pattern, File.cwd!())
 
-        if String.contains?(pattern, "*") do
-          Path.wildcard(abs_pattern)
-        else
-          if File.exists?(abs_pattern), do: [abs_pattern], else: []
+        cond do
+          String.contains?(pattern, "*") -> Path.wildcard(abs_pattern)
+          File.exists?(abs_pattern) -> [abs_pattern]
+          true -> []
         end
       end)
 

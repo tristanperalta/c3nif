@@ -38,7 +38,7 @@ defmodule C3nif.IntegrationTest.TermNif do
   def make_string_len_test(_binary, _len), do: :erlang.nif_error(:nif_not_loaded)
 
   # List tests
-  def make_empty_list_test(), do: :erlang.nif_error(:nif_not_loaded)
+  def make_empty_list_test, do: :erlang.nif_error(:nif_not_loaded)
   def list_cell_test(_head, _tail), do: :erlang.nif_error(:nif_not_loaded)
   def get_list_cell_test(_list), do: :erlang.nif_error(:nif_not_loaded)
   def get_list_length_test(_list), do: :erlang.nif_error(:nif_not_loaded)
@@ -48,13 +48,13 @@ defmodule C3nif.IntegrationTest.TermNif do
   def get_tuple_test(_tuple), do: :erlang.nif_error(:nif_not_loaded)
 
   # Map tests
-  def make_empty_map_test(), do: :erlang.nif_error(:nif_not_loaded)
+  def make_empty_map_test, do: :erlang.nif_error(:nif_not_loaded)
   def map_put_test(_map, _key, _value), do: :erlang.nif_error(:nif_not_loaded)
   def map_get_test(_map, _key), do: :erlang.nif_error(:nif_not_loaded)
   def get_map_size_test(_map), do: :erlang.nif_error(:nif_not_loaded)
 
   # Reference tests
-  def make_ref_test(), do: :erlang.nif_error(:nif_not_loaded)
+  def make_ref_test, do: :erlang.nif_error(:nif_not_loaded)
 
   # Exception tests
   def raise_exception_test(_should_raise), do: :erlang.nif_error(:nif_not_loaded)
@@ -62,6 +62,8 @@ end
 
 defmodule C3nif.IntegrationTest.TermTest do
   use C3nif.Case, async: false
+
+  alias C3nif.IntegrationTest.TermNif
 
   @moduletag :integration
 
@@ -708,7 +710,7 @@ defmodule C3nif.IntegrationTest.TermTest do
         File.mkdir_p!(priv_dir)
         File.cp!(lib_path, dest_path)
 
-        case C3nif.IntegrationTest.TermNif.load_nif(priv_dir) do
+        case TermNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -727,7 +729,7 @@ defmodule C3nif.IntegrationTest.TermTest do
 
   describe "type_checks/1" do
     test "correctly identifies atom" do
-      result = C3nif.IntegrationTest.TermNif.type_checks(:hello)
+      result = TermNif.type_checks(:hello)
       assert result[:is_atom] == true
       assert result[:is_binary] == false
       assert result[:is_list] == false
@@ -736,65 +738,65 @@ defmodule C3nif.IntegrationTest.TermTest do
     end
 
     test "correctly identifies integer" do
-      result = C3nif.IntegrationTest.TermNif.type_checks(42)
+      result = TermNif.type_checks(42)
       assert result[:is_atom] == false
       assert result[:is_number] == true
       assert result[:term_type] == :integer
     end
 
     test "correctly identifies float" do
-      result = C3nif.IntegrationTest.TermNif.type_checks(3.14)
+      result = TermNif.type_checks(3.14)
       assert result[:is_number] == true
       assert result[:term_type] == :float
     end
 
     test "correctly identifies binary" do
-      result = C3nif.IntegrationTest.TermNif.type_checks("hello")
+      result = TermNif.type_checks("hello")
       assert result[:is_binary] == true
       assert result[:term_type] == :bitstring
     end
 
     test "correctly identifies list" do
-      result = C3nif.IntegrationTest.TermNif.type_checks([1, 2, 3])
+      result = TermNif.type_checks([1, 2, 3])
       assert result[:is_list] == true
       assert result[:is_empty_list] == false
       assert result[:term_type] == :list
     end
 
     test "correctly identifies empty list" do
-      result = C3nif.IntegrationTest.TermNif.type_checks([])
+      result = TermNif.type_checks([])
       assert result[:is_list] == true
       assert result[:is_empty_list] == true
       assert result[:term_type] == :list
     end
 
     test "correctly identifies tuple" do
-      result = C3nif.IntegrationTest.TermNif.type_checks({1, 2, 3})
+      result = TermNif.type_checks({1, 2, 3})
       assert result[:is_tuple] == true
       assert result[:term_type] == :tuple
     end
 
     test "correctly identifies map" do
-      result = C3nif.IntegrationTest.TermNif.type_checks(%{a: 1})
+      result = TermNif.type_checks(%{a: 1})
       assert result[:is_map] == true
       assert result[:term_type] == :map
     end
 
     test "correctly identifies reference" do
       ref = make_ref()
-      result = C3nif.IntegrationTest.TermNif.type_checks(ref)
+      result = TermNif.type_checks(ref)
       assert result[:is_ref] == true
       assert result[:term_type] == :reference
     end
 
     test "correctly identifies pid" do
-      result = C3nif.IntegrationTest.TermNif.type_checks(self())
+      result = TermNif.type_checks(self())
       assert result[:is_pid] == true
       assert result[:term_type] == :pid
     end
 
     test "correctly identifies function" do
-      result = C3nif.IntegrationTest.TermNif.type_checks(fn x -> x end)
+      result = TermNif.type_checks(fn x -> x end)
       assert result[:is_fun] == true
       assert result[:term_type] == :fun
     end
@@ -806,52 +808,52 @@ defmodule C3nif.IntegrationTest.TermTest do
 
   describe "term_equals/2" do
     test "returns true for identical atoms" do
-      assert C3nif.IntegrationTest.TermNif.term_equals(:hello, :hello) == true
+      assert TermNif.term_equals(:hello, :hello) == true
     end
 
     test "returns false for different atoms" do
-      assert C3nif.IntegrationTest.TermNif.term_equals(:hello, :world) == false
+      assert TermNif.term_equals(:hello, :world) == false
     end
 
     test "returns true for identical integers" do
-      assert C3nif.IntegrationTest.TermNif.term_equals(42, 42) == true
+      assert TermNif.term_equals(42, 42) == true
     end
 
     test "returns false for different integers" do
-      assert C3nif.IntegrationTest.TermNif.term_equals(42, 43) == false
+      assert TermNif.term_equals(42, 43) == false
     end
 
     test "returns true for identical lists" do
-      assert C3nif.IntegrationTest.TermNif.term_equals([1, 2, 3], [1, 2, 3]) == true
+      assert TermNif.term_equals([1, 2, 3], [1, 2, 3]) == true
     end
 
     test "returns false for different types" do
-      assert C3nif.IntegrationTest.TermNif.term_equals(42, "42") == false
+      assert TermNif.term_equals(42, "42") == false
     end
   end
 
   describe "term_compare/2" do
     test "returns eq for equal values" do
-      assert C3nif.IntegrationTest.TermNif.term_compare(42, 42) == :eq
+      assert TermNif.term_compare(42, 42) == :eq
     end
 
     test "returns lt when first is less" do
-      assert C3nif.IntegrationTest.TermNif.term_compare(1, 2) == :lt
+      assert TermNif.term_compare(1, 2) == :lt
     end
 
     test "returns gt when first is greater" do
-      assert C3nif.IntegrationTest.TermNif.term_compare(2, 1) == :gt
+      assert TermNif.term_compare(2, 1) == :gt
     end
 
     test "compares atoms alphabetically" do
-      assert C3nif.IntegrationTest.TermNif.term_compare(:apple, :banana) == :lt
-      assert C3nif.IntegrationTest.TermNif.term_compare(:banana, :apple) == :gt
+      assert TermNif.term_compare(:apple, :banana) == :lt
+      assert TermNif.term_compare(:banana, :apple) == :gt
     end
 
     test "compares different types by Erlang term ordering" do
       # number < atom < reference < fun < port < pid < tuple < map < list < bitstring
-      assert C3nif.IntegrationTest.TermNif.term_compare(1, :atom) == :lt
-      assert C3nif.IntegrationTest.TermNif.term_compare(:atom, {1, 2}) == :lt
+      assert TermNif.term_compare(1, :atom) == :lt
+      assert TermNif.term_compare(:atom, {1, 2}) == :lt
     end
   end
 
@@ -861,49 +863,49 @@ defmodule C3nif.IntegrationTest.TermTest do
 
   describe "get_uint_test/1" do
     test "extracts positive integer" do
-      assert C3nif.IntegrationTest.TermNif.get_uint_test(42) == {:ok, 42}
+      assert TermNif.get_uint_test(42) == {:ok, 42}
     end
 
     test "extracts zero" do
-      assert C3nif.IntegrationTest.TermNif.get_uint_test(0) == {:ok, 0}
+      assert TermNif.get_uint_test(0) == {:ok, 0}
     end
 
     test "returns error for negative integer" do
-      assert C3nif.IntegrationTest.TermNif.get_uint_test(-1) == {:error, :badarg}
+      assert TermNif.get_uint_test(-1) == {:error, :badarg}
     end
 
     test "returns error for non-integer" do
-      assert C3nif.IntegrationTest.TermNif.get_uint_test(:atom) == {:error, :badarg}
+      assert TermNif.get_uint_test(:atom) == {:error, :badarg}
     end
   end
 
   describe "get_long_test/1" do
     test "extracts positive long" do
-      assert C3nif.IntegrationTest.TermNif.get_long_test(1_000_000_000) == {:ok, 1_000_000_000}
+      assert TermNif.get_long_test(1_000_000_000) == {:ok, 1_000_000_000}
     end
 
     test "extracts negative long" do
-      assert C3nif.IntegrationTest.TermNif.get_long_test(-1_000_000_000) == {:ok, -1_000_000_000}
+      assert TermNif.get_long_test(-1_000_000_000) == {:ok, -1_000_000_000}
     end
 
     test "returns error for non-integer" do
-      assert C3nif.IntegrationTest.TermNif.get_long_test("string") == {:error, :badarg}
+      assert TermNif.get_long_test("string") == {:error, :badarg}
     end
   end
 
   describe "get_ulong_test/1" do
     test "extracts large positive value" do
-      assert C3nif.IntegrationTest.TermNif.get_ulong_test(4_000_000_000) == {:ok, 4_000_000_000}
+      assert TermNif.get_ulong_test(4_000_000_000) == {:ok, 4_000_000_000}
     end
 
     test "returns error for negative" do
-      assert C3nif.IntegrationTest.TermNif.get_ulong_test(-1) == {:error, :badarg}
+      assert TermNif.get_ulong_test(-1) == {:error, :badarg}
     end
   end
 
   describe "make_ulong_test/1" do
     test "round-trips large value" do
-      assert C3nif.IntegrationTest.TermNif.make_ulong_test(4_000_000_000) == 4_000_000_000
+      assert TermNif.make_ulong_test(4_000_000_000) == 4_000_000_000
     end
   end
 
@@ -913,38 +915,38 @@ defmodule C3nif.IntegrationTest.TermTest do
 
   describe "make_atom_len_test/2" do
     test "creates atom from first N bytes" do
-      assert C3nif.IntegrationTest.TermNif.make_atom_len_test("hello_world", 5) == :hello
+      assert TermNif.make_atom_len_test("hello_world", 5) == :hello
     end
 
     test "creates full atom when length matches" do
-      assert C3nif.IntegrationTest.TermNif.make_atom_len_test("test", 4) == :test
+      assert TermNif.make_atom_len_test("test", 4) == :test
     end
   end
 
   describe "make_existing_atom_test/1" do
     test "returns existing atom" do
       # :ok should always exist
-      assert C3nif.IntegrationTest.TermNif.make_existing_atom_test("ok") == {:ok, :ok}
+      assert TermNif.make_existing_atom_test("ok") == {:ok, :ok}
     end
 
     test "returns error for non-existing atom" do
       # Use a very unlikely atom name
-      assert C3nif.IntegrationTest.TermNif.make_existing_atom_test("__this_atom_should_not_exist_xyz123__") ==
+      assert TermNif.make_existing_atom_test("__this_atom_should_not_exist_xyz123__") ==
                {:error, :not_found}
     end
   end
 
   describe "get_atom_length_test/1" do
     test "returns length of atom name" do
-      assert C3nif.IntegrationTest.TermNif.get_atom_length_test(:hello) == {:ok, 5}
+      assert TermNif.get_atom_length_test(:hello) == {:ok, 5}
     end
 
     test "returns length of longer atom" do
-      assert C3nif.IntegrationTest.TermNif.get_atom_length_test(:hello_world) == {:ok, 11}
+      assert TermNif.get_atom_length_test(:hello_world) == {:ok, 11}
     end
 
     test "returns error for non-atom" do
-      assert C3nif.IntegrationTest.TermNif.get_atom_length_test(123) == {:error, :badarg}
+      assert TermNif.get_atom_length_test(123) == {:error, :badarg}
     end
   end
 
@@ -954,21 +956,21 @@ defmodule C3nif.IntegrationTest.TermTest do
 
   describe "make_string_test/1" do
     test "creates charlist from binary" do
-      assert C3nif.IntegrationTest.TermNif.make_string_test("hello") == ~c"hello"
+      assert TermNif.make_string_test("hello") == ~c"hello"
     end
 
     test "creates empty charlist" do
-      assert C3nif.IntegrationTest.TermNif.make_string_test("") == ~c""
+      assert TermNif.make_string_test("") == ~c""
     end
   end
 
   describe "make_string_len_test/2" do
     test "creates charlist with explicit length" do
-      assert C3nif.IntegrationTest.TermNif.make_string_len_test("hello_world", 5) == ~c"hello"
+      assert TermNif.make_string_len_test("hello_world", 5) == ~c"hello"
     end
 
     test "creates shorter charlist" do
-      assert C3nif.IntegrationTest.TermNif.make_string_len_test("test", 2) == ~c"te"
+      assert TermNif.make_string_len_test("test", 2) == ~c"te"
     end
   end
 
@@ -978,67 +980,67 @@ defmodule C3nif.IntegrationTest.TermTest do
 
   describe "make_empty_list_test/0" do
     test "creates empty list" do
-      assert C3nif.IntegrationTest.TermNif.make_empty_list_test() == []
+      assert TermNif.make_empty_list_test() == []
     end
   end
 
   describe "list_cell_test/2" do
     test "creates list cell" do
-      assert C3nif.IntegrationTest.TermNif.list_cell_test(1, [2, 3]) == [1, 2, 3]
+      assert TermNif.list_cell_test(1, [2, 3]) == [1, 2, 3]
     end
 
     test "creates single element list" do
-      assert C3nif.IntegrationTest.TermNif.list_cell_test(:a, []) == [:a]
+      assert TermNif.list_cell_test(:a, []) == [:a]
     end
 
     test "creates improper list" do
-      assert C3nif.IntegrationTest.TermNif.list_cell_test(:a, :b) == [:a | :b]
+      assert TermNif.list_cell_test(:a, :b) == [:a | :b]
     end
   end
 
   describe "get_list_cell_test/1" do
     test "extracts head and tail" do
-      assert C3nif.IntegrationTest.TermNif.get_list_cell_test([1, 2, 3]) == {1, [2, 3]}
+      assert TermNif.get_list_cell_test([1, 2, 3]) == {1, [2, 3]}
     end
 
     test "extracts from single element list" do
-      assert C3nif.IntegrationTest.TermNif.get_list_cell_test([:a]) == {:a, []}
+      assert TermNif.get_list_cell_test([:a]) == {:a, []}
     end
 
     test "returns error for empty list" do
-      assert C3nif.IntegrationTest.TermNif.get_list_cell_test([]) == {:error, :badarg}
+      assert TermNif.get_list_cell_test([]) == {:error, :badarg}
     end
 
     test "returns error for non-list" do
-      assert C3nif.IntegrationTest.TermNif.get_list_cell_test(:atom) == {:error, :badarg}
+      assert TermNif.get_list_cell_test(:atom) == {:error, :badarg}
     end
   end
 
   describe "get_list_length_test/1" do
     test "returns length of list" do
-      assert C3nif.IntegrationTest.TermNif.get_list_length_test([1, 2, 3]) == {:ok, 3}
+      assert TermNif.get_list_length_test([1, 2, 3]) == {:ok, 3}
     end
 
     test "returns zero for empty list" do
-      assert C3nif.IntegrationTest.TermNif.get_list_length_test([]) == {:ok, 0}
+      assert TermNif.get_list_length_test([]) == {:ok, 0}
     end
 
     test "returns error for non-list" do
-      assert C3nif.IntegrationTest.TermNif.get_list_length_test(:atom) == {:error, :badarg}
+      assert TermNif.get_list_length_test(:atom) == {:error, :badarg}
     end
   end
 
   describe "make_list_from_array_test/1" do
     test "creates list from count" do
-      assert C3nif.IntegrationTest.TermNif.make_list_from_array_test(5) == [1, 2, 3, 4, 5]
+      assert TermNif.make_list_from_array_test(5) == [1, 2, 3, 4, 5]
     end
 
     test "creates empty list for zero" do
-      assert C3nif.IntegrationTest.TermNif.make_list_from_array_test(0) == []
+      assert TermNif.make_list_from_array_test(0) == []
     end
 
     test "creates single element list" do
-      assert C3nif.IntegrationTest.TermNif.make_list_from_array_test(1) == [1]
+      assert TermNif.make_list_from_array_test(1) == [1]
     end
   end
 
@@ -1048,19 +1050,19 @@ defmodule C3nif.IntegrationTest.TermTest do
 
   describe "get_tuple_test/1" do
     test "extracts tuple elements as list" do
-      assert C3nif.IntegrationTest.TermNif.get_tuple_test({1, 2, 3}) == {:ok, [1, 2, 3]}
+      assert TermNif.get_tuple_test({1, 2, 3}) == {:ok, [1, 2, 3]}
     end
 
     test "extracts empty tuple" do
-      assert C3nif.IntegrationTest.TermNif.get_tuple_test({}) == {:ok, []}
+      assert TermNif.get_tuple_test({}) == {:ok, []}
     end
 
     test "extracts single element tuple" do
-      assert C3nif.IntegrationTest.TermNif.get_tuple_test({:a}) == {:ok, [:a]}
+      assert TermNif.get_tuple_test({:a}) == {:ok, [:a]}
     end
 
     test "returns error for non-tuple" do
-      assert C3nif.IntegrationTest.TermNif.get_tuple_test([1, 2, 3]) == {:error, :badarg}
+      assert TermNif.get_tuple_test([1, 2, 3]) == {:error, :badarg}
     end
   end
 
@@ -1070,54 +1072,54 @@ defmodule C3nif.IntegrationTest.TermTest do
 
   describe "make_empty_map_test/0" do
     test "creates empty map" do
-      assert C3nif.IntegrationTest.TermNif.make_empty_map_test() == %{}
+      assert TermNif.make_empty_map_test() == %{}
     end
   end
 
   describe "map_put_test/3" do
     test "puts key-value into empty map" do
-      map = C3nif.IntegrationTest.TermNif.make_empty_map_test()
-      assert C3nif.IntegrationTest.TermNif.map_put_test(map, :key, :value) == %{key: :value}
+      map = TermNif.make_empty_map_test()
+      assert TermNif.map_put_test(map, :key, :value) == %{key: :value}
     end
 
     test "puts key-value into existing map" do
-      assert C3nif.IntegrationTest.TermNif.map_put_test(%{a: 1}, :b, 2) == %{a: 1, b: 2}
+      assert TermNif.map_put_test(%{a: 1}, :b, 2) == %{a: 1, b: 2}
     end
 
     test "overwrites existing key" do
-      assert C3nif.IntegrationTest.TermNif.map_put_test(%{a: 1}, :a, 2) == %{a: 2}
+      assert TermNif.map_put_test(%{a: 1}, :a, 2) == %{a: 2}
     end
 
     test "returns error for non-map" do
-      assert C3nif.IntegrationTest.TermNif.map_put_test(:not_a_map, :key, :value) == {:error, :badarg}
+      assert TermNif.map_put_test(:not_a_map, :key, :value) == {:error, :badarg}
     end
   end
 
   describe "map_get_test/2" do
     test "gets value by key" do
-      assert C3nif.IntegrationTest.TermNif.map_get_test(%{a: 1, b: 2}, :a) == {:ok, 1}
+      assert TermNif.map_get_test(%{a: 1, b: 2}, :a) == {:ok, 1}
     end
 
     test "returns error for missing key" do
-      assert C3nif.IntegrationTest.TermNif.map_get_test(%{a: 1}, :b) == {:error, :not_found}
+      assert TermNif.map_get_test(%{a: 1}, :b) == {:error, :not_found}
     end
 
     test "returns error for non-map" do
-      assert C3nif.IntegrationTest.TermNif.map_get_test(:not_a_map, :key) == {:error, :not_found}
+      assert TermNif.map_get_test(:not_a_map, :key) == {:error, :not_found}
     end
   end
 
   describe "get_map_size_test/1" do
     test "returns size of map" do
-      assert C3nif.IntegrationTest.TermNif.get_map_size_test(%{a: 1, b: 2, c: 3}) == {:ok, 3}
+      assert TermNif.get_map_size_test(%{a: 1, b: 2, c: 3}) == {:ok, 3}
     end
 
     test "returns zero for empty map" do
-      assert C3nif.IntegrationTest.TermNif.get_map_size_test(%{}) == {:ok, 0}
+      assert TermNif.get_map_size_test(%{}) == {:ok, 0}
     end
 
     test "returns error for non-map" do
-      assert C3nif.IntegrationTest.TermNif.get_map_size_test(:not_a_map) == {:error, :badarg}
+      assert TermNif.get_map_size_test(:not_a_map) == {:error, :badarg}
     end
   end
 
@@ -1127,13 +1129,13 @@ defmodule C3nif.IntegrationTest.TermTest do
 
   describe "make_ref_test/0" do
     test "creates a reference" do
-      ref = C3nif.IntegrationTest.TermNif.make_ref_test()
+      ref = TermNif.make_ref_test()
       assert is_reference(ref)
     end
 
     test "creates unique references" do
-      ref1 = C3nif.IntegrationTest.TermNif.make_ref_test()
-      ref2 = C3nif.IntegrationTest.TermNif.make_ref_test()
+      ref1 = TermNif.make_ref_test()
+      ref2 = TermNif.make_ref_test()
       assert ref1 != ref2
     end
   end
@@ -1144,12 +1146,12 @@ defmodule C3nif.IntegrationTest.TermTest do
 
   describe "raise_exception_test/1" do
     test "returns ok when not raising" do
-      assert C3nif.IntegrationTest.TermNif.raise_exception_test(:dont_raise) == :ok
+      assert TermNif.raise_exception_test(:dont_raise) == :ok
     end
 
     test "raises exception when requested" do
       assert_raise ErlangError, ~r/test_exception/, fn ->
-        C3nif.IntegrationTest.TermNif.raise_exception_test(:raise)
+        TermNif.raise_exception_test(:raise)
       end
     end
   end

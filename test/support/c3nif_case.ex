@@ -16,6 +16,8 @@ defmodule C3nif.Case do
       end
   """
 
+  alias C3nif.Compiler
+
   use ExUnit.CaseTemplate
 
   using do
@@ -56,7 +58,7 @@ defmodule C3nif.Case do
       skip_codegen: skip_codegen
     ]
 
-    C3nif.Compiler.compile(compile_opts)
+    Compiler.compile(compile_opts)
   end
 
   @doc """

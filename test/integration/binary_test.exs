@@ -41,6 +41,8 @@ end
 defmodule C3nif.IntegrationTest.BinaryTest do
   use C3nif.Case, async: false
 
+  alias C3nif.IntegrationTest.BinaryNif
+
   @moduletag :integration
 
   @c3_code """
@@ -389,7 +391,7 @@ defmodule C3nif.IntegrationTest.BinaryTest do
         File.mkdir_p!(priv_dir)
         File.cp!(lib_path, dest_path)
 
-        case C3nif.IntegrationTest.BinaryNif.load_nif(priv_dir) do
+        case BinaryNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -404,53 +406,53 @@ defmodule C3nif.IntegrationTest.BinaryTest do
 
   describe "binary inspection" do
     test "get_binary_size returns correct size" do
-      assert C3nif.IntegrationTest.BinaryNif.get_binary_size(<<>>) == 0
-      assert C3nif.IntegrationTest.BinaryNif.get_binary_size(<<1>>) == 1
-      assert C3nif.IntegrationTest.BinaryNif.get_binary_size(<<1, 2, 3, 4, 5>>) == 5
-      assert C3nif.IntegrationTest.BinaryNif.get_binary_size(:binary.copy(<<0>>, 1000)) == 1000
+      assert BinaryNif.get_binary_size(<<>>) == 0
+      assert BinaryNif.get_binary_size(<<1>>) == 1
+      assert BinaryNif.get_binary_size(<<1, 2, 3, 4, 5>>) == 5
+      assert BinaryNif.get_binary_size(:binary.copy(<<0>>, 1000)) == 1000
     end
 
     test "get_first_byte returns first byte or :empty" do
-      assert C3nif.IntegrationTest.BinaryNif.get_first_byte(<<>>) == :empty
-      assert C3nif.IntegrationTest.BinaryNif.get_first_byte(<<42>>) == 42
-      assert C3nif.IntegrationTest.BinaryNif.get_first_byte(<<255, 1, 2>>) == 255
-      assert C3nif.IntegrationTest.BinaryNif.get_first_byte(<<0, 99>>) == 0
+      assert BinaryNif.get_first_byte(<<>>) == :empty
+      assert BinaryNif.get_first_byte(<<42>>) == 42
+      assert BinaryNif.get_first_byte(<<255, 1, 2>>) == 255
+      assert BinaryNif.get_first_byte(<<0, 99>>) == 0
     end
 
     test "sum_bytes sums all bytes" do
-      assert C3nif.IntegrationTest.BinaryNif.sum_bytes(<<>>) == 0
-      assert C3nif.IntegrationTest.BinaryNif.sum_bytes(<<1, 2, 3>>) == 6
-      assert C3nif.IntegrationTest.BinaryNif.sum_bytes(<<255, 255>>) == 510
-      assert C3nif.IntegrationTest.BinaryNif.sum_bytes(:binary.copy(<<1>>, 100)) == 100
+      assert BinaryNif.sum_bytes(<<>>) == 0
+      assert BinaryNif.sum_bytes(<<1, 2, 3>>) == 6
+      assert BinaryNif.sum_bytes(<<255, 255>>) == 510
+      assert BinaryNif.sum_bytes(:binary.copy(<<1>>, 100)) == 100
     end
 
     test "get_binary_size raises on non-binary" do
       assert_raise ArgumentError, fn ->
-        C3nif.IntegrationTest.BinaryNif.get_binary_size(:not_a_binary)
+        BinaryNif.get_binary_size(:not_a_binary)
       end
 
       assert_raise ArgumentError, fn ->
-        C3nif.IntegrationTest.BinaryNif.get_binary_size([1, 2, 3])
+        BinaryNif.get_binary_size([1, 2, 3])
       end
     end
   end
 
   describe "binary allocation" do
     test "make_zeros creates zero-filled binary" do
-      assert C3nif.IntegrationTest.BinaryNif.make_zeros(0) == <<>>
-      assert C3nif.IntegrationTest.BinaryNif.make_zeros(1) == <<0>>
-      assert C3nif.IntegrationTest.BinaryNif.make_zeros(5) == <<0, 0, 0, 0, 0>>
+      assert BinaryNif.make_zeros(0) == <<>>
+      assert BinaryNif.make_zeros(1) == <<0>>
+      assert BinaryNif.make_zeros(5) == <<0, 0, 0, 0, 0>>
     end
 
     test "make_sequence creates sequential bytes" do
-      assert C3nif.IntegrationTest.BinaryNif.make_sequence(0) == <<>>
-      assert C3nif.IntegrationTest.BinaryNif.make_sequence(3) == <<0, 1, 2>>
-      assert C3nif.IntegrationTest.BinaryNif.make_sequence(256) == :binary.list_to_bin(Enum.to_list(0..255))
+      assert BinaryNif.make_sequence(0) == <<>>
+      assert BinaryNif.make_sequence(3) == <<0, 1, 2>>
+      assert BinaryNif.make_sequence(256) == :binary.list_to_bin(Enum.to_list(0..255))
     end
 
     test "copy_binary creates independent copy" do
       original = <<1, 2, 3, 4, 5>>
-      copy = C3nif.IntegrationTest.BinaryNif.copy_binary(original)
+      copy = BinaryNif.copy_binary(original)
       assert copy == original
       # Verify they're different binaries (same content)
       assert :binary.referenced_byte_size(copy) == 5
@@ -460,54 +462,54 @@ defmodule C3nif.IntegrationTest.BinaryTest do
   describe "sub-binary (zero-copy slice)" do
     test "get_slice returns sub-binary" do
       bin = <<0, 1, 2, 3, 4, 5, 6, 7, 8, 9>>
-      assert C3nif.IntegrationTest.BinaryNif.get_slice(bin, 0, 3) == <<0, 1, 2>>
-      assert C3nif.IntegrationTest.BinaryNif.get_slice(bin, 5, 3) == <<5, 6, 7>>
-      assert C3nif.IntegrationTest.BinaryNif.get_slice(bin, 0, 10) == bin
+      assert BinaryNif.get_slice(bin, 0, 3) == <<0, 1, 2>>
+      assert BinaryNif.get_slice(bin, 5, 3) == <<5, 6, 7>>
+      assert BinaryNif.get_slice(bin, 0, 10) == bin
     end
 
     test "get_slice with empty range" do
       bin = <<1, 2, 3>>
-      assert C3nif.IntegrationTest.BinaryNif.get_slice(bin, 0, 0) == <<>>
-      assert C3nif.IntegrationTest.BinaryNif.get_slice(bin, 3, 0) == <<>>
+      assert BinaryNif.get_slice(bin, 0, 0) == <<>>
+      assert BinaryNif.get_slice(bin, 3, 0) == <<>>
     end
   end
 
   describe "iolist flattening" do
     test "flatten_iolist handles simple binary" do
-      assert C3nif.IntegrationTest.BinaryNif.flatten_iolist(<<1, 2, 3>>) == {:ok, 3, 1}
+      assert BinaryNif.flatten_iolist(<<1, 2, 3>>) == {:ok, 3, 1}
     end
 
     test "flatten_iolist handles nested iolist" do
       iolist = [<<1>>, [<<2>>, <<3>>]]
-      assert C3nif.IntegrationTest.BinaryNif.flatten_iolist(iolist) == {:ok, 3, 1}
+      assert BinaryNif.flatten_iolist(iolist) == {:ok, 3, 1}
     end
 
     test "flatten_iolist handles charlist" do
       charlist = ~c"hello"
-      {:ok, size, first} = C3nif.IntegrationTest.BinaryNif.flatten_iolist(charlist)
+      {:ok, size, first} = BinaryNif.flatten_iolist(charlist)
       assert size == 5
       assert first == ?h
     end
 
     test "flatten_iolist handles empty" do
-      assert C3nif.IntegrationTest.BinaryNif.flatten_iolist([]) == {:ok, 0, 0}
-      assert C3nif.IntegrationTest.BinaryNif.flatten_iolist(<<>>) == {:ok, 0, 0}
+      assert BinaryNif.flatten_iolist([]) == {:ok, 0, 0}
+      assert BinaryNif.flatten_iolist(<<>>) == {:ok, 0, 0}
     end
   end
 
   describe "binary reallocation" do
     test "make_and_grow allocates and grows" do
-      result = C3nif.IntegrationTest.BinaryNif.make_and_grow(3, 6)
+      result = BinaryNif.make_and_grow(3, 6)
       assert result == <<"AAABBB">>
     end
 
     test "make_and_grow with same size" do
-      result = C3nif.IntegrationTest.BinaryNif.make_and_grow(5, 5)
+      result = BinaryNif.make_and_grow(5, 5)
       assert result == <<"AAAAA">>
     end
 
     test "make_and_grow from zero" do
-      result = C3nif.IntegrationTest.BinaryNif.make_and_grow(0, 3)
+      result = BinaryNif.make_and_grow(0, 3)
       assert result == <<"BBB">>
     end
   end
@@ -515,17 +517,17 @@ defmodule C3nif.IntegrationTest.BinaryTest do
   describe "from_slice convenience" do
     test "echo_binary creates copy via from_slice" do
       original = <<10, 20, 30, 40, 50>>
-      copy = C3nif.IntegrationTest.BinaryNif.echo_binary(original)
+      copy = BinaryNif.echo_binary(original)
       assert copy == original
     end
 
     test "echo_binary handles empty binary" do
-      assert C3nif.IntegrationTest.BinaryNif.echo_binary(<<>>) == <<>>
+      assert BinaryNif.echo_binary(<<>>) == <<>>
     end
 
     test "echo_binary handles large binary" do
       large = :binary.copy(<<42>>, 10_000)
-      copy = C3nif.IntegrationTest.BinaryNif.echo_binary(large)
+      copy = BinaryNif.echo_binary(large)
       assert copy == large
     end
   end
@@ -534,21 +536,21 @@ defmodule C3nif.IntegrationTest.BinaryTest do
     test "small binaries (heap) work correctly" do
       # Heap binaries are <= 64 bytes
       small = :binary.copy(<<1>>, 64)
-      assert C3nif.IntegrationTest.BinaryNif.get_binary_size(small) == 64
-      assert C3nif.IntegrationTest.BinaryNif.copy_binary(small) == small
+      assert BinaryNif.get_binary_size(small) == 64
+      assert BinaryNif.copy_binary(small) == small
     end
 
     test "large binaries (refc) work correctly" do
       # Refc binaries are > 64 bytes
       large = :binary.copy(<<2>>, 65)
-      assert C3nif.IntegrationTest.BinaryNif.get_binary_size(large) == 65
-      assert C3nif.IntegrationTest.BinaryNif.copy_binary(large) == large
+      assert BinaryNif.get_binary_size(large) == 65
+      assert BinaryNif.copy_binary(large) == large
     end
 
     test "very large binaries work correctly" do
       very_large = :binary.copy(<<3>>, 100_000)
-      assert C3nif.IntegrationTest.BinaryNif.get_binary_size(very_large) == 100_000
-      assert C3nif.IntegrationTest.BinaryNif.sum_bytes(very_large) == 300_000
+      assert BinaryNif.get_binary_size(very_large) == 100_000
+      assert BinaryNif.sum_bytes(very_large) == 300_000
     end
   end
 end

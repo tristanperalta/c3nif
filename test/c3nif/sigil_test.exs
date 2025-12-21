@@ -54,9 +54,11 @@ end
 defmodule C3nif.SigilUsageVerificationTest do
   use ExUnit.Case, async: true
 
+  alias C3nif.SigilUsageTest
+
   describe "sigil usage" do
     test "~n sigil accumulates code at module level" do
-      code = C3nif.SigilUsageTest.get_code_parts()
+      code = SigilUsageTest.get_code_parts()
 
       assert code =~ "module sigil_test"
       assert code =~ "fn void test_function()"
@@ -66,7 +68,7 @@ defmodule C3nif.SigilUsageVerificationTest do
     end
 
     test "~n sigil adds file reference comments" do
-      code = C3nif.SigilUsageTest.get_code_parts()
+      code = SigilUsageTest.get_code_parts()
 
       # The sigil adds // ref file:line comments
       assert code =~ "// ref"

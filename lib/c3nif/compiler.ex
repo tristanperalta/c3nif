@@ -16,8 +16,9 @@ defmodule C3nif.Compiler do
 
   require Logger
 
-  alias C3nif.Parser
   alias C3nif.Generator
+  alias C3nif.Parser
+  alias Mix.Project
 
   @doc false
   defmacro __before_compile__(%{module: module, file: file}) do
@@ -98,7 +99,7 @@ defmodule C3nif.Compiler do
   Returns the path to the C3nif manifest file.
   """
   def manifest_path do
-    Path.join([Mix.Project.build_path(), ".c3nif_manifest"])
+    Path.join([Project.build_path(), ".c3nif_manifest"])
   end
 
   defp write_manifest_entry(module, otp_app, c3_code, c3_sources, source_file) do

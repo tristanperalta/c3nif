@@ -16,28 +16,30 @@ defmodule C3nif.IntegrationTest.SchedulerNif do
   end
 
   # Thread type detection
-  def get_thread_type(), do: :erlang.nif_error(:nif_not_loaded)
-  def is_dirty_scheduler(), do: :erlang.nif_error(:nif_not_loaded)
-  def is_normal_scheduler(), do: :erlang.nif_error(:nif_not_loaded)
+  def get_thread_type, do: :erlang.nif_error(:nif_not_loaded)
+  def is_dirty_scheduler, do: :erlang.nif_error(:nif_not_loaded)
+  def is_normal_scheduler, do: :erlang.nif_error(:nif_not_loaded)
 
   # Process alive check
-  def is_process_alive(), do: :erlang.nif_error(:nif_not_loaded)
+  def is_process_alive, do: :erlang.nif_error(:nif_not_loaded)
 
   # Timeslice consumption
   def consume_timeslice(_percent), do: :erlang.nif_error(:nif_not_loaded)
 
   # Dirty scheduler tests (static declaration)
-  def dirty_cpu_work(), do: :erlang.nif_error(:nif_not_loaded)
-  def dirty_io_work(), do: :erlang.nif_error(:nif_not_loaded)
+  def dirty_cpu_work, do: :erlang.nif_error(:nif_not_loaded)
+  def dirty_io_work, do: :erlang.nif_error(:nif_not_loaded)
 
   # Dynamic scheduling tests
-  def dispatch_to_dirty_cpu(), do: :erlang.nif_error(:nif_not_loaded)
-  def dispatch_to_dirty_io(), do: :erlang.nif_error(:nif_not_loaded)
-  def dirty_then_normal(), do: :erlang.nif_error(:nif_not_loaded)
+  def dispatch_to_dirty_cpu, do: :erlang.nif_error(:nif_not_loaded)
+  def dispatch_to_dirty_io, do: :erlang.nif_error(:nif_not_loaded)
+  def dirty_then_normal, do: :erlang.nif_error(:nif_not_loaded)
 end
 
 defmodule C3nif.IntegrationTest.SchedulerTest do
   use C3nif.Case, async: false
+
+  alias C3nif.IntegrationTest.SchedulerNif
 
   @moduletag :integration
 
@@ -314,7 +316,7 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
         File.mkdir_p!(priv_dir)
         File.cp!(lib_path, dest_path)
 
-        case C3nif.IntegrationTest.SchedulerNif.load_nif(priv_dir) do
+        case SchedulerNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -329,28 +331,28 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
 
   describe "thread type detection" do
     test "get_thread_type returns :normal on normal scheduler" do
-      assert C3nif.IntegrationTest.SchedulerNif.get_thread_type() == :normal
+      assert SchedulerNif.get_thread_type() == :normal
     end
 
     test "is_normal_scheduler returns true on normal scheduler" do
-      assert C3nif.IntegrationTest.SchedulerNif.is_normal_scheduler() == true
+      assert SchedulerNif.is_normal_scheduler() == true
     end
 
     test "is_dirty_scheduler returns false on normal scheduler" do
-      assert C3nif.IntegrationTest.SchedulerNif.is_dirty_scheduler() == false
+      assert SchedulerNif.is_dirty_scheduler() == false
     end
   end
 
   describe "process alive check" do
     test "is_process_alive returns true for running process" do
-      assert C3nif.IntegrationTest.SchedulerNif.is_process_alive() == true
+      assert SchedulerNif.is_process_alive() == true
     end
   end
 
   describe "timeslice consumption" do
     test "consume_timeslice with low percent returns :continue" do
       # Consuming 1% of timeslice should not exhaust it
-      assert C3nif.IntegrationTest.SchedulerNif.consume_timeslice(1) == :continue
+      assert SchedulerNif.consume_timeslice(1) == :continue
     end
 
     test "consume_timeslice with high percent eventually returns :yield" do
@@ -358,7 +360,7 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
       # Note: This might not always work in a single call, depends on scheduler state
       result =
         Enum.reduce_while(1..100, :continue, fn _, _acc ->
-          case C3nif.IntegrationTest.SchedulerNif.consume_timeslice(100) do
+          case SchedulerNif.consume_timeslice(100) do
             :yield -> {:halt, :yield}
             :continue -> {:cont, :continue}
           end
@@ -369,32 +371,32 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
     end
 
     test "consume_timeslice with invalid arg returns error" do
-      assert C3nif.IntegrationTest.SchedulerNif.consume_timeslice(:not_int) ==
+      assert SchedulerNif.consume_timeslice(:not_int) ==
                {:error, :badarg}
     end
   end
 
   describe "static dirty scheduler declaration" do
     test "dirty_cpu_work runs on dirty CPU scheduler" do
-      assert C3nif.IntegrationTest.SchedulerNif.dirty_cpu_work() == {:ok, :dirty_cpu}
+      assert SchedulerNif.dirty_cpu_work() == {:ok, :dirty_cpu}
     end
 
     test "dirty_io_work runs on dirty IO scheduler" do
-      assert C3nif.IntegrationTest.SchedulerNif.dirty_io_work() == {:ok, :dirty_io}
+      assert SchedulerNif.dirty_io_work() == {:ok, :dirty_io}
     end
   end
 
   describe "dynamic scheduling" do
     test "dispatch_to_dirty_cpu schedules to CPU scheduler" do
-      assert C3nif.IntegrationTest.SchedulerNif.dispatch_to_dirty_cpu() == {:ok, :dirty_cpu}
+      assert SchedulerNif.dispatch_to_dirty_cpu() == {:ok, :dirty_cpu}
     end
 
     test "dispatch_to_dirty_io schedules to IO scheduler" do
-      assert C3nif.IntegrationTest.SchedulerNif.dispatch_to_dirty_io() == {:ok, :dirty_io}
+      assert SchedulerNif.dispatch_to_dirty_io() == {:ok, :dirty_io}
     end
 
     test "dirty_then_normal transitions dirty -> normal" do
-      assert C3nif.IntegrationTest.SchedulerNif.dirty_then_normal() == {:ok, :back_to_normal}
+      assert SchedulerNif.dirty_then_normal() == {:ok, :back_to_normal}
     end
   end
 end

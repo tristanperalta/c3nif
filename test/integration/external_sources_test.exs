@@ -23,6 +23,9 @@ end
 defmodule C3nif.IntegrationTest.ExternalSourcesTest do
   use C3nif.Case, async: false
 
+  alias C3nif.Compiler
+  alias C3nif.IntegrationTest.ExternalSourcesNif
+
   @moduletag :integration
 
   # Main C3 code that imports and uses external source modules
@@ -89,7 +92,7 @@ defmodule C3nif.IntegrationTest.ExternalSourcesTest do
     external_source = Path.join(@fixtures_dir, "math_helpers.c3")
 
     case compile_test_nif_with_sources(
-           C3nif.IntegrationTest.ExternalSourcesNif,
+           ExternalSourcesNif,
            @c3_code,
            [external_source],
            otp_app: :c3nif,
@@ -103,7 +106,7 @@ defmodule C3nif.IntegrationTest.ExternalSourcesTest do
         File.mkdir_p!(priv_dir)
         File.cp!(lib_path, dest_path)
 
-        case C3nif.IntegrationTest.ExternalSourcesNif.load_nif(priv_dir) do
+        case ExternalSourcesNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -118,20 +121,20 @@ defmodule C3nif.IntegrationTest.ExternalSourcesTest do
 
   describe "external source file inclusion" do
     test "multiply/2 uses external math_helpers module" do
-      assert C3nif.IntegrationTest.ExternalSourcesNif.multiply(3, 4) == 12
-      assert C3nif.IntegrationTest.ExternalSourcesNif.multiply(7, 8) == 56
-      assert C3nif.IntegrationTest.ExternalSourcesNif.multiply(-5, 3) == -15
+      assert ExternalSourcesNif.multiply(3, 4) == 12
+      assert ExternalSourcesNif.multiply(7, 8) == 56
+      assert ExternalSourcesNif.multiply(-5, 3) == -15
     end
 
     test "square/1 uses external math_helpers module" do
-      assert C3nif.IntegrationTest.ExternalSourcesNif.square(5) == 25
-      assert C3nif.IntegrationTest.ExternalSourcesNif.square(10) == 100
-      assert C3nif.IntegrationTest.ExternalSourcesNif.square(-4) == 16
+      assert ExternalSourcesNif.square(5) == 25
+      assert ExternalSourcesNif.square(10) == 100
+      assert ExternalSourcesNif.square(-4) == 16
     end
 
     test "multiply/2 raises on non-integer arguments" do
       assert_raise ArgumentError, fn ->
-        C3nif.IntegrationTest.ExternalSourcesNif.multiply("a", 1)
+        ExternalSourcesNif.multiply("a", 1)
       end
     end
   end
@@ -149,7 +152,7 @@ defmodule C3nif.IntegrationTest.ExternalSourcesTest do
       skip_codegen: skip_codegen
     ]
 
-    C3nif.Compiler.compile(compile_opts)
+    Compiler.compile(compile_opts)
   end
 end
 
@@ -176,6 +179,9 @@ end
 
 defmodule C3nif.IntegrationTest.GlobPatternTest do
   use C3nif.Case, async: false
+
+  alias C3nif.Compiler
+  alias C3nif.IntegrationTest.GlobPatternNif
 
   @moduletag :integration
 
@@ -239,7 +245,7 @@ defmodule C3nif.IntegrationTest.GlobPatternTest do
     glob_pattern = Path.join(@fixtures_dir, "**/*.c3")
 
     case compile_test_nif_with_sources(
-           C3nif.IntegrationTest.GlobPatternNif,
+           GlobPatternNif,
            @c3_code,
            [glob_pattern],
            otp_app: :c3nif,
@@ -253,7 +259,7 @@ defmodule C3nif.IntegrationTest.GlobPatternTest do
         File.mkdir_p!(priv_dir)
         File.cp!(lib_path, dest_path)
 
-        case C3nif.IntegrationTest.GlobPatternNif.load_nif(priv_dir) do
+        case GlobPatternNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -268,15 +274,15 @@ defmodule C3nif.IntegrationTest.GlobPatternTest do
 
   describe "glob pattern expansion" do
     test "get_string_length/1 works with external string_helpers module" do
-      assert C3nif.IntegrationTest.GlobPatternNif.get_string_length("hello") == 5
-      assert C3nif.IntegrationTest.GlobPatternNif.get_string_length("") == 0
-      assert C3nif.IntegrationTest.GlobPatternNif.get_string_length("test string") == 11
+      assert GlobPatternNif.get_string_length("hello") == 5
+      assert GlobPatternNif.get_string_length("") == 0
+      assert GlobPatternNif.get_string_length("test string") == 11
     end
 
     test "increment/1 uses nested_helper from subdirectory" do
-      assert C3nif.IntegrationTest.GlobPatternNif.increment(5) == 6
-      assert C3nif.IntegrationTest.GlobPatternNif.increment(0) == 1
-      assert C3nif.IntegrationTest.GlobPatternNif.increment(-1) == 0
+      assert GlobPatternNif.increment(5) == 6
+      assert GlobPatternNif.increment(0) == 1
+      assert GlobPatternNif.increment(-1) == 0
     end
   end
 
@@ -293,6 +299,6 @@ defmodule C3nif.IntegrationTest.GlobPatternTest do
       skip_codegen: skip_codegen
     ]
 
-    C3nif.Compiler.compile(compile_opts)
+    Compiler.compile(compile_opts)
   end
 end

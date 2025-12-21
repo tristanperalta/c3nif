@@ -21,6 +21,8 @@ end
 defmodule C3nif.IntegrationTest.ResourceCleanupTest do
   use C3nif.Case, async: false
 
+  alias C3nif.IntegrationTest.ResourceCleanupNif
+
   @moduletag :integration
 
   @c3_code """
@@ -120,7 +122,7 @@ defmodule C3nif.IntegrationTest.ResourceCleanupTest do
         File.mkdir_p!(priv_dir)
         File.cp!(lib_path, dest_path)
 
-        case C3nif.IntegrationTest.ResourceCleanupNif.load_nif(priv_dir) do
+        case ResourceCleanupNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -139,7 +141,7 @@ defmodule C3nif.IntegrationTest.ResourceCleanupTest do
 
       # Spawn a process that creates a resource and immediately exits
       spawn(fn ->
-        _resource = C3nif.IntegrationTest.ResourceCleanupNif.create_notifier(test_pid)
+        _resource = ResourceCleanupNif.create_notifier(test_pid)
         # Process exits, resource goes out of scope
       end)
 
@@ -153,7 +155,7 @@ defmodule C3nif.IntegrationTest.ResourceCleanupTest do
       # Create resource in a spawned process
       child =
         spawn(fn ->
-          _resource = C3nif.IntegrationTest.ResourceCleanupNif.create_notifier(test_pid)
+          _resource = ResourceCleanupNif.create_notifier(test_pid)
 
           receive do
             :exit -> :ok
@@ -183,7 +185,7 @@ defmodule C3nif.IntegrationTest.ResourceCleanupTest do
       # Spawn multiple processes, each creating a resource
       for _ <- 1..5 do
         spawn(fn ->
-          _resource = C3nif.IntegrationTest.ResourceCleanupNif.create_notifier(test_pid)
+          _resource = ResourceCleanupNif.create_notifier(test_pid)
         end)
       end
 
@@ -202,7 +204,7 @@ defmodule C3nif.IntegrationTest.ResourceCleanupTest do
       # Create a process that holds the resource alive
       holder =
         spawn(fn ->
-          resource = C3nif.IntegrationTest.ResourceCleanupNif.create_notifier(test_pid)
+          resource = ResourceCleanupNif.create_notifier(test_pid)
 
           receive do
             :release ->

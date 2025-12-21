@@ -33,6 +33,8 @@ end
 defmodule C3nif.IntegrationTest.SafetyTest do
   use C3nif.Case, async: false
 
+  alias C3nif.IntegrationTest.SafetyNif
+
   @moduletag :integration
 
   @c3_code """
@@ -322,7 +324,7 @@ defmodule C3nif.IntegrationTest.SafetyTest do
         File.mkdir_p!(priv_dir)
         File.cp!(lib_path, dest_path)
 
-        case C3nif.IntegrationTest.SafetyNif.load_nif(priv_dir) do
+        case SafetyNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -337,121 +339,121 @@ defmodule C3nif.IntegrationTest.SafetyTest do
 
   describe "basic argument extraction" do
     test "get_int with valid integer returns {:ok, value}" do
-      assert C3nif.IntegrationTest.SafetyNif.get_int(42) == {:ok, 42}
+      assert SafetyNif.get_int(42) == {:ok, 42}
     end
 
     test "get_int with negative integer returns {:ok, value}" do
-      assert C3nif.IntegrationTest.SafetyNif.get_int(-100) == {:ok, -100}
+      assert SafetyNif.get_int(-100) == {:ok, -100}
     end
 
     test "get_int with non-integer returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.SafetyNif.get_int("not an int") == {:error, :badarg}
+      assert SafetyNif.get_int("not an int") == {:error, :badarg}
     end
 
     test "get_int with atom returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.SafetyNif.get_int(:atom) == {:error, :badarg}
+      assert SafetyNif.get_int(:atom) == {:error, :badarg}
     end
 
     test "get_int with float returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.SafetyNif.get_int(3.14) == {:error, :badarg}
+      assert SafetyNif.get_int(3.14) == {:error, :badarg}
     end
   end
 
   describe "multiple argument extraction" do
     test "get_two_ints with valid integers returns sum" do
-      assert C3nif.IntegrationTest.SafetyNif.get_two_ints(10, 20) == {:ok, 30}
+      assert SafetyNif.get_two_ints(10, 20) == {:ok, 30}
     end
 
     test "get_two_ints with first arg invalid returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.SafetyNif.get_two_ints("a", 20) == {:error, :badarg}
+      assert SafetyNif.get_two_ints("a", 20) == {:error, :badarg}
     end
 
     test "get_two_ints with second arg invalid returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.SafetyNif.get_two_ints(10, "b") == {:error, :badarg}
+      assert SafetyNif.get_two_ints(10, "b") == {:error, :badarg}
     end
   end
 
   describe "range validation" do
     test "require_positive with positive value succeeds" do
-      assert C3nif.IntegrationTest.SafetyNif.require_positive(42) == {:ok, 42}
+      assert SafetyNif.require_positive(42) == {:ok, 42}
     end
 
     test "require_positive with zero returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.SafetyNif.require_positive(0) == {:error, :badarg}
+      assert SafetyNif.require_positive(0) == {:error, :badarg}
     end
 
     test "require_positive with negative returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.SafetyNif.require_positive(-5) == {:error, :badarg}
+      assert SafetyNif.require_positive(-5) == {:error, :badarg}
     end
 
     test "require_range with value in range succeeds" do
-      assert C3nif.IntegrationTest.SafetyNif.require_range(50, 0, 100) == {:ok, 50}
+      assert SafetyNif.require_range(50, 0, 100) == {:ok, 50}
     end
 
     test "require_range at min boundary succeeds" do
-      assert C3nif.IntegrationTest.SafetyNif.require_range(0, 0, 100) == {:ok, 0}
+      assert SafetyNif.require_range(0, 0, 100) == {:ok, 0}
     end
 
     test "require_range at max boundary succeeds" do
-      assert C3nif.IntegrationTest.SafetyNif.require_range(100, 0, 100) == {:ok, 100}
+      assert SafetyNif.require_range(100, 0, 100) == {:ok, 100}
     end
 
     test "require_range below min returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.SafetyNif.require_range(-1, 0, 100) == {:error, :badarg}
+      assert SafetyNif.require_range(-1, 0, 100) == {:error, :badarg}
     end
 
     test "require_range above max returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.SafetyNif.require_range(101, 0, 100) == {:error, :badarg}
+      assert SafetyNif.require_range(101, 0, 100) == {:error, :badarg}
     end
   end
 
   describe "custom fault handling" do
     test "safe_divide with valid division succeeds" do
-      assert C3nif.IntegrationTest.SafetyNif.safe_divide(10, 2) == {:ok, 5}
+      assert SafetyNif.safe_divide(10, 2) == {:ok, 5}
     end
 
     test "safe_divide by zero returns {:error, :divide_by_zero}" do
-      assert C3nif.IntegrationTest.SafetyNif.safe_divide(10, 0) == {:error, :divide_by_zero}
+      assert SafetyNif.safe_divide(10, 0) == {:error, :divide_by_zero}
     end
 
     test "safe_divide with invalid first arg returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.SafetyNif.safe_divide("a", 2) == {:error, :badarg}
+      assert SafetyNif.safe_divide("a", 2) == {:error, :badarg}
     end
   end
 
   describe "nested fault propagation" do
     test "nested_faults with small value succeeds" do
-      assert C3nif.IntegrationTest.SafetyNif.nested_faults(100) == {:ok, 200}
+      assert SafetyNif.nested_faults(100) == {:ok, 200}
     end
 
     test "nested_faults with large value returns {:error, :overflow}" do
-      assert C3nif.IntegrationTest.SafetyNif.nested_faults(2_000_000) == {:error, :overflow}
+      assert SafetyNif.nested_faults(2_000_000) == {:error, :overflow}
     end
 
     test "nested_faults with invalid input returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.SafetyNif.nested_faults(:not_int) == {:error, :badarg}
+      assert SafetyNif.nested_faults(:not_int) == {:error, :badarg}
     end
   end
 
   describe "type validation" do
     test "require_atom_test with atom succeeds" do
-      assert C3nif.IntegrationTest.SafetyNif.require_atom_test(:hello) == :ok
+      assert SafetyNif.require_atom_test(:hello) == :ok
     end
 
     test "require_atom_test with non-atom returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.SafetyNif.require_atom_test(123) == {:error, :badarg}
+      assert SafetyNif.require_atom_test(123) == {:error, :badarg}
     end
 
     test "require_list_test with list succeeds" do
-      assert C3nif.IntegrationTest.SafetyNif.require_list_test([1, 2, 3]) == :ok
+      assert SafetyNif.require_list_test([1, 2, 3]) == :ok
     end
 
     test "require_list_test with empty list succeeds" do
-      assert C3nif.IntegrationTest.SafetyNif.require_list_test([]) == :ok
+      assert SafetyNif.require_list_test([]) == :ok
     end
 
     test "require_list_test with non-list returns {:error, :badarg}" do
-      assert C3nif.IntegrationTest.SafetyNif.require_list_test(:not_a_list) == {:error, :badarg}
+      assert SafetyNif.require_list_test(:not_a_list) == {:error, :badarg}
     end
   end
 end

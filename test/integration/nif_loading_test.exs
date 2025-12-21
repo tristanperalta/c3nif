@@ -23,6 +23,8 @@ end
 defmodule C3nif.IntegrationTest.NifLoadingTest do
   use C3nif.Case, async: false
 
+  alias C3nif.IntegrationTest.TestNif
+
   @moduletag :integration
 
   @c3_code """
@@ -116,7 +118,7 @@ defmodule C3nif.IntegrationTest.NifLoadingTest do
         File.cp!(lib_path, dest_path)
 
         # Load the NIF
-        case C3nif.IntegrationTest.TestNif.load_nif(priv_dir) do
+        case TestNif.load_nif(priv_dir) do
           :ok -> {:ok, lib_path: dest_path}
           {:error, reason} -> raise "Failed to load NIF: #{inspect(reason)}"
         end
@@ -131,25 +133,25 @@ defmodule C3nif.IntegrationTest.NifLoadingTest do
 
   describe "NIF loading and execution" do
     test "add/2 adds two integers" do
-      assert C3nif.IntegrationTest.TestNif.add(1, 2) == 3
-      assert C3nif.IntegrationTest.TestNif.add(-5, 10) == 5
-      assert C3nif.IntegrationTest.TestNif.add(0, 0) == 0
+      assert TestNif.add(1, 2) == 3
+      assert TestNif.add(-5, 10) == 5
+      assert TestNif.add(0, 0) == 0
     end
 
     test "add/2 raises on non-integer" do
-      assert_raise ArgumentError, fn -> C3nif.IntegrationTest.TestNif.add("a", 1) end
-      assert_raise ArgumentError, fn -> C3nif.IntegrationTest.TestNif.add(1, :atom) end
+      assert_raise ArgumentError, fn -> TestNif.add("a", 1) end
+      assert_raise ArgumentError, fn -> TestNif.add(1, :atom) end
     end
 
     test "echo/1 returns the argument unchanged" do
-      assert C3nif.IntegrationTest.TestNif.echo(42) == 42
-      assert C3nif.IntegrationTest.TestNif.echo(:hello) == :hello
-      assert C3nif.IntegrationTest.TestNif.echo([1, 2, 3]) == [1, 2, 3]
+      assert TestNif.echo(42) == 42
+      assert TestNif.echo(:hello) == :hello
+      assert TestNif.echo([1, 2, 3]) == [1, 2, 3]
     end
 
     test "make_ok/1 wraps value in ok tuple" do
-      assert C3nif.IntegrationTest.TestNif.make_ok(42) == {:ok, 42}
-      assert C3nif.IntegrationTest.TestNif.make_ok(:done) == {:ok, :done}
+      assert TestNif.make_ok(42) == {:ok, 42}
+      assert TestNif.make_ok(:done) == {:ok, :done}
     end
   end
 end
