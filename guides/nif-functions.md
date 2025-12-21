@@ -306,7 +306,7 @@ defmodule MyApp.Nif do
 end
 ```
 
-External sources support glob patterns (`**/*.c3`) for matching multiple files. See the [Getting Started](getting-started.md#external-c3-sources) guide for more details.
+External sources support glob patterns (`**/*.c3`) for matching multiple files.
 
 ## Best Practices
 

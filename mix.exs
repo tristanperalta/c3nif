@@ -28,16 +28,15 @@ defmodule C3nif.MixProject do
       main: "readme",
       extras: [
         "README.md": [title: "Overview"],
-        "docs/guides/getting-started.md": [title: "Getting Started"],
-        "docs/guides/nif-functions.md": [title: "NIF Functions"],
-        "docs/guides/type-conversion.md": [title: "Type Conversion"],
-        "docs/guides/error-handling.md": [title: "Error Handling"],
-        "docs/guides/resources.md": [title: "Resource Management"],
-        "docs/guides/dirty-schedulers.md": [title: "Dirty Schedulers"],
+        "guides/nif-functions.md": [title: "NIF Functions"],
+        "guides/type-conversion.md": [title: "Type Conversion"],
+        "guides/error-handling.md": [title: "Error Handling"],
+        "guides/resources.md": [title: "Resource Management"],
+        "guides/dirty-schedulers.md": [title: "Dirty Schedulers"],
         "CHANGELOG.md": [title: "Changelog"]
       ],
       groups_for_extras: [
-        Guides: ~r/docs\/guides\/.*/
+        Guides: ~r/guides\/.*/
       ],
       groups_for_modules: [
         Core: [C3nif, C3nif.Compiler],

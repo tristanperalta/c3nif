@@ -232,13 +232,6 @@ defer numbers.free();
 | `pid()` | `ErlNifPid` | `get_local_pid` |
 | `resource()` | `void*` | `resource::alloc`, `resource::get`, `resource::make_term` |
 
-## Documentation
-
-- [Architecture](docs/ARCHITECTURE.md) - Internal architecture and design decisions
-- [Roadmap](docs/ROADMAP.md) - Development progress and planned features
-- [Thread-Safety](docs/THREAD_SAFETY.md) - Thread-safety guide for dirty schedulers and async operations
-- [Testing Research](docs/TESTING_RESEARCH.md) - Testing patterns from Rustler, Zigler, and Nx
-
 ## Development
 
 ```bash
@@ -288,7 +281,7 @@ Other things to remember:
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License
 
 ---
 
