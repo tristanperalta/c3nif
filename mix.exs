@@ -2,7 +2,7 @@ defmodule C3nif.MixProject do
   use Mix.Project
 
   @version "0.1.0"
-  @source_url "https://github.com/yourname/c3nif"
+  @source_url "https://github.com/tristanperalta/c3nif"
 
   def project do
     [
@@ -40,8 +40,8 @@ defmodule C3nif.MixProject do
         Guides: ~r/docs\/guides\/.*/
       ],
       groups_for_modules: [
-        "Core": [C3nif, C3nif.Compiler],
-        "Internals": [C3nif.Parser, C3nif.Generator]
+        Core: [C3nif, C3nif.Compiler],
+        Internals: [C3nif.Parser, C3nif.Generator]
       ]
     ]
   end
