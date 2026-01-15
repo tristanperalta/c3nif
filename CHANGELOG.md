@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.1] - 2026-01-15
+
+### Fixed
+- Fix `Application.app_dir/2` error during initial compilation of projects using c3nif
+
 ## [Unreleased]
 
 ### Added

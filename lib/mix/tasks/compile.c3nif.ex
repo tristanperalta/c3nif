@@ -66,7 +66,7 @@ defmodule Mix.Tasks.Compile.C3nif do
     } = entry
 
     nif_name = "lib#{module}#{C3nif.nif_extension()}"
-    priv_dir = Application.app_dir(otp_app, "priv")
+    priv_dir = Path.join([Mix.Project.build_path(), "lib", to_string(otp_app), "priv"])
     output_path = Path.join(priv_dir, nif_name)
 
     # Collect all source files for mtime comparison
