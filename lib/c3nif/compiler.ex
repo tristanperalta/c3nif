@@ -247,15 +247,8 @@ defmodule C3nif.Compiler do
   end
 
   defp c3nif_src_path do
-    # In development, use the local c3nif.c3l directory
-    # In production, use the installed path
-    dev_path = Path.join([File.cwd!(), "c3nif.c3l"])
-
-    if File.exists?(dev_path) do
-      dev_path
-    else
-      Application.app_dir(:c3nif, ["priv", "c3nif.c3l"])
-    end
+    # __DIR__ is lib/c3nif, go up two levels to package root
+    Path.join([__DIR__, "..", "..", "c3nif.c3l"]) |> Path.expand()
   end
 
   defp expand_source_globs(c3_sources) do
