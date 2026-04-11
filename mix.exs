@@ -33,6 +33,7 @@ defmodule C3nif.MixProject do
         "guides/error-handling.md": [title: "Error Handling"],
         "guides/resources.md": [title: "Resource Management"],
         "guides/dirty-schedulers.md": [title: "Dirty Schedulers"],
+        "guides/precompilation.md": [title: "Precompiled NIFs"],
         "CHANGELOG.md": [title: "Changelog"]
       ],
       groups_for_extras: [

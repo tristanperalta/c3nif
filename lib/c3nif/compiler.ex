@@ -25,6 +25,7 @@ defmodule C3nif.Compiler do
     opts = Module.get_attribute(module, :c3nif_opts)
     otp_app = Keyword.fetch!(opts, :otp_app)
     c3_sources = Keyword.get(opts, :c3_sources, [])
+    precompiled = Keyword.get(opts, :precompiled)
 
     # Get the accumulated C3 code
     c3_code =
@@ -52,7 +53,7 @@ defmodule C3nif.Compiler do
     nif_path = Path.join(priv_dir, nif_name)
 
     # Write manifest entry for mix task to pick up
-    write_manifest_entry(module, otp_app, c3_code, c3_sources, file)
+    write_manifest_entry(module, otp_app, c3_code, c3_sources, file, precompiled)
 
     quote do
       require Logger
@@ -102,7 +103,7 @@ defmodule C3nif.Compiler do
     Path.join([Project.build_path(), ".c3nif_manifest"])
   end
 
-  defp write_manifest_entry(module, otp_app, c3_code, c3_sources, source_file) do
+  defp write_manifest_entry(module, otp_app, c3_code, c3_sources, source_file, precompiled) do
     manifest_file = manifest_path()
     File.mkdir_p!(Path.dirname(manifest_file))
 
@@ -112,6 +113,7 @@ defmodule C3nif.Compiler do
       c3_code: c3_code,
       c3_sources: c3_sources,
       source_file: source_file,
+      precompiled: precompiled,
       timestamp: System.os_time(:second)
     }
 
@@ -151,6 +153,7 @@ defmodule C3nif.Compiler do
     c3_sources = Keyword.get(opts, :c3_sources, [])
     output_dir = Keyword.get(opts, :output_dir, staging_dir(module))
     skip_codegen = Keyword.get(opts, :skip_codegen, false)
+    target = Keyword.get(opts, :target)
 
     # Ensure output directory exists
     File.mkdir_p!(output_dir)
@@ -168,7 +171,7 @@ defmodule C3nif.Compiler do
     File.write!(c3_file, final_c3_code)
 
     # Generate project.json for c3c
-    project_json = generate_project_json(module, otp_app, c3_sources, output_dir)
+    project_json = generate_project_json(module, otp_app, c3_sources, output_dir, target)
     project_file = Path.join(output_dir, "project.json")
     File.write!(project_file, JSON.encode!(project_json))
 
@@ -185,15 +188,41 @@ defmodule C3nif.Compiler do
     end
 
     # Run c3c compiler
-    case System.cmd("c3c", ["build"], cd: output_dir, stderr_to_stdout: true) do
-      {_output, 0} ->
-        lib_name = "#{module}#{C3nif.nif_extension()}"
+    c3c_args = if target, do: ["build", "--target", target], else: ["build"]
+
+    case run_c3c(c3c_args, cd: output_dir) do
+      {:ok, _output} ->
+        lib_name = "#{module}#{lib_extension_for_target(target)}"
         {:ok, Path.join([output_dir, "build", lib_name])}
 
-      {output, exit_code} ->
+      {:error, {exit_code, output}} ->
         {:error, {:compile_failed, exit_code, output}}
     end
   end
+
+  @doc """
+  Run the `c3c` executable with the given arguments.
+
+  Options:
+    * `:cd` — working directory
+
+  Returns `{:ok, output}` or `{:error, {exit_code, output}}`.
+  """
+  def run_c3c(args, opts) do
+    cd = Keyword.fetch!(opts, :cd)
+
+    case System.cmd("c3c", args, cd: cd, stderr_to_stdout: true) do
+      {output, 0} -> {:ok, output}
+      {output, exit_code} -> {:error, {exit_code, output}}
+    end
+  end
+
+  defp lib_extension_for_target(nil), do: C3nif.nif_extension()
+  defp lib_extension_for_target("linux-" <> _), do: ".so"
+  defp lib_extension_for_target("macos-" <> _), do: ".dylib"
+  defp lib_extension_for_target("windows-" <> _), do: ".dll"
+  defp lib_extension_for_target("mingw-" <> _), do: ".dll"
+  defp lib_extension_for_target(_), do: C3nif.nif_extension()
 
   @doc """
   Returns the staging directory for a module's build files.
@@ -208,7 +237,7 @@ defmodule C3nif.Compiler do
     System.tmp_dir!()
   end
 
-  defp generate_project_json(module, _otp_app, c3_sources, _output_dir) do
+  defp generate_project_json(module, _otp_app, c3_sources, _output_dir, _target) do
     # Expand globs - c3c supports absolute paths in sources
     additional_sources = expand_source_globs(c3_sources)
 

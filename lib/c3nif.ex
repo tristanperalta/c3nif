@@ -46,6 +46,16 @@ defmodule C3nif do
   - `:c3_path` - Optional. Path to external C3 source file instead of inline code.
   - `:c3_sources` - Optional. List of additional C3 source paths/globs to include (e.g., `["c3_src/mylib/src/**"]`).
   - `:nifs` - Optional. List of NIF function specifications.
+  - `:precompiled` - Optional. Enable precompiled NIF distribution. See `C3nif.Precompiled`
+    and the precompilation guide. When set, the compile task will try to download
+    and install a prebuilt shared library for the host triple before falling back
+    to a local `c3c` build. Expects a keyword list with:
+
+      * `:base_url` — URL prefix where `.tar.gz` artifacts are hosted
+      * `:version` — version string used in artifact filenames
+      * `:checksums_path` — absolute path to `checksum-<version>.exs`
+      * `:force_build` (optional, default `true`) — fall back to source build if
+        the precompiled fetch fails
 
   ## C3 NIF Conventions
 

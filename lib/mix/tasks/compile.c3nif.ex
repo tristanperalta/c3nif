@@ -20,6 +20,7 @@ defmodule Mix.Tasks.Compile.C3nif do
 
   alias C3nif
   alias C3nif.Compiler
+  alias C3nif.Precompiled
 
   @shortdoc "Compiles C3 NIF modules"
 
@@ -65,11 +66,44 @@ defmodule Mix.Tasks.Compile.C3nif do
       source_file: source_file
     } = entry
 
+    precompiled = Map.get(entry, :precompiled)
+
     nif_name = "lib#{module}#{C3nif.nif_extension()}"
     priv_dir = Path.join([Mix.Project.build_path(), "lib", to_string(otp_app), "priv"])
     output_path = Path.join(priv_dir, nif_name)
 
-    # Collect all source files for mtime comparison
+    # If the module opted into precompiled distribution, try to fetch an
+    # artifact before falling back to source compile. A valid artifact at
+    # output_path means the NIF is already installed and we're done.
+    precompile_result =
+      if precompiled && !File.exists?(output_path) do
+        try_precompiled(module, otp_app, precompiled, priv_dir)
+      else
+        :noop
+      end
+
+    cond do
+      precompile_result == :ok ->
+        :ok
+
+      precompile_result == :error && force_build?(precompiled) ->
+        do_source_compile(module, otp_app, c3_code, c3_sources, source_file, priv_dir, output_path)
+
+      precompile_result == :error ->
+        Mix.raise("""
+        Failed to install precompiled NIF #{module} and :force_build is not set.
+
+        Either fix the precompiled source, or set
+        `config :c3nif, :force_build, #{inspect(otp_app)}: true`
+        to fall back to a local source build.
+        """)
+
+      true ->
+        do_source_compile(module, otp_app, c3_code, c3_sources, source_file, priv_dir, output_path)
+    end
+  end
+
+  defp do_source_compile(module, otp_app, c3_code, c3_sources, source_file, priv_dir, output_path) do
     all_sources = collect_source_files(source_file, c3_sources)
 
     if nif_needs_recompile?(output_path, all_sources) do
@@ -95,6 +129,40 @@ defmodule Mix.Tasks.Compile.C3nif do
           """)
       end
     end
+  end
+
+  defp try_precompiled(module, _otp_app, precompiled, priv_dir) do
+    nif_basename = "lib#{module}"
+
+    install_opts = [
+      module: module,
+      base_url: Keyword.fetch!(precompiled, :base_url),
+      version: Keyword.fetch!(precompiled, :version),
+      checksums_path: Keyword.fetch!(precompiled, :checksums_path),
+      priv_dir: priv_dir,
+      nif_basename: nif_basename
+    ]
+
+    case Precompiled.try_install(install_opts) do
+      {:ok, _path} ->
+        Mix.shell().info("Installed precompiled NIF #{module}")
+        :ok
+
+      {:error, reason} ->
+        Mix.shell().info(
+          "Precompiled NIF #{module} unavailable (#{inspect(reason)}), falling back."
+        )
+
+        :error
+    end
+  end
+
+  defp force_build?(nil), do: true
+
+  defp force_build?(precompiled) do
+    # Default to falling back to source when precompiled fetch fails, unless
+    # the caller opted into strict behavior.
+    Keyword.get(precompiled, :force_build, true)
   end
 
   defp collect_source_files(source_file, c3_sources) do

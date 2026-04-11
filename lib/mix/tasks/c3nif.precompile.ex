@@ -1,0 +1,177 @@
+defmodule Mix.Tasks.C3nif.Precompile do
+  @moduledoc """
+  Build precompiled C3 NIF artifacts for a matrix of target triples.
+
+  Maintainers run this task to produce a set of `.tar.gz` archives — one per
+  target — plus a `checksum-<version>.exs` manifest. The archives are then
+  uploaded to a release hosting location (typically a GitHub release), and
+  the checksum file is committed into the repository so consumers can verify
+  downloads.
+
+  ## Usage
+
+      mix c3nif.precompile
+      mix c3nif.precompile --target linux-x64
+      mix c3nif.precompile --module Elixir.MyApp.Nif --version 0.1.0
+
+  ## Options
+
+    * `--target` — target triple to build for. May be passed multiple times.
+      Defaults to the matrix returned by `C3nif.Precompiled.default_targets/0`.
+
+    * `--module` — only build for a specific module. Defaults to every module
+      in the manifest.
+
+    * `--version` — override the version string used in artifact filenames.
+      Defaults to the OTP app's `Mix.Project.config()[:version]`.
+
+    * `--output-dir` — where to write the archives and checksum file.
+      Defaults to `priv/precompiled/`.
+
+  ## What it produces
+
+  For each target in the matrix, this task:
+
+    1. Invokes `c3c build --target <triple>` via `C3nif.Compiler.compile/1`.
+    2. Wraps the resulting shared library in a `.tar.gz` archive.
+    3. Records the archive's SHA-256 in a `checksum-<version>.exs` manifest.
+  """
+
+  use Mix.Task
+
+  alias C3nif.Compiler
+  alias C3nif.Precompiled
+
+  @shortdoc "Build precompiled NIF artifacts for distribution"
+
+  @switches [
+    target: :keep,
+    module: :string,
+    version: :string,
+    output_dir: :string
+  ]
+
+  @impl Mix.Task
+  def run(args) do
+    {opts, _rest, _invalid} = OptionParser.parse(args, strict: @switches)
+
+    targets =
+      case Keyword.get_values(opts, :target) do
+        [] -> Precompiled.default_targets()
+        list -> list
+      end
+
+    version =
+      opts[:version] || Keyword.fetch!(Mix.Project.config(), :version)
+
+    output_dir =
+      opts[:output_dir] || Path.join(File.cwd!(), "priv/precompiled")
+
+    manifest = load_manifest()
+    manifest = maybe_filter_module(manifest, opts[:module])
+
+    if manifest == %{} do
+      Mix.raise("""
+      No C3nif modules found in the build manifest.
+
+      Run `mix compile` at least once so the precompile task knows which
+      modules to build.
+      """)
+    end
+
+    File.mkdir_p!(output_dir)
+
+    checksums =
+      for {module, entry} <- manifest,
+          triple <- targets,
+          reduce: %{} do
+        acc ->
+          Mix.shell().info("Building #{module} for #{triple}...")
+          filename = Precompiled.artifact_name(module, version, triple)
+          archive_path = Path.join(output_dir, filename)
+
+          case build_target(module, entry, triple) do
+            {:ok, lib_path} ->
+              pack_archive!(lib_path, archive_path)
+              Map.put(acc, filename, Precompiled.file_checksum(archive_path))
+
+            {:error, reason} ->
+              Mix.shell().error(
+                "  skipped #{triple}: #{inspect(reason)}"
+              )
+
+              acc
+          end
+      end
+
+    checksum_path = Path.join(output_dir, "checksum-#{version}.exs")
+    File.write!(checksum_path, format_checksums(checksums))
+
+    Mix.shell().info("")
+    Mix.shell().info("Wrote #{map_size(checksums)} archive(s) to #{output_dir}")
+    Mix.shell().info("Checksum manifest: #{checksum_path}")
+  end
+
+  defp load_manifest do
+    path = Compiler.manifest_path()
+
+    if File.exists?(path) do
+      path |> File.read!() |> :erlang.binary_to_term()
+    else
+      %{}
+    end
+  end
+
+  defp maybe_filter_module(manifest, nil), do: manifest
+
+  defp maybe_filter_module(manifest, module_name) do
+    mod = String.to_atom(module_name)
+
+    case Map.fetch(manifest, mod) do
+      {:ok, entry} -> %{mod => entry}
+      :error -> Mix.raise("Module #{module_name} not found in manifest.")
+    end
+  end
+
+  defp build_target(module, entry, triple) do
+    %{otp_app: otp_app, c3_code: c3_code, c3_sources: c3_sources} = entry
+
+    Compiler.compile(
+      module: module,
+      otp_app: otp_app,
+      c3_code: c3_code,
+      c3_sources: c3_sources,
+      target: triple,
+      output_dir: Path.join([Compiler.staging_dir(module), triple])
+    )
+  end
+
+  defp pack_archive!(lib_path, archive_path) do
+    lib_name = Path.basename(lib_path)
+    cwd = Path.dirname(lib_path)
+
+    :ok =
+      :erl_tar.create(
+        to_charlist(archive_path),
+        [{to_charlist(lib_name), to_charlist(Path.join(cwd, lib_name))}],
+        [:compressed]
+      )
+  end
+
+  defp format_checksums(checksums) do
+    pairs =
+      checksums
+      |> Enum.sort()
+      |> Enum.map_join(",\n", fn {filename, digest} ->
+        "  #{inspect(filename)} => #{inspect(digest)}"
+      end)
+
+    """
+    # Generated by `mix c3nif.precompile`. Commit this file to your repository
+    # so consumers can verify downloaded precompiled artifacts.
+    %{
+    #{pairs}
+    }
+    """
+  end
+end
