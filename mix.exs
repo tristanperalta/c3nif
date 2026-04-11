@@ -1,7 +1,7 @@
 defmodule C3nif.MixProject do
   use Mix.Project
 
-  @version "0.1.2"
+  @version "0.2.0"
   @source_url "https://github.com/tristanperalta/c3nif"
 
   def project do
@@ -50,9 +50,27 @@ defmodule C3nif.MixProject do
     [
       licenses: ["MIT"],
       links: %{
-        "GitHub" => @source_url
+        "GitHub" => @source_url,
+        "Changelog" => "#{@source_url}/blob/main/CHANGELOG.md"
       },
-      files: ~w(lib c3nif.c3l mix.exs README.md LICENSE CHANGELOG.md)
+      files:
+        ~w(lib guides mix.exs README.md LICENSE CHANGELOG.md) ++
+          [
+            "c3nif.c3l/allocator.c3",
+            "c3nif.c3l/binary.c3",
+            "c3nif.c3l/c3nif.c3",
+            "c3nif.c3l/env.c3",
+            "c3nif.c3l/erl_nif.c3",
+            "c3nif.c3l/macros.c3",
+            "c3nif.c3l/resource.c3",
+            "c3nif.c3l/safety.c3",
+            "c3nif.c3l/scheduler.c3",
+            "c3nif.c3l/term.c3",
+            "c3nif.c3l/manifest.json",
+            "c3nif.c3l/project.json",
+            "c3nif.c3l/README.md",
+            "c3nif.c3l/LICENSE"
+          ]
     ]
   end
 
@@ -66,7 +84,6 @@ defmodule C3nif.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:jason, "~> 1.4"},
       {:ex_doc, "~> 0.35", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
