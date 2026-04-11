@@ -45,17 +45,20 @@ defmodule C3nif.IntegrationTest.ResourceBasicTest do
   // Track live resource count (for testing destructor calls)
   int g_resource_count;
 
+  // Cached resource type handle (assigned in on_load)
+  ErlNifResourceType* counter_type;
+
   // Destructor callback - decrements resource count
   fn void counter_dtor(ErlNifEnv* env_raw, void* obj) {
       g_resource_count--;
   }
 
-  // on_load: register resource type
+  // on_load: register resource type and cache the handle
   fn CInt on_load(ErlNifEnv* env_raw, void** priv, ErlNifTerm load_info) {
       Env e = env::wrap(env_raw);
-      if (catch err = resource::register_type(&e, "Counter", &counter_dtor)) {
-          return 1;
-      }
+      ErlNifResourceType*? rt = resource::register_type(&e, "Counter", &counter_dtor);
+      if (catch err = rt) return 1;
+      counter_type = rt;
       return 0;
   }
 
@@ -71,7 +74,7 @@ defmodule C3nif.IntegrationTest.ResourceBasicTest do
           return term::make_badarg(&e).raw();
       }
 
-      void* ptr = resource::alloc("Counter", Counter.sizeof)!!;
+      void* ptr = resource::alloc(counter_type, Counter.sizeof)!!;
       Counter* counter = (Counter*)ptr;
       counter.value = initial;
       g_resource_count++;  // Track allocation
@@ -88,7 +91,7 @@ defmodule C3nif.IntegrationTest.ResourceBasicTest do
       Env e = env::wrap(env_raw);
       Term arg = term::wrap(argv[0]);
 
-      void* ptr = resource::get("Counter", &e, arg)!!;
+      void* ptr = resource::get(counter_type, &e, arg)!!;
       Counter* counter = (Counter*)ptr;
 
       return term::make_int(&e, counter.value).raw();
@@ -101,7 +104,7 @@ defmodule C3nif.IntegrationTest.ResourceBasicTest do
       Env e = env::wrap(env_raw);
       Term arg = term::wrap(argv[0]);
 
-      void* ptr = resource::get("Counter", &e, arg)!!;
+      void* ptr = resource::get(counter_type, &e, arg)!!;
       Counter* counter = (Counter*)ptr;
       counter.value++;
 

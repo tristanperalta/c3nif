@@ -214,3 +214,59 @@ fn Term schedule_normal(
 fn bool is_process_alive(Env* e) {
     return erl_nif::enif_is_current_process_alive(e.raw()) != 0;
 }
+
+// =============================================================================
+// Halt Safety (ERL_NIF 2.17, OTP 26+)
+// =============================================================================
+
+faultdef OPTION_FAILED; // enif_set_option returned non-zero
+
+/**
+ * Halt callback invoked when the VM is halting (from init:stop/0,1).
+ * Receives the NIF's priv_data pointer.
+ */
+alias HaltCallback = erl_nif::OnHaltFn;
+
+/**
+ * Delay VM halt until long-running dirty NIFs finish.
+ *
+ * Call this from the NIF's load callback. When set, the BEAM will not
+ * terminate dirty NIF processes abruptly during `init:stop/0,1` — it
+ * waits for them to return normally before halting.
+ *
+ * Requires the NIF to be built against ERL_NIF 2.17+ (OTP 26+).
+ */
+fn void? delay_halt(Env* e) {
+    if (erl_nif::enif_set_option_delay_halt(e.raw(), erl_nif::ErlNifOption.DELAY_HALT) != 0) {
+        return OPTION_FAILED~;
+    }
+}
+
+/**
+ * Register a callback invoked when the VM is halting.
+ *
+ * The callback runs once, on a dedicated thread, after all delayed-halt
+ * dirty NIFs have returned. Use it to flush external state (files,
+ * sockets, databases) before the VM exits. Receives the NIF's priv_data.
+ *
+ * Requires ERL_NIF 2.17+ (OTP 26+).
+ */
+fn void? set_on_halt(Env* e, HaltCallback callback) {
+    if (erl_nif::enif_set_option_on_halt(e.raw(), erl_nif::ErlNifOption.ON_HALT, callback) != 0) {
+        return OPTION_FAILED~;
+    }
+}
+
+/**
+ * Register a callback invoked on each unload-thread exit.
+ *
+ * Called once per scheduler thread when the NIF is unloaded, on that
+ * scheduler's own thread. Use for thread-local resource cleanup.
+ *
+ * Requires ERL_NIF 2.17+ (OTP 26+).
+ */
+fn void? set_on_unload_thread(Env* e, erl_nif::OnUnloadThreadFn callback) {
+    if (erl_nif::enif_set_option_on_unload_thread(e.raw(), erl_nif::ErlNifOption.ON_UNLOAD_THREAD, callback) != 0) {
+        return OPTION_FAILED~;
+    }
+}

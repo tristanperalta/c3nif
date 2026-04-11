@@ -35,6 +35,12 @@ alias ResourceStopFn = fn void(ErlNifEnv*, void*, CInt, CInt);
 alias ResourceDownFn = fn void(ErlNifEnv*, void*, ErlNifPid*, ErlNifMonitor*);
 alias ResourceDynCallFn = fn void(ErlNifEnv*, void*, void*);
 
+// Halt callback types (ERL_NIF 2.17, OTP 26)
+// Signature: void on_halt(void* priv_data)
+alias OnHaltFn = fn void(void*);
+// Signature: void on_unload_thread(void* priv_data)
+alias OnUnloadThreadFn = fn void(void*);
+
 // =============================================================================
 // Structs
 // =============================================================================
@@ -105,18 +111,19 @@ struct ErlNifResourceTypeInit {
 // =============================================================================
 
 // Character encoding for string functions
-enum ErlNifCharEncoding : const CInt {
-    LATIN1 = 1
+constdef ErlNifCharEncoding : inline CInt {
+    LATIN1 = 1,
+    UTF8 = 2
 }
 
 // Resource type flags
-enum ErlNifResourceFlags : const CInt {
+constdef ErlNifResourceFlags : inline CInt {
     RT_CREATE = 1,
     RT_TAKEOVER = 2
 }
 
 // Term type (from enif_term_type)
-enum ErlNifTermType : const CInt {
+constdef ErlNifTermType : inline CInt {
     ATOM = 1,
     BITSTRING = 2,
     FLOAT = 3,
@@ -131,9 +138,16 @@ enum ErlNifTermType : const CInt {
 }
 
 // Dirty scheduler flags
-enum ErlNifDirtyTaskFlags : const CInt {
+constdef ErlNifDirtyTaskFlags : inline CInt {
     CPU_BOUND = 1,
     IO_BOUND = 2
+}
+
+// NIF options for enif_set_option (ERL_NIF 2.17, OTP 26)
+constdef ErlNifOption : inline CInt {
+    DELAY_HALT = 1,
+    ON_HALT = 2,
+    ON_UNLOAD_THREAD = 3
 }
 
 // NIF function flags (used in ErlNifFunc.flags)
@@ -145,9 +159,9 @@ const CUInt ERL_NIF_DIRTY_JOB_IO_BOUND = 2;
 // =============================================================================
 
 const CInt ERL_NIF_MAJOR_VERSION = 2;
-const CInt ERL_NIF_MINOR_VERSION = 16;
+const CInt ERL_NIF_MINOR_VERSION = 17;
 const char* ERL_NIF_VM_VARIANT = "beam.vanilla";
-const char* ERL_NIF_MIN_ERTS_VERSION = "erts-12.0";
+const char* ERL_NIF_MIN_ERTS_VERSION = "erts-14.0";
 
 // =============================================================================
 // Core NIF API Functions
@@ -206,6 +220,11 @@ extern fn CInt enif_make_existing_atom(ErlNifEnv* env, char* name, ErlNifTerm* a
 extern fn CInt enif_make_existing_atom_len(ErlNifEnv* env, char* name, CULong len, ErlNifTerm* atom, ErlNifCharEncoding encoding) @extern("enif_make_existing_atom_len");
 extern fn CInt enif_get_atom(ErlNifEnv* env, ErlNifTerm atom, char* buf, CUInt len, ErlNifCharEncoding encoding) @extern("enif_get_atom");
 extern fn CInt enif_get_atom_length(ErlNifEnv* env, ErlNifTerm atom, CUInt* len, ErlNifCharEncoding encoding) @extern("enif_get_atom_length");
+// Added in ERL_NIF 2.17 (OTP 26) — safe atom creation that returns 0 instead of aborting
+// when the atom table is full. Unlike enif_make_atom, these take an encoding argument
+// and support ERL_NIF_UTF8 for non-Latin-1 atom names.
+extern fn CInt enif_make_new_atom(ErlNifEnv* env, char* name, ErlNifTerm* atom, ErlNifCharEncoding encoding) @extern("enif_make_new_atom");
+extern fn CInt enif_make_new_atom_len(ErlNifEnv* env, char* name, CULong len, ErlNifTerm* atom, ErlNifCharEncoding encoding) @extern("enif_make_new_atom_len");
 
 // --- Binary operations ---
 extern fn CInt enif_inspect_binary(ErlNifEnv* env, ErlNifTerm bin_term, ErlNifBinary* bin) @extern("enif_inspect_binary");
@@ -221,6 +240,8 @@ extern fn char* enif_make_new_binary(ErlNifEnv* env, CULong size, ErlNifTerm* te
 extern fn ErlNifTerm enif_make_string(ErlNifEnv* env, char* string, ErlNifCharEncoding encoding) @extern("enif_make_string");
 extern fn ErlNifTerm enif_make_string_len(ErlNifEnv* env, char* string, CULong len, ErlNifCharEncoding encoding) @extern("enif_make_string_len");
 extern fn CInt enif_get_string(ErlNifEnv* env, ErlNifTerm list, char* buf, CUInt len, ErlNifCharEncoding encoding) @extern("enif_get_string");
+// Added in ERL_NIF 2.17 (OTP 26) — report string length without allocating.
+extern fn CInt enif_get_string_length(ErlNifEnv* env, ErlNifTerm list, CUInt* len, ErlNifCharEncoding encoding) @extern("enif_get_string_length");
 
 // --- List operations ---
 extern fn ErlNifTerm enif_make_list_cell(ErlNifEnv* env, ErlNifTerm car, ErlNifTerm cdr) @extern("enif_make_list_cell");
@@ -304,6 +325,15 @@ extern fn ErlNifTerm enif_schedule_nif(
 ) @extern("enif_schedule_nif");
 extern fn CInt enif_thread_type() @extern("enif_thread_type");
 extern fn CInt enif_is_current_process_alive(ErlNifEnv* env) @extern("enif_is_current_process_alive");
+
+// --- NIF options (ERL_NIF 2.17, OTP 26) ---
+// enif_set_option is variadic in C; bind one concrete form per option value.
+// DELAY_HALT takes no trailing argument.
+extern fn CInt enif_set_option_delay_halt(ErlNifEnv* env, ErlNifOption opt) @extern("enif_set_option");
+// ON_HALT takes a halt callback.
+extern fn CInt enif_set_option_on_halt(ErlNifEnv* env, ErlNifOption opt, OnHaltFn callback) @extern("enif_set_option");
+// ON_UNLOAD_THREAD takes an unload-thread callback.
+extern fn CInt enif_set_option_on_unload_thread(ErlNifEnv* env, ErlNifOption opt, OnUnloadThreadFn callback) @extern("enif_set_option");
 
 // Thread type constants (returned by enif_thread_type)
 const CInt ERL_NIF_THR_UNDEFINED = 0;

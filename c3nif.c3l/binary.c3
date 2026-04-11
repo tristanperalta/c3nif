@@ -85,7 +85,7 @@ struct Binary {
 fn Binary? alloc(usz size) {
     ErlNifBinary bin;
     if (erl_nif::enif_alloc_binary((CULong)size, &bin) == 0) {
-        return ALLOC_FAILED?;
+        return ALLOC_FAILED~;
     }
     return (Binary){ .inner = bin, .owned = true };
 }
@@ -98,10 +98,10 @@ fn Binary? alloc(usz size) {
  */
 fn void? Binary.realloc(&self, usz new_size) {
     if (!self.owned) {
-        return NOT_OWNED?;
+        return NOT_OWNED~;
     }
     if (erl_nif::enif_realloc_binary(&self.inner, (CULong)new_size) == 0) {
-        return ALLOC_FAILED?;
+        return ALLOC_FAILED~;
     }
 }
 
@@ -133,7 +133,7 @@ fn void Binary.release(&self) {
 fn Binary? inspect(Env* e, Term t) {
     ErlNifBinary bin;
     if (erl_nif::enif_inspect_binary(e.raw(), t.raw(), &bin) == 0) {
-        return term::BADARG?;
+        return term::BADARG~;
     }
     return (Binary){ .inner = bin, .owned = false };
 }
@@ -149,7 +149,7 @@ fn Binary? inspect(Env* e, Term t) {
 fn Binary? inspect_iolist(Env* e, Term t) {
     ErlNifBinary bin;
     if (erl_nif::enif_inspect_iolist_as_binary(e.raw(), t.raw(), &bin) == 0) {
-        return term::BADARG?;
+        return term::BADARG~;
     }
     return (Binary){ .inner = bin, .owned = false };
 }
@@ -168,7 +168,7 @@ fn Binary? inspect_iolist(Env* e, Term t) {
  */
 fn Term? Binary.to_term(&self, Env* e) {
     if (!self.owned) {
-        return NOT_OWNED?;
+        return NOT_OWNED~;
     }
     ErlNifTerm t = erl_nif::enif_make_binary(e.raw(), &self.inner);
     self.owned = false;  // Ownership transferred
@@ -222,7 +222,7 @@ fn char[] Binary.as_slice(&self) {
  */
 fn char[]? Binary.as_mut_slice(&self) {
     if (!self.owned) {
-        return NOT_OWNED?;
+        return NOT_OWNED~;
     }
     return self.inner.data[:self.inner.size];
 }

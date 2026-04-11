@@ -47,7 +47,7 @@ import c3nif::resource;
  */
 macro void? @require_type(Term t, #check_fn, Env* e) {
     if (!t.#check_fn(e)) {
-        return term::BADARG?;
+        return term::BADARG~;
     }
 }
 
@@ -63,14 +63,15 @@ macro void? @require_type(Term t, #check_fn, Env* e) {
  *
  * Example:
  *     struct MyData { int value; }
+ *     ErlNifResourceType* my_rt;  // cached in on_load
  *
  *     fn Term? use_resource(Env* e, Term t) {
- *         MyData* data = (MyData*)get_resource("MyResource", e, t)!;
+ *         MyData* data = (MyData*)get_resource(my_rt, e, t)!;
  *         return term::make_int(e, data.value);
  *     }
  */
-macro void*? get_resource(char* type_name, Env* e, Term t) {
-    return resource::get(type_name, e, t);
+macro void*? get_resource(ErlNifResourceType* rt, Env* e, Term t) {
+    return resource::get(rt, e, t);
 }
 
 // =============================================================================
@@ -137,7 +138,7 @@ macro Term? @require_arg(
     CInt index
 ) {
     if (index < 0 || index >= argc) {
-        return term::BADARG?;
+        return term::BADARG~;
     }
     return term::wrap(argv[index]);
 }
@@ -158,7 +159,7 @@ macro int? @require_arg_int(
 ) {
     Term? t = @require_arg(e, argv, argc, index);
     if (catch err = t) {
-        return err?;
+        return err~;
     }
     return t.get_int(e);
 }
@@ -177,7 +178,7 @@ macro long? @require_arg_long(
 ) {
     Term? t = @require_arg(e, argv, argc, index);
     if (catch err = t) {
-        return err?;
+        return err~;
     }
     return t.get_long(e);
 }
@@ -196,7 +197,7 @@ macro double? @require_arg_double(
 ) {
     Term? t = @require_arg(e, argv, argc, index);
     if (catch err = t) {
-        return err?;
+        return err~;
     }
     return t.get_double(e);
 }
@@ -215,7 +216,7 @@ macro uint? @require_arg_uint(
 ) {
     Term? t = @require_arg(e, argv, argc, index);
     if (catch err = t) {
-        return err?;
+        return err~;
     }
     return t.get_uint(e);
 }
@@ -234,7 +235,7 @@ macro ulong? @require_arg_ulong(
 ) {
     Term? t = @require_arg(e, argv, argc, index);
     if (catch err = t) {
-        return err?;
+        return err~;
     }
     return t.get_ulong(e);
 }

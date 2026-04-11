@@ -59,12 +59,15 @@ defmodule C3nif.IntegrationTest.ResourceCleanupTest do
       erl_nif::enif_free_env(msg_env);
   }
 
-  // on_load: register resource type
+  // Cached resource type handle
+  ErlNifResourceType* notifier_type;
+
+  // on_load: register resource type and cache the handle
   fn CInt on_load(ErlNifEnv* env_raw, void** priv, ErlNifTerm load_info) {
       Env e = env::wrap(env_raw);
-      if (catch err = resource::register_type(&e, "Notifier", &notifier_dtor)) {
-          return 1;
-      }
+      ErlNifResourceType*? rt = resource::register_type(&e, "Notifier", &notifier_dtor);
+      if (catch err = rt) return 1;
+      notifier_type = rt;
       return 0;
   }
 
@@ -80,7 +83,7 @@ defmodule C3nif.IntegrationTest.ResourceCleanupTest do
           return term::make_badarg(&e).raw();
       }
 
-      void* ptr = resource::alloc("Notifier", Notifier.sizeof)!!;
+      void* ptr = resource::alloc(notifier_type, Notifier.sizeof)!!;
       Notifier* notifier = (Notifier*)ptr;
       notifier.pid = pid;
 

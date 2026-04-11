@@ -91,7 +91,7 @@ fn void*? BeamAllocator.acquire(&self, usz size, AllocInitType init_type, usz al
 
     if (!ptr)
     {
-        return mem::OUT_OF_MEMORY?;
+        return mem::OUT_OF_MEMORY~;
     }
 
     // Zero-initialize if requested
@@ -127,7 +127,7 @@ fn void*? BeamAllocator.resize(&self, void* ptr, usz new_size, usz alignment) @d
 
     if (!new_ptr)
     {
-        return mem::OUT_OF_MEMORY?;
+        return mem::OUT_OF_MEMORY~;
     }
 
     return new_ptr;
@@ -271,7 +271,7 @@ fn void*? alloc_try(usz size)
     void* ptr = erl_nif::enif_alloc((CULong)size);
     if (!ptr)
     {
-        return mem::OUT_OF_MEMORY?;
+        return mem::OUT_OF_MEMORY~;
     }
     return ptr;
 }

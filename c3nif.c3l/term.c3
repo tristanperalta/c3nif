@@ -12,9 +12,10 @@ import c3nif::env;
 /**
  * Faults for term decoding failures.
  */
-faultdef BADARG;    // Term is not the expected type
-faultdef OVERFLOW;  // Value doesn't fit in target type
-faultdef ENCODING;  // String encoding error
+faultdef BADARG;        // Term is not the expected type
+faultdef OVERFLOW;      // Value doesn't fit in target type
+faultdef ENCODING;      // String encoding error
+faultdef ATOM_TABLE_FULL; // Atom table exhausted (from enif_make_new_atom)
 
 /**
  * Wrapper around ErlNifTerm providing type-safe operations.
@@ -159,7 +160,7 @@ fn Term make_ulong(Env* e, ulong value) {
 fn int? Term.get_int(&self, Env* e) {
     CInt result;
     if (erl_nif::enif_get_int(e.inner, self.inner, &result) == 0) {
-        return BADARG?;
+        return BADARG~;
     }
     return (int)result;
 }
@@ -170,7 +171,7 @@ fn int? Term.get_int(&self, Env* e) {
 fn uint? Term.get_uint(&self, Env* e) {
     CUInt result;
     if (erl_nif::enif_get_uint(e.inner, self.inner, &result) == 0) {
-        return BADARG?;
+        return BADARG~;
     }
     return (uint)result;
 }
@@ -181,7 +182,7 @@ fn uint? Term.get_uint(&self, Env* e) {
 fn long? Term.get_long(&self, Env* e) {
     CLong result;
     if (erl_nif::enif_get_long(e.inner, self.inner, &result) == 0) {
-        return BADARG?;
+        return BADARG~;
     }
     return (long)result;
 }
@@ -192,7 +193,7 @@ fn long? Term.get_long(&self, Env* e) {
 fn ulong? Term.get_ulong(&self, Env* e) {
     CULong result;
     if (erl_nif::enif_get_ulong(e.inner, self.inner, &result) == 0) {
-        return BADARG?;
+        return BADARG~;
     }
     return (ulong)result;
 }
@@ -214,7 +215,7 @@ fn Term make_double(Env* e, double value) {
 fn double? Term.get_double(&self, Env* e) {
     double result;
     if (erl_nif::enif_get_double(e.inner, self.inner, &result) == 0) {
-        return BADARG?;
+        return BADARG~;
     }
     return result;
 }
@@ -246,7 +247,43 @@ fn Term make_atom_len(Env* e, char* name, usz len) {
 fn Term? make_existing_atom(Env* e, char* name) {
     ErlNifTerm atom;
     if (erl_nif::enif_make_existing_atom(e.inner, name, &atom, ErlNifCharEncoding.LATIN1) == 0) {
-        return BADARG?;
+        return BADARG~;
+    }
+    return (Term){ .inner = atom };
+}
+
+/**
+ * Create a UTF-8 atom safely (ERL_NIF 2.17, OTP 26+).
+ *
+ * Unlike make_atom(), this returns ATOM_TABLE_FULL instead of aborting
+ * the VM if the atom table is exhausted.
+ */
+fn Term? make_atom_utf8(Env* e, char* name) {
+    ErlNifTerm atom;
+    if (erl_nif::enif_make_new_atom(e.inner, name, &atom, ErlNifCharEncoding.UTF8) == 0) {
+        return ATOM_TABLE_FULL~;
+    }
+    return (Term){ .inner = atom };
+}
+
+/**
+ * Create a UTF-8 atom with explicit length (ERL_NIF 2.17, OTP 26+).
+ */
+fn Term? make_atom_utf8_len(Env* e, char* name, usz len) {
+    ErlNifTerm atom;
+    if (erl_nif::enif_make_new_atom_len(e.inner, name, len, &atom, ErlNifCharEncoding.UTF8) == 0) {
+        return ATOM_TABLE_FULL~;
+    }
+    return (Term){ .inner = atom };
+}
+
+/**
+ * Look up an existing UTF-8 atom. Returns BADARG if the atom doesn't exist.
+ */
+fn Term? make_existing_atom_utf8(Env* e, char* name) {
+    ErlNifTerm atom;
+    if (erl_nif::enif_make_existing_atom(e.inner, name, &atom, ErlNifCharEncoding.UTF8) == 0) {
+        return BADARG~;
     }
     return (Term){ .inner = atom };
 }
@@ -257,7 +294,7 @@ fn Term? make_existing_atom(Env* e, char* name) {
 fn uint? Term.get_atom_length(&self, Env* e) {
     CUInt len;
     if (erl_nif::enif_get_atom_length(e.inner, self.inner, &len, ErlNifCharEncoding.LATIN1) == 0) {
-        return BADARG?;
+        return BADARG~;
     }
     return (uint)len;
 }
@@ -273,7 +310,7 @@ fn uint? Term.get_atom_length(&self, Env* e) {
 fn ErlNifBinary? Term.inspect_binary(&self, Env* e) {
     ErlNifBinary bin;
     if (erl_nif::enif_inspect_binary(e.inner, self.inner, &bin) == 0) {
-        return BADARG?;
+        return BADARG~;
     }
     return bin;
 }
@@ -348,7 +385,7 @@ fn Term make_list_from_array(Env* e, ErlNifTerm[] arr) {
 fn void? Term.get_list_cell(&self, Env* e, Term* head, Term* tail) {
     ErlNifTerm h, t;
     if (erl_nif::enif_get_list_cell(e.inner, self.inner, &h, &t) == 0) {
-        return BADARG?;
+        return BADARG~;
     }
     *head = (Term){ .inner = h };
     *tail = (Term){ .inner = t };
@@ -360,7 +397,7 @@ fn void? Term.get_list_cell(&self, Env* e, Term* head, Term* tail) {
 fn uint? Term.get_list_length(&self, Env* e) {
     CUInt len;
     if (erl_nif::enif_get_list_length(e.inner, self.inner, &len) == 0) {
-        return BADARG?;
+        return BADARG~;
     }
     return (uint)len;
 }
@@ -383,7 +420,7 @@ fn Term make_tuple_from_array(Env* e, ErlNifTerm[] arr) {
 fn int? Term.get_tuple(&self, Env* e, ErlNifTerm** array) {
     CInt arity;
     if (erl_nif::enif_get_tuple(e.inner, self.inner, &arity, array) == 0) {
-        return BADARG?;
+        return BADARG~;
     }
     return (int)arity;
 }
@@ -405,7 +442,7 @@ fn Term make_new_map(Env* e) {
 fn Term? Term.map_put(&self, Env* e, Term key, Term value) {
     ErlNifTerm map_out;
     if (erl_nif::enif_make_map_put(e.inner, self.inner, key.inner, value.inner, &map_out) == 0) {
-        return BADARG?;
+        return BADARG~;
     }
     return (Term){ .inner = map_out };
 }
@@ -416,7 +453,7 @@ fn Term? Term.map_put(&self, Env* e, Term key, Term value) {
 fn Term? Term.map_get(&self, Env* e, Term key) {
     ErlNifTerm value;
     if (erl_nif::enif_get_map_value(e.inner, self.inner, key.inner, &value) == 0) {
-        return BADARG?;
+        return BADARG~;
     }
     return (Term){ .inner = value };
 }
@@ -427,7 +464,7 @@ fn Term? Term.map_get(&self, Env* e, Term key) {
 fn usz? Term.get_map_size(&self, Env* e) {
     CULong size;
     if (erl_nif::enif_get_map_size(e.inner, self.inner, &size) == 0) {
-        return BADARG?;
+        return BADARG~;
     }
     return (usz)size;
 }
@@ -471,7 +508,7 @@ fn Term raise_exception(Env* e, Term reason) {
 fn ErlNifPid? Term.get_local_pid(&self, Env* e) {
     ErlNifPid pid;
     if (erl_nif::enif_get_local_pid(e.inner, self.inner, &pid) == 0) {
-        return BADARG?;
+        return BADARG~;
     }
     return pid;
 }

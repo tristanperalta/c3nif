@@ -50,17 +50,20 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
   // Native-side stored resource (demonstrates keep/release)
   void* g_native_resource;
 
+  // Cached resource type handle
+  ErlNifResourceType* tracked_type;
+
   // Destructor - decrements live count
   fn void tracked_dtor(ErlNifEnv* env_raw, void* obj) {
       g_live_count--;
   }
 
-  // on_load: register resource type
+  // on_load: register resource type and cache the handle
   fn CInt on_load(ErlNifEnv* env_raw, void** priv, ErlNifTerm load_info) {
       Env e = env::wrap(env_raw);
-      if (catch err = resource::register_type(&e, "Tracked", &tracked_dtor)) {
-          return 1;
-      }
+      ErlNifResourceType*? rt = resource::register_type(&e, "Tracked", &tracked_dtor);
+      if (catch err = rt) return 1;
+      tracked_type = rt;
       g_native_resource = null;
       return 0;
   }
@@ -77,7 +80,7 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
           return term::make_badarg(&e).raw();
       }
 
-      void* ptr = resource::alloc("Tracked", Tracked.sizeof)!!;
+      void* ptr = resource::alloc(tracked_type, Tracked.sizeof)!!;
       Tracked* tracked = (Tracked*)ptr;
       tracked.value = initial;
       g_live_count++;
@@ -94,7 +97,7 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
       Env e = env::wrap(env_raw);
       Term arg = term::wrap(argv[0]);
 
-      void* ptr = resource::get("Tracked", &e, arg)!!;
+      void* ptr = resource::get(tracked_type, &e, arg)!!;
       Tracked* tracked = (Tracked*)ptr;
 
       return term::make_int(&e, tracked.value).raw();
@@ -113,7 +116,7 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
           resource::release(g_native_resource);
       }
 
-      void* ptr = resource::get("Tracked", &e, arg)!!;
+      void* ptr = resource::get(tracked_type, &e, arg)!!;
 
       // Keep increases ref count - resource won't be destroyed even if
       // Erlang term goes out of scope

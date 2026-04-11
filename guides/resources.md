@@ -95,7 +95,7 @@ fn ErlNifTerm create_resource(
     }
 
     // Allocate the resource
-    void*? ptr = resource::alloc("MyResource", MyData.sizeof);
+    void*? ptr = resource::alloc(my_resource_type, MyData.sizeof);
     if (catch err = ptr) {
         return term::make_error_atom(&e, "alloc_failed").raw();
     }
@@ -127,7 +127,7 @@ fn ErlNifTerm get_value(
     Term arg = term::wrap(argv[0]);
 
     // Extract the resource
-    void*? ptr = resource::get("MyResource", &e, arg);
+    void*? ptr = resource::get(my_resource_type, &e, arg);
     if (catch err = ptr) {
         return term::make_badarg(&e).raw();
     }
@@ -152,7 +152,7 @@ Resources use reference counting for lifetime management:
 
 ```c3
 // Allocate (ref count = 1)
-void* ptr = resource::alloc("MyType", size)!;
+void* ptr = resource::alloc(my_type, size)!;
 
 // Initialize...
 MyStruct* data = (MyStruct*)ptr;
@@ -174,7 +174,7 @@ If you need to store a resource pointer that survives beyond the NIF call:
 
 ```c3
 // Store resource pointer in native storage
-void* ptr = resource::get("MyType", &e, arg)!;
+void* ptr = resource::get(my_type, &e, arg)!;
 resource::keep(ptr);  // Increment ref count
 g_my_global_ptr = ptr;  // Now safe to store
 
@@ -290,7 +290,7 @@ fn ErlNifTerm monitor_owner(
 ) {
     Env e = env::wrap(raw_env);
 
-    void* ptr = resource::get("MonitoredResource", &e, term::wrap(argv[0]))!;
+    void* ptr = resource::get(monitored_type, &e, term::wrap(argv[0]))!;
     ErlNifPid? owner_pid = term::wrap(argv[1]).get_local_pid(&e);
     if (catch err = owner_pid) {
         return term::make_badarg(&e).raw();
@@ -403,7 +403,7 @@ fn ErlNifTerm new_counter(
         return term::make_badarg(&e).raw();
     }
 
-    void*? ptr = resource::alloc("Counter", Counter.sizeof);
+    void*? ptr = resource::alloc(counter_type, Counter.sizeof);
     if (catch err = ptr) {
         return term::make_error_atom(&e, "alloc_failed").raw();
     }
@@ -425,7 +425,7 @@ fn ErlNifTerm get_counter(
 ) {
     Env e = env::wrap(raw_env);
 
-    void*? ptr = resource::get("Counter", &e, term::wrap(argv[0]));
+    void*? ptr = resource::get(counter_type, &e, term::wrap(argv[0]));
     if (catch err = ptr) {
         return term::make_badarg(&e).raw();
     }
@@ -442,7 +442,7 @@ fn ErlNifTerm increment_counter(
 ) {
     Env e = env::wrap(raw_env);
 
-    void*? ptr = resource::get("Counter", &e, term::wrap(argv[0]));
+    void*? ptr = resource::get(counter_type, &e, term::wrap(argv[0]));
     if (catch err = ptr) {
         return term::make_badarg(&e).raw();
     }

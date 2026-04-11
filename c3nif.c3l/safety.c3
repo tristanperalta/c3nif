@@ -126,7 +126,7 @@ fn bool check_argc(CInt expected, CInt actual) {
  */
 fn void? require_argc(CInt expected, CInt actual) {
     if (expected != actual) {
-        return ARGC_MISMATCH?;
+        return ARGC_MISMATCH~;
     }
 }
 
@@ -136,7 +136,7 @@ fn void? require_argc(CInt expected, CInt actual) {
  */
 fn Term? get_arg(ErlNifTerm* argv, CInt argc, CInt index) {
     if (index < 0 || index >= argc) {
-        return term::BADARG?;
+        return term::BADARG~;
     }
     return term::wrap(argv[index]);
 }
@@ -181,7 +181,7 @@ fn double? require_double(Env* e, Term t) {
  */
 fn void? require_atom(Env* e, Term t) {
     if (!t.is_atom(e)) {
-        return term::BADARG?;
+        return term::BADARG~;
     }
 }
 
@@ -197,7 +197,7 @@ fn ErlNifBinary? require_binary(Env* e, Term t) {
  */
 fn void? require_list(Env* e, Term t) {
     if (!t.is_list(e)) {
-        return term::BADARG?;
+        return term::BADARG~;
     }
 }
 
@@ -206,7 +206,7 @@ fn void? require_list(Env* e, Term t) {
  */
 fn void? require_tuple(Env* e, Term t) {
     if (!t.is_tuple(e)) {
-        return term::BADARG?;
+        return term::BADARG~;
     }
 }
 
@@ -215,7 +215,7 @@ fn void? require_tuple(Env* e, Term t) {
  */
 fn void? require_map(Env* e, Term t) {
     if (!t.is_map(e)) {
-        return term::BADARG?;
+        return term::BADARG~;
     }
 }
 
@@ -236,10 +236,10 @@ fn ErlNifPid? require_pid(Env* e, Term t) {
 fn int? require_int_range(Env* e, Term t, int min, int max) {
     int? val = t.get_int(e);
     if (catch err = val) {
-        return err?;
+        return err~;
     }
     if (val < min || val > max) {
-        return term::BADARG?;
+        return term::BADARG~;
     }
     return val;
 }
@@ -250,10 +250,10 @@ fn int? require_int_range(Env* e, Term t, int min, int max) {
 fn int? require_non_negative(Env* e, Term t) {
     int? val = t.get_int(e);
     if (catch err = val) {
-        return err?;
+        return err~;
     }
     if (val < 0) {
-        return term::BADARG?;
+        return term::BADARG~;
     }
     return val;
 }
@@ -264,10 +264,10 @@ fn int? require_non_negative(Env* e, Term t) {
 fn int? require_positive(Env* e, Term t) {
     int? val = t.get_int(e);
     if (catch err = val) {
-        return err?;
+        return err~;
     }
     if (val <= 0) {
-        return term::BADARG?;
+        return term::BADARG~;
     }
     return val;
 }

@@ -63,7 +63,7 @@ end
 Ensure you have the C3 compiler installed:
 
 ```bash
-# Install C3 compiler (version 0.7.7 or later required)
+# Install C3 compiler (version 0.7.11 or later required)
 # See https://c3-lang.org/getting-started/prebuilt-binaries/
 ```
 
@@ -152,10 +152,15 @@ fn void counter_dtor(ErlNifEnv* env, void* obj) {
     // Cleanup code here (Counter memory is freed automatically)
 }
 
-// Register in on_load callback
+// Cached resource type handle - assigned in on_load, read by NIFs
+ErlNifResourceType* counter_type;
+
+// Register in on_load callback and cache the handle
 fn CInt on_load(ErlNifEnv* env_raw, void** priv, ErlNifTerm load_info) {
     Env e = env::wrap(env_raw);
-    resource::register_type(&e, "Counter", &counter_dtor)!!;
+    ErlNifResourceType*? rt = resource::register_type(&e, "Counter", &counter_dtor);
+    if (catch err = rt) return 1;
+    counter_type = rt;
     return 0;
 }
 
@@ -163,7 +168,7 @@ fn CInt on_load(ErlNifEnv* env_raw, void** priv, ErlNifTerm load_info) {
 fn ErlNifTerm create_counter(ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv) {
     Env e = env::wrap(env_raw);
 
-    void* ptr = resource::alloc("Counter", Counter.sizeof)!!;
+    void* ptr = resource::alloc(counter_type, Counter.sizeof)!!;
     Counter* c = (Counter*)ptr;
     c.value = 42;
 
@@ -177,7 +182,7 @@ fn ErlNifTerm get_counter(ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv) {
     Env e = env::wrap(env_raw);
     Term arg = term::wrap(argv[0]);
 
-    void* ptr = resource::get("Counter", &e, arg)!!;
+    void* ptr = resource::get(counter_type, &e, arg)!!;
     Counter* c = (Counter*)ptr;
 
     return term::make_int(&e, c.value).raw();
@@ -249,7 +254,7 @@ mix test
 ## Requirements
 
 - Elixir 1.18+
-- C3 compiler 0.7.7+
+- C3 compiler 0.7.11+
 - Linux x86_64
 
 ## You Can Still Crash the VM
@@ -265,10 +270,10 @@ The `!!` operator is convenient but dangerous - it panics on error:
 
 ```c3
 // This will crash if allocation fails:
-void* ptr = resource::alloc("Counter", Counter.sizeof)!!;
+void* ptr = resource::alloc(counter_type, Counter.sizeof)!!;
 
 // Prefer explicit handling:
-void*? ptr = resource::alloc("Counter", Counter.sizeof);
+void*? ptr = resource::alloc(counter_type, Counter.sizeof);
 if (catch err = ptr) {
     return term::make_error_atom(&e, "alloc_failed").raw();
 }

@@ -67,7 +67,7 @@ fn void* Env.priv_data(&self) {
 fn ErlNifPid? Env.self(&self) {
     ErlNifPid pid;
     if (erl_nif::enif_self(self.inner, &pid) == null) {
-        return NO_PROCESS?;
+        return NO_PROCESS~;
     }
     return pid;
 }
@@ -131,7 +131,7 @@ fn bool Env.is_process_alive(&self) {
 fn OwnedEnv? new_owned_env() {
     ErlNifEnv* env = erl_nif::enif_alloc_env();
     if (env == null) {
-        return ALLOC_FAILED?;
+        return ALLOC_FAILED~;
     }
     return (OwnedEnv){ .inner = env };
 }

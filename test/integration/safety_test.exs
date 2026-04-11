@@ -209,7 +209,7 @@ defmodule C3nif.IntegrationTest.SafetyTest do
 
   fn int? helper_double(int value) {
       if (value > 1000000) {
-          return term::OVERFLOW?;
+          return term::OVERFLOW~;
       }
       return value * 2;
   }

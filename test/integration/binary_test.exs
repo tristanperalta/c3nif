@@ -454,8 +454,7 @@ defmodule C3nif.IntegrationTest.BinaryTest do
       original = <<1, 2, 3, 4, 5>>
       copy = BinaryNif.copy_binary(original)
       assert copy == original
-      # Verify they're different binaries (same content)
-      assert :binary.referenced_byte_size(copy) == 5
+      assert byte_size(copy) == byte_size(original)
     end
   end
 

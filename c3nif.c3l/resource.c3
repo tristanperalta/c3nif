@@ -5,19 +5,22 @@
  * Erlang NIF resources. Resources are garbage-collected by the BEAM VM
  * and can have destructor callbacks for cleanup.
  *
- * Usage:
+ * Usage — cache the resource type handle at load time, reference it
+ * from NIF functions:
  *
- *     // In on_load callback:
- *     fn CInt on_load(ErlNifEnv* env, void** priv, ErlNifTerm load_info) {
- *         Env e = env::wrap(env);
- *         if (catch err = resource::register_type(&e, "MyResource", &my_dtor)) {
- *             return 1;
- *         }
+ *     // Module-level handle, assigned in on_load, read from NIFs.
+ *     ErlNifResourceType* my_resource_type;
+ *
+ *     fn CInt on_load(ErlNifEnv* env_raw, void** priv, ErlNifTerm load_info) {
+ *         Env e = env::wrap(env_raw);
+ *         ErlNifResourceType*? rt = resource::register_type(&e, "MyResource", &my_dtor);
+ *         if (catch err = rt) return 1;
+ *         my_resource_type = rt;
  *         return 0;
  *     }
  *
  *     // In NIF function:
- *     void* ptr = resource::alloc("MyResource", MyStruct.sizeof)!;
+ *     void* ptr = resource::alloc(my_resource_type, MyStruct.sizeof)!;
  *     MyStruct* data = (MyStruct*)ptr;
  *     data.value = 42;
  *     Term t = resource::make_term(&e, ptr);
@@ -81,19 +84,7 @@ import c3nif::term;
 // =============================================================================
 
 faultdef REGISTRATION_FAILED;  // Failed to register resource type
-faultdef TYPE_NOT_FOUND;       // Resource type not found in registry
 faultdef ALLOC_FAILED;         // Failed to allocate resource
-
-// =============================================================================
-// Resource Type Registry
-// =============================================================================
-
-const usz MAX_RESOURCE_TYPES = 32;
-
-// Module-level registry for resource types
-ErlNifResourceType*[MAX_RESOURCE_TYPES] g_resource_types;
-char*[MAX_RESOURCE_TYPES] g_resource_names;
-usz g_resource_count;
 
 // =============================================================================
 // Resource Type Registration
@@ -118,10 +109,6 @@ fn ErlNifResourceType*? register_type(
     char* type_name,
     ResourceDtorFn dtor
 ) {
-    if (g_resource_count >= MAX_RESOURCE_TYPES) {
-        return REGISTRATION_FAILED?;
-    }
-
     erl_nif::ErlNifResourceTypeInit init = {
         .dtor = dtor,
         .stop = null,
@@ -140,13 +127,8 @@ fn ErlNifResourceType*? register_type(
     );
 
     if (rt == null) {
-        return REGISTRATION_FAILED?;
+        return REGISTRATION_FAILED~;
     }
-
-    g_resource_names[g_resource_count] = type_name;
-    g_resource_types[g_resource_count] = rt;
-    g_resource_count++;
-
     return rt;
 }
 
@@ -161,10 +143,6 @@ fn ErlNifResourceType*? register_type_full(
     char* type_name,
     erl_nif::ErlNifResourceTypeInit* init
 ) {
-    if (g_resource_count >= MAX_RESOURCE_TYPES) {
-        return REGISTRATION_FAILED?;
-    }
-
     ErlNifResourceFlags tried;
     ErlNifResourceType* rt = erl_nif::enif_init_resource_type(
         e.raw(),
@@ -175,42 +153,9 @@ fn ErlNifResourceType*? register_type_full(
     );
 
     if (rt == null) {
-        return REGISTRATION_FAILED?;
+        return REGISTRATION_FAILED~;
     }
-
-    g_resource_names[g_resource_count] = type_name;
-    g_resource_types[g_resource_count] = rt;
-    g_resource_count++;
-
     return rt;
-}
-
-// =============================================================================
-// Resource Type Lookup
-// =============================================================================
-
-/**
- * Look up a registered resource type by name.
- */
-fn ErlNifResourceType*? get_type(char* name) {
-    for (usz i = 0; i < g_resource_count; i++) {
-        if (streq(g_resource_names[i], name)) {
-            return g_resource_types[i];
-        }
-    }
-    return TYPE_NOT_FOUND?;
-}
-
-// Simple null-terminated string comparison
-fn bool streq(char* a, char* b) {
-    while (*a != 0 && *b != 0) {
-        if (*a != *b) {
-            return false;
-        }
-        a++;
-        b++;
-    }
-    return *a == 0 && *b == 0;
 }
 
 // =============================================================================
@@ -218,7 +163,7 @@ fn bool streq(char* a, char* b) {
 // =============================================================================
 
 /**
- * Allocate a new resource of the given type.
+ * Allocate a new resource using a cached resource type handle.
  *
  * The returned pointer should be initialized with your data, then either:
  * - Converted to a term with make_term() and released with release()
@@ -226,27 +171,14 @@ fn bool streq(char* a, char* b) {
  *
  * Initial reference count is 1.
  *
- * @param type_name Name of the registered resource type
+ * @param rt Resource type handle returned by register_type() at load time
  * @param size Size in bytes to allocate
  * @return Pointer to allocated resource, or fault on failure
  */
-fn void*? alloc(char* type_name, usz size) {
-    ErlNifResourceType* rt = get_type(type_name)!;
+fn void*? alloc(ErlNifResourceType* rt, usz size) {
     void* ptr = erl_nif::enif_alloc_resource(rt, (CULong)size);
     if (ptr == null) {
-        return ALLOC_FAILED?;
-    }
-    return ptr;
-}
-
-/**
- * Allocate a resource using a resource type pointer directly.
- * Useful when you've cached the resource type.
- */
-fn void*? alloc_with_type(ErlNifResourceType* rt, usz size) {
-    void* ptr = erl_nif::enif_alloc_resource(rt, (CULong)size);
-    if (ptr == null) {
-        return ALLOC_FAILED?;
+        return ALLOC_FAILED~;
     }
     return ptr;
 }
@@ -277,27 +209,15 @@ fn Term make_term(Env* e, void* resource) {
  * The returned pointer is valid as long as the term is reachable.
  * Does NOT increment the reference count.
  *
- * @param type_name Name of the expected resource type
+ * @param rt Resource type handle cached at load time
  * @param e Environment
  * @param t Term containing the resource
  * @return Pointer to the resource, or fault if term is not this resource type
  */
-fn void*? get(char* type_name, Env* e, Term t) {
-    ErlNifResourceType* rt = get_type(type_name)!;
+fn void*? get(ErlNifResourceType* rt, Env* e, Term t) {
     void* ptr;
     if (erl_nif::enif_get_resource(e.raw(), t.raw(), rt, &ptr) == 0) {
-        return term::BADARG?;
-    }
-    return ptr;
-}
-
-/**
- * Extract a resource using a resource type pointer directly.
- */
-fn void*? get_with_type(ErlNifResourceType* rt, Env* e, Term t) {
-    void* ptr;
-    if (erl_nif::enif_get_resource(e.raw(), t.raw(), rt, &ptr) == 0) {
-        return term::BADARG?;
+        return term::BADARG~;
     }
     return ptr;
 }

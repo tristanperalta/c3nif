@@ -78,7 +78,10 @@ defmodule C3nif.IntegrationTest.ResourceMonitorTest do
       erl_nif::enif_free_env(msg_env);
   }
 
-  // on_load: register resource type with down callback
+  // Cached resource type handle
+  ErlNifResourceType* monitor_type;
+
+  // on_load: register resource type with down callback and cache the handle
   fn CInt on_load(ErlNifEnv* env_raw, void** priv, ErlNifTerm load_info) {
       Env e = env::wrap(env_raw);
 
@@ -92,9 +95,9 @@ defmodule C3nif.IntegrationTest.ResourceMonitorTest do
           .dyncall = null
       };
 
-      if (catch err = resource::register_type_full(&e, "Monitor", &init)) {
-          return 1;
-      }
+      ErlNifResourceType*? rt = resource::register_type_full(&e, "Monitor", &init);
+      if (catch err = rt) return 1;
+      monitor_type = rt;
       return 0;
   }
 
@@ -118,7 +121,7 @@ defmodule C3nif.IntegrationTest.ResourceMonitorTest do
       }
 
       // Allocate the resource
-      void* ptr = resource::alloc("Monitor", Monitor.sizeof)!!;
+      void* ptr = resource::alloc(monitor_type, Monitor.sizeof)!!;
       Monitor* m = (Monitor*)ptr;
       m.notify_pid = notify_pid;
       m.monitored_pid = owner_pid;

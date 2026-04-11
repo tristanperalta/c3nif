@@ -258,7 +258,7 @@ fn ErlNifTerm start_compute(
     }
 
     // Allocate context resource
-    void*? ptr = resource::alloc("ComputeContext", ComputeContext.sizeof);
+    void*? ptr = resource::alloc(compute_context_type, ComputeContext.sizeof);
     if (catch err = ptr) {
         return term::make_error_atom(&e, "alloc_failed").raw();
     }
@@ -290,7 +290,7 @@ fn ErlNifTerm compute_chunk(
 ) {
     Env e = env::wrap(raw_env);
 
-    void*? ptr = resource::get("ComputeContext", &e, term::wrap(argv[0]));
+    void*? ptr = resource::get(compute_context_type, &e, term::wrap(argv[0]));
     if (catch err = ptr) {
         return term::make_badarg(&e).raw();
     }
