@@ -121,7 +121,7 @@ defmodule C3nif.IntegrationTest.ResourceMonitorTest do
       }
 
       // Allocate the resource
-      void* ptr = resource::alloc(monitor_type, Monitor.sizeof)!!;
+      void* ptr = resource::alloc(monitor_type, Monitor::size)!!;
       Monitor* m = (Monitor*)ptr;
       m.notify_pid = notify_pid;
       m.monitored_pid = owner_pid;

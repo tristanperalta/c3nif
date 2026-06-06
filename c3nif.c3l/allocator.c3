@@ -75,14 +75,14 @@ struct BeamAllocator (Allocator)
  * Note: BEAM guarantees 8-byte alignment. For larger alignments (e.g., SIMD),
  * this function over-allocates and stores the original pointer in a header.
  */
-fn void*? BeamAllocator.acquire(&self, usz size, AllocInitType init_type, usz alignment) @dynamic
+fn void*? BeamAllocator.acquire(&self, sz size, AllocInitType init_type, sz alignment) @dynamic
 {
     void* ptr;
 
     // Handle over-aligned allocations (BEAM guarantees 8 bytes)
-    if (alignment > BEAM_ALIGNMENT)
+    if ((usz)alignment > BEAM_ALIGNMENT)
     {
-        ptr = alloc_aligned(size, alignment);
+        ptr = alloc_aligned((usz)size, (usz)alignment);
     }
     else
     {
@@ -97,7 +97,7 @@ fn void*? BeamAllocator.acquire(&self, usz size, AllocInitType init_type, usz al
     // Zero-initialize if requested
     if (init_type == ZERO)
     {
-        mem::clear(ptr, size, BEAM_ALIGNMENT);
+        mem::clear(ptr, (sz)size, (sz)BEAM_ALIGNMENT);
     }
 
     return ptr;
@@ -111,14 +111,14 @@ fn void*? BeamAllocator.acquire(&self, usz size, AllocInitType init_type, usz al
  * @param alignment Required alignment for new allocation
  * @return New pointer (may differ from input), or OUT_OF_MEMORY fault
  */
-fn void*? BeamAllocator.resize(&self, void* ptr, usz new_size, usz alignment) @dynamic
+fn void*? BeamAllocator.resize(&self, void* ptr, sz new_size, sz alignment) @dynamic
 {
     void* new_ptr;
 
     // Handle over-aligned reallocation
-    if (alignment > BEAM_ALIGNMENT)
+    if ((usz)alignment > BEAM_ALIGNMENT)
     {
-        new_ptr = realloc_aligned(ptr, new_size, alignment);
+        new_ptr = realloc_aligned(ptr, (usz)new_size, (usz)alignment);
     }
     else
     {
@@ -176,7 +176,7 @@ struct AlignedHeader
 fn void* alloc_aligned(usz size, usz alignment) @private
 {
     // Calculate total size needed: header + padding + data
-    usz header_size = AlignedHeader.sizeof;
+    usz header_size = AlignedHeader::size;
     usz total = header_size + alignment + size;
 
     void* raw = erl_nif::enif_alloc((CULong)total);
@@ -202,7 +202,7 @@ fn void* realloc_aligned(void* ptr, usz new_size, usz alignment) @private
     if (!ptr) return alloc_aligned(new_size, alignment);
 
     // Get original allocation info from header
-    AlignedHeader* header = (AlignedHeader*)((usz)ptr - AlignedHeader.sizeof);
+    AlignedHeader* header = (AlignedHeader*)((usz)ptr - AlignedHeader::size);
     usz old_size = header.size;
 
     // Allocate new aligned block
@@ -211,7 +211,7 @@ fn void* realloc_aligned(void* ptr, usz new_size, usz alignment) @private
 
     // Copy data
     usz copy_size = old_size < new_size ? old_size : new_size;
-    mem::copy(new_ptr, ptr, copy_size, BEAM_ALIGNMENT, BEAM_ALIGNMENT);
+    mem::copy(new_ptr, ptr, (sz)copy_size, BEAM_ALIGNMENT, BEAM_ALIGNMENT);
 
     // Free old block
     free_aligned(ptr);
@@ -227,7 +227,7 @@ fn void free_aligned(void* ptr) @private
     if (!ptr) return;
 
     // Get original pointer from header
-    AlignedHeader* header = (AlignedHeader*)((usz)ptr - AlignedHeader.sizeof);
+    AlignedHeader* header = (AlignedHeader*)((usz)ptr - AlignedHeader::size);
     erl_nif::enif_free(header.original);
 }
 
@@ -287,7 +287,7 @@ fn void* calloc(usz size)
     void* ptr = erl_nif::enif_alloc((CULong)size);
     if (ptr)
     {
-        mem::clear(ptr, size, mem::DEFAULT_MEM_ALIGNMENT);
+        mem::clear(ptr, (sz)size, mem::DEFAULT_MEM_ALIGNMENT);
     }
     return ptr;
 }

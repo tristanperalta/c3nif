@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.0] - 2026-06-06
+
+Migration to C3 0.8.
+
+### Breaking
+
+- **Minimum C3 compiler version is now 0.8.0** (was 0.7.11). The codebase
+  was updated for 0.8 language changes:
+  - `@extern("name")` bindings replaced with `@cname("name")` (the old
+    attribute was removed).
+  - Type-size access changed from `Type.sizeof` to `Type::size`.
+  - The `Allocator` interface now takes signed `sz` sizes/alignments, and
+    implicit signed↔unsigned conversions were removed, so `BeamAllocator`
+    gained explicit casts.
+  - Macro method dispatch via `value.#param(...)` was removed; the
+    `@require_type` macro now uses `value.$eval($stringify(#param))(...)`.
+
 ## [0.2.0] - 2026-04-11
 
 Modernization release: C3 0.7.11 + ERL_NIF 2.17 (OTP 26+), with a new

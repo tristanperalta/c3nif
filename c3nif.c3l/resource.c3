@@ -20,7 +20,7 @@
  *     }
  *
  *     // In NIF function:
- *     void* ptr = resource::alloc(my_resource_type, MyStruct.sizeof)!;
+ *     void* ptr = resource::alloc(my_resource_type, MyStruct::size)!;
  *     MyStruct* data = (MyStruct*)ptr;
  *     data.value = 42;
  *     Term t = resource::make_term(&e, ptr);

@@ -63,7 +63,7 @@ end
 Ensure you have the C3 compiler installed:
 
 ```bash
-# Install C3 compiler (version 0.7.11 or later required)
+# Install C3 compiler (version 0.8.0 or later required)
 # See https://c3-lang.org/getting-started/prebuilt-binaries/
 ```
 
@@ -254,7 +254,7 @@ mix test
 ## Requirements
 
 - Elixir 1.18+
-- C3 compiler 0.7.11+
+- C3 compiler 0.8.0+
 - Linux x86_64
 
 ## You Can Still Crash the VM

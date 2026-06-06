@@ -83,7 +83,7 @@ defmodule C3nif.IntegrationTest.ResourceCleanupTest do
           return term::make_badarg(&e).raw();
       }
 
-      void* ptr = resource::alloc(notifier_type, Notifier.sizeof)!!;
+      void* ptr = resource::alloc(notifier_type, Notifier::size)!!;
       Notifier* notifier = (Notifier*)ptr;
       notifier.pid = pid;
 

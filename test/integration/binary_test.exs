@@ -312,7 +312,7 @@ defmodule C3nif.IntegrationTest.BinaryTest do
 
       // Fill new space with 'B'
       slice = bin.as_mut_slice()!!;
-      for (usz i = initial; i < slice.len; i++) {
+      for (usz i = (usz)initial; i < slice.len; i++) {
           slice[i] = 'B';
       }
 

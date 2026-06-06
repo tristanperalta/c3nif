@@ -74,7 +74,7 @@ defmodule C3nif.IntegrationTest.ResourceBasicTest do
           return term::make_badarg(&e).raw();
       }
 
-      void* ptr = resource::alloc(counter_type, Counter.sizeof)!!;
+      void* ptr = resource::alloc(counter_type, Counter::size)!!;
       Counter* counter = (Counter*)ptr;
       counter.value = initial;
       g_resource_count++;  // Track allocation

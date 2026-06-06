@@ -46,7 +46,7 @@ import c3nif::resource;
  *     @require_type(t, is_list, &e)!;  // Returns BADARG if not a list
  */
 macro void? @require_type(Term t, #check_fn, Env* e) {
-    if (!t.#check_fn(e)) {
+    if (!t.$eval($stringify(#check_fn))(e)) {
         return term::BADARG~;
     }
 }

@@ -168,107 +168,107 @@ const char* ERL_NIF_MIN_ERTS_VERSION = "erts-14.0";
 // =============================================================================
 
 // --- Memory allocation ---
-extern fn void* enif_alloc(CULong size) @extern("enif_alloc");
-extern fn void enif_free(void* ptr) @extern("enif_free");
-extern fn void* enif_realloc(void* ptr, CULong size) @extern("enif_realloc");
+extern fn void* enif_alloc(CULong size) @cname("enif_alloc");
+extern fn void enif_free(void* ptr) @cname("enif_free");
+extern fn void* enif_realloc(void* ptr, CULong size) @cname("enif_realloc");
 
 // --- Private data ---
-extern fn void* enif_priv_data(ErlNifEnv* env) @extern("enif_priv_data");
+extern fn void* enif_priv_data(ErlNifEnv* env) @cname("enif_priv_data");
 
 // --- Type checking ---
-extern fn CInt enif_is_atom(ErlNifEnv* env, ErlNifTerm term) @extern("enif_is_atom");
-extern fn CInt enif_is_binary(ErlNifEnv* env, ErlNifTerm term) @extern("enif_is_binary");
-extern fn CInt enif_is_ref(ErlNifEnv* env, ErlNifTerm term) @extern("enif_is_ref");
-extern fn CInt enif_is_fun(ErlNifEnv* env, ErlNifTerm term) @extern("enif_is_fun");
-extern fn CInt enif_is_pid(ErlNifEnv* env, ErlNifTerm term) @extern("enif_is_pid");
-extern fn CInt enif_is_port(ErlNifEnv* env, ErlNifTerm term) @extern("enif_is_port");
-extern fn CInt enif_is_list(ErlNifEnv* env, ErlNifTerm term) @extern("enif_is_list");
-extern fn CInt enif_is_tuple(ErlNifEnv* env, ErlNifTerm term) @extern("enif_is_tuple");
-extern fn CInt enif_is_map(ErlNifEnv* env, ErlNifTerm term) @extern("enif_is_map");
-extern fn CInt enif_is_empty_list(ErlNifEnv* env, ErlNifTerm term) @extern("enif_is_empty_list");
-extern fn CInt enif_is_number(ErlNifEnv* env, ErlNifTerm term) @extern("enif_is_number");
-extern fn CInt enif_is_exception(ErlNifEnv* env, ErlNifTerm term) @extern("enif_is_exception");
-extern fn ErlNifTermType enif_term_type(ErlNifEnv* env, ErlNifTerm term) @extern("enif_term_type");
+extern fn CInt enif_is_atom(ErlNifEnv* env, ErlNifTerm term) @cname("enif_is_atom");
+extern fn CInt enif_is_binary(ErlNifEnv* env, ErlNifTerm term) @cname("enif_is_binary");
+extern fn CInt enif_is_ref(ErlNifEnv* env, ErlNifTerm term) @cname("enif_is_ref");
+extern fn CInt enif_is_fun(ErlNifEnv* env, ErlNifTerm term) @cname("enif_is_fun");
+extern fn CInt enif_is_pid(ErlNifEnv* env, ErlNifTerm term) @cname("enif_is_pid");
+extern fn CInt enif_is_port(ErlNifEnv* env, ErlNifTerm term) @cname("enif_is_port");
+extern fn CInt enif_is_list(ErlNifEnv* env, ErlNifTerm term) @cname("enif_is_list");
+extern fn CInt enif_is_tuple(ErlNifEnv* env, ErlNifTerm term) @cname("enif_is_tuple");
+extern fn CInt enif_is_map(ErlNifEnv* env, ErlNifTerm term) @cname("enif_is_map");
+extern fn CInt enif_is_empty_list(ErlNifEnv* env, ErlNifTerm term) @cname("enif_is_empty_list");
+extern fn CInt enif_is_number(ErlNifEnv* env, ErlNifTerm term) @cname("enif_is_number");
+extern fn CInt enif_is_exception(ErlNifEnv* env, ErlNifTerm term) @cname("enif_is_exception");
+extern fn ErlNifTermType enif_term_type(ErlNifEnv* env, ErlNifTerm term) @cname("enif_term_type");
 
 // --- Term comparison ---
-extern fn CInt enif_is_identical(ErlNifTerm lhs, ErlNifTerm rhs) @extern("enif_is_identical");
-extern fn CInt enif_compare(ErlNifTerm lhs, ErlNifTerm rhs) @extern("enif_compare");
+extern fn CInt enif_is_identical(ErlNifTerm lhs, ErlNifTerm rhs) @cname("enif_is_identical");
+extern fn CInt enif_compare(ErlNifTerm lhs, ErlNifTerm rhs) @cname("enif_compare");
 
 // --- Integer get/make ---
-extern fn CInt enif_get_int(ErlNifEnv* env, ErlNifTerm term, CInt* ip) @extern("enif_get_int");
-extern fn CInt enif_get_uint(ErlNifEnv* env, ErlNifTerm term, CUInt* ip) @extern("enif_get_uint");
-extern fn CInt enif_get_long(ErlNifEnv* env, ErlNifTerm term, CLong* ip) @extern("enif_get_long");
-extern fn CInt enif_get_ulong(ErlNifEnv* env, ErlNifTerm term, CULong* ip) @extern("enif_get_ulong");
-extern fn CInt enif_get_int64(ErlNifEnv* env, ErlNifTerm term, long* ip) @extern("enif_get_int64");
-extern fn CInt enif_get_uint64(ErlNifEnv* env, ErlNifTerm term, ulong* ip) @extern("enif_get_uint64");
+extern fn CInt enif_get_int(ErlNifEnv* env, ErlNifTerm term, CInt* ip) @cname("enif_get_int");
+extern fn CInt enif_get_uint(ErlNifEnv* env, ErlNifTerm term, CUInt* ip) @cname("enif_get_uint");
+extern fn CInt enif_get_long(ErlNifEnv* env, ErlNifTerm term, CLong* ip) @cname("enif_get_long");
+extern fn CInt enif_get_ulong(ErlNifEnv* env, ErlNifTerm term, CULong* ip) @cname("enif_get_ulong");
+extern fn CInt enif_get_int64(ErlNifEnv* env, ErlNifTerm term, long* ip) @cname("enif_get_int64");
+extern fn CInt enif_get_uint64(ErlNifEnv* env, ErlNifTerm term, ulong* ip) @cname("enif_get_uint64");
 
-extern fn ErlNifTerm enif_make_int(ErlNifEnv* env, CInt i) @extern("enif_make_int");
-extern fn ErlNifTerm enif_make_uint(ErlNifEnv* env, CUInt i) @extern("enif_make_uint");
-extern fn ErlNifTerm enif_make_long(ErlNifEnv* env, CLong i) @extern("enif_make_long");
-extern fn ErlNifTerm enif_make_ulong(ErlNifEnv* env, CULong i) @extern("enif_make_ulong");
-extern fn ErlNifTerm enif_make_int64(ErlNifEnv* env, long i) @extern("enif_make_int64");
-extern fn ErlNifTerm enif_make_uint64(ErlNifEnv* env, ulong i) @extern("enif_make_uint64");
+extern fn ErlNifTerm enif_make_int(ErlNifEnv* env, CInt i) @cname("enif_make_int");
+extern fn ErlNifTerm enif_make_uint(ErlNifEnv* env, CUInt i) @cname("enif_make_uint");
+extern fn ErlNifTerm enif_make_long(ErlNifEnv* env, CLong i) @cname("enif_make_long");
+extern fn ErlNifTerm enif_make_ulong(ErlNifEnv* env, CULong i) @cname("enif_make_ulong");
+extern fn ErlNifTerm enif_make_int64(ErlNifEnv* env, long i) @cname("enif_make_int64");
+extern fn ErlNifTerm enif_make_uint64(ErlNifEnv* env, ulong i) @cname("enif_make_uint64");
 
 // --- Double get/make ---
-extern fn CInt enif_get_double(ErlNifEnv* env, ErlNifTerm term, double* dp) @extern("enif_get_double");
-extern fn ErlNifTerm enif_make_double(ErlNifEnv* env, double d) @extern("enif_make_double");
+extern fn CInt enif_get_double(ErlNifEnv* env, ErlNifTerm term, double* dp) @cname("enif_get_double");
+extern fn ErlNifTerm enif_make_double(ErlNifEnv* env, double d) @cname("enif_make_double");
 
 // --- Atom get/make ---
-extern fn ErlNifTerm enif_make_atom(ErlNifEnv* env, char* name) @extern("enif_make_atom");
-extern fn ErlNifTerm enif_make_atom_len(ErlNifEnv* env, char* name, CULong len) @extern("enif_make_atom_len");
-extern fn CInt enif_make_existing_atom(ErlNifEnv* env, char* name, ErlNifTerm* atom, ErlNifCharEncoding encoding) @extern("enif_make_existing_atom");
-extern fn CInt enif_make_existing_atom_len(ErlNifEnv* env, char* name, CULong len, ErlNifTerm* atom, ErlNifCharEncoding encoding) @extern("enif_make_existing_atom_len");
-extern fn CInt enif_get_atom(ErlNifEnv* env, ErlNifTerm atom, char* buf, CUInt len, ErlNifCharEncoding encoding) @extern("enif_get_atom");
-extern fn CInt enif_get_atom_length(ErlNifEnv* env, ErlNifTerm atom, CUInt* len, ErlNifCharEncoding encoding) @extern("enif_get_atom_length");
+extern fn ErlNifTerm enif_make_atom(ErlNifEnv* env, char* name) @cname("enif_make_atom");
+extern fn ErlNifTerm enif_make_atom_len(ErlNifEnv* env, char* name, CULong len) @cname("enif_make_atom_len");
+extern fn CInt enif_make_existing_atom(ErlNifEnv* env, char* name, ErlNifTerm* atom, ErlNifCharEncoding encoding) @cname("enif_make_existing_atom");
+extern fn CInt enif_make_existing_atom_len(ErlNifEnv* env, char* name, CULong len, ErlNifTerm* atom, ErlNifCharEncoding encoding) @cname("enif_make_existing_atom_len");
+extern fn CInt enif_get_atom(ErlNifEnv* env, ErlNifTerm atom, char* buf, CUInt len, ErlNifCharEncoding encoding) @cname("enif_get_atom");
+extern fn CInt enif_get_atom_length(ErlNifEnv* env, ErlNifTerm atom, CUInt* len, ErlNifCharEncoding encoding) @cname("enif_get_atom_length");
 // Added in ERL_NIF 2.17 (OTP 26) — safe atom creation that returns 0 instead of aborting
 // when the atom table is full. Unlike enif_make_atom, these take an encoding argument
 // and support ERL_NIF_UTF8 for non-Latin-1 atom names.
-extern fn CInt enif_make_new_atom(ErlNifEnv* env, char* name, ErlNifTerm* atom, ErlNifCharEncoding encoding) @extern("enif_make_new_atom");
-extern fn CInt enif_make_new_atom_len(ErlNifEnv* env, char* name, CULong len, ErlNifTerm* atom, ErlNifCharEncoding encoding) @extern("enif_make_new_atom_len");
+extern fn CInt enif_make_new_atom(ErlNifEnv* env, char* name, ErlNifTerm* atom, ErlNifCharEncoding encoding) @cname("enif_make_new_atom");
+extern fn CInt enif_make_new_atom_len(ErlNifEnv* env, char* name, CULong len, ErlNifTerm* atom, ErlNifCharEncoding encoding) @cname("enif_make_new_atom_len");
 
 // --- Binary operations ---
-extern fn CInt enif_inspect_binary(ErlNifEnv* env, ErlNifTerm bin_term, ErlNifBinary* bin) @extern("enif_inspect_binary");
-extern fn CInt enif_inspect_iolist_as_binary(ErlNifEnv* env, ErlNifTerm term, ErlNifBinary* bin) @extern("enif_inspect_iolist_as_binary");
-extern fn CInt enif_alloc_binary(CULong size, ErlNifBinary* bin) @extern("enif_alloc_binary");
-extern fn CInt enif_realloc_binary(ErlNifBinary* bin, CULong size) @extern("enif_realloc_binary");
-extern fn void enif_release_binary(ErlNifBinary* bin) @extern("enif_release_binary");
-extern fn ErlNifTerm enif_make_binary(ErlNifEnv* env, ErlNifBinary* bin) @extern("enif_make_binary");
-extern fn ErlNifTerm enif_make_sub_binary(ErlNifEnv* env, ErlNifTerm bin_term, CULong pos, CULong size) @extern("enif_make_sub_binary");
-extern fn char* enif_make_new_binary(ErlNifEnv* env, CULong size, ErlNifTerm* termp) @extern("enif_make_new_binary");
+extern fn CInt enif_inspect_binary(ErlNifEnv* env, ErlNifTerm bin_term, ErlNifBinary* bin) @cname("enif_inspect_binary");
+extern fn CInt enif_inspect_iolist_as_binary(ErlNifEnv* env, ErlNifTerm term, ErlNifBinary* bin) @cname("enif_inspect_iolist_as_binary");
+extern fn CInt enif_alloc_binary(CULong size, ErlNifBinary* bin) @cname("enif_alloc_binary");
+extern fn CInt enif_realloc_binary(ErlNifBinary* bin, CULong size) @cname("enif_realloc_binary");
+extern fn void enif_release_binary(ErlNifBinary* bin) @cname("enif_release_binary");
+extern fn ErlNifTerm enif_make_binary(ErlNifEnv* env, ErlNifBinary* bin) @cname("enif_make_binary");
+extern fn ErlNifTerm enif_make_sub_binary(ErlNifEnv* env, ErlNifTerm bin_term, CULong pos, CULong size) @cname("enif_make_sub_binary");
+extern fn char* enif_make_new_binary(ErlNifEnv* env, CULong size, ErlNifTerm* termp) @cname("enif_make_new_binary");
 
 // --- String operations ---
-extern fn ErlNifTerm enif_make_string(ErlNifEnv* env, char* string, ErlNifCharEncoding encoding) @extern("enif_make_string");
-extern fn ErlNifTerm enif_make_string_len(ErlNifEnv* env, char* string, CULong len, ErlNifCharEncoding encoding) @extern("enif_make_string_len");
-extern fn CInt enif_get_string(ErlNifEnv* env, ErlNifTerm list, char* buf, CUInt len, ErlNifCharEncoding encoding) @extern("enif_get_string");
+extern fn ErlNifTerm enif_make_string(ErlNifEnv* env, char* string, ErlNifCharEncoding encoding) @cname("enif_make_string");
+extern fn ErlNifTerm enif_make_string_len(ErlNifEnv* env, char* string, CULong len, ErlNifCharEncoding encoding) @cname("enif_make_string_len");
+extern fn CInt enif_get_string(ErlNifEnv* env, ErlNifTerm list, char* buf, CUInt len, ErlNifCharEncoding encoding) @cname("enif_get_string");
 // Added in ERL_NIF 2.17 (OTP 26) — report string length without allocating.
-extern fn CInt enif_get_string_length(ErlNifEnv* env, ErlNifTerm list, CUInt* len, ErlNifCharEncoding encoding) @extern("enif_get_string_length");
+extern fn CInt enif_get_string_length(ErlNifEnv* env, ErlNifTerm list, CUInt* len, ErlNifCharEncoding encoding) @cname("enif_get_string_length");
 
 // --- List operations ---
-extern fn ErlNifTerm enif_make_list_cell(ErlNifEnv* env, ErlNifTerm car, ErlNifTerm cdr) @extern("enif_make_list_cell");
-extern fn ErlNifTerm enif_make_list_from_array(ErlNifEnv* env, ErlNifTerm* arr, CUInt cnt) @extern("enif_make_list_from_array");
-extern fn CInt enif_get_list_cell(ErlNifEnv* env, ErlNifTerm term, ErlNifTerm* head, ErlNifTerm* tail) @extern("enif_get_list_cell");
-extern fn CInt enif_get_list_length(ErlNifEnv* env, ErlNifTerm term, CUInt* len) @extern("enif_get_list_length");
-extern fn CInt enif_make_reverse_list(ErlNifEnv* env, ErlNifTerm term, ErlNifTerm* list) @extern("enif_make_reverse_list");
+extern fn ErlNifTerm enif_make_list_cell(ErlNifEnv* env, ErlNifTerm car, ErlNifTerm cdr) @cname("enif_make_list_cell");
+extern fn ErlNifTerm enif_make_list_from_array(ErlNifEnv* env, ErlNifTerm* arr, CUInt cnt) @cname("enif_make_list_from_array");
+extern fn CInt enif_get_list_cell(ErlNifEnv* env, ErlNifTerm term, ErlNifTerm* head, ErlNifTerm* tail) @cname("enif_get_list_cell");
+extern fn CInt enif_get_list_length(ErlNifEnv* env, ErlNifTerm term, CUInt* len) @cname("enif_get_list_length");
+extern fn CInt enif_make_reverse_list(ErlNifEnv* env, ErlNifTerm term, ErlNifTerm* list) @cname("enif_make_reverse_list");
 
 // --- Tuple operations ---
-extern fn ErlNifTerm enif_make_tuple_from_array(ErlNifEnv* env, ErlNifTerm* arr, CUInt cnt) @extern("enif_make_tuple_from_array");
-extern fn CInt enif_get_tuple(ErlNifEnv* env, ErlNifTerm tpl, CInt* arity, ErlNifTerm** array) @extern("enif_get_tuple");
+extern fn ErlNifTerm enif_make_tuple_from_array(ErlNifEnv* env, ErlNifTerm* arr, CUInt cnt) @cname("enif_make_tuple_from_array");
+extern fn CInt enif_get_tuple(ErlNifEnv* env, ErlNifTerm tpl, CInt* arity, ErlNifTerm** array) @cname("enif_get_tuple");
 
 // --- Map operations ---
-extern fn ErlNifTerm enif_make_new_map(ErlNifEnv* env) @extern("enif_make_new_map");
-extern fn CInt enif_make_map_put(ErlNifEnv* env, ErlNifTerm map_in, ErlNifTerm key, ErlNifTerm value, ErlNifTerm* map_out) @extern("enif_make_map_put");
-extern fn CInt enif_get_map_value(ErlNifEnv* env, ErlNifTerm map, ErlNifTerm key, ErlNifTerm* value) @extern("enif_get_map_value");
-extern fn CInt enif_make_map_update(ErlNifEnv* env, ErlNifTerm map_in, ErlNifTerm key, ErlNifTerm value, ErlNifTerm* map_out) @extern("enif_make_map_update");
-extern fn CInt enif_make_map_remove(ErlNifEnv* env, ErlNifTerm map_in, ErlNifTerm key, ErlNifTerm* map_out) @extern("enif_make_map_remove");
-extern fn CInt enif_get_map_size(ErlNifEnv* env, ErlNifTerm term, CULong* size) @extern("enif_get_map_size");
+extern fn ErlNifTerm enif_make_new_map(ErlNifEnv* env) @cname("enif_make_new_map");
+extern fn CInt enif_make_map_put(ErlNifEnv* env, ErlNifTerm map_in, ErlNifTerm key, ErlNifTerm value, ErlNifTerm* map_out) @cname("enif_make_map_put");
+extern fn CInt enif_get_map_value(ErlNifEnv* env, ErlNifTerm map, ErlNifTerm key, ErlNifTerm* value) @cname("enif_get_map_value");
+extern fn CInt enif_make_map_update(ErlNifEnv* env, ErlNifTerm map_in, ErlNifTerm key, ErlNifTerm value, ErlNifTerm* map_out) @cname("enif_make_map_update");
+extern fn CInt enif_make_map_remove(ErlNifEnv* env, ErlNifTerm map_in, ErlNifTerm key, ErlNifTerm* map_out) @cname("enif_make_map_remove");
+extern fn CInt enif_get_map_size(ErlNifEnv* env, ErlNifTerm term, CULong* size) @cname("enif_get_map_size");
 
 // --- Reference ---
-extern fn ErlNifTerm enif_make_ref(ErlNifEnv* env) @extern("enif_make_ref");
+extern fn ErlNifTerm enif_make_ref(ErlNifEnv* env) @cname("enif_make_ref");
 
 // --- Error handling ---
-extern fn ErlNifTerm enif_make_badarg(ErlNifEnv* env) @extern("enif_make_badarg");
-extern fn ErlNifTerm enif_raise_exception(ErlNifEnv* env, ErlNifTerm reason) @extern("enif_raise_exception");
-extern fn CInt enif_has_pending_exception(ErlNifEnv* env, ErlNifTerm* reason) @extern("enif_has_pending_exception");
+extern fn ErlNifTerm enif_make_badarg(ErlNifEnv* env) @cname("enif_make_badarg");
+extern fn ErlNifTerm enif_raise_exception(ErlNifEnv* env, ErlNifTerm reason) @cname("enif_raise_exception");
+extern fn CInt enif_has_pending_exception(ErlNifEnv* env, ErlNifTerm* reason) @cname("enif_has_pending_exception");
 
 // --- Resource operations ---
 extern fn ErlNifResourceType* enif_open_resource_type(
@@ -278,7 +278,7 @@ extern fn ErlNifResourceType* enif_open_resource_type(
     ResourceDtorFn dtor,
     ErlNifResourceFlags flags,
     ErlNifResourceFlags* tried
-) @extern("enif_open_resource_type");
+) @cname("enif_open_resource_type");
 
 extern fn ErlNifResourceType* enif_init_resource_type(
     ErlNifEnv* env,
@@ -286,35 +286,35 @@ extern fn ErlNifResourceType* enif_init_resource_type(
     ErlNifResourceTypeInit* init,
     ErlNifResourceFlags flags,
     ErlNifResourceFlags* tried
-) @extern("enif_init_resource_type");
+) @cname("enif_init_resource_type");
 
-extern fn void* enif_alloc_resource(ErlNifResourceType* type, CULong size) @extern("enif_alloc_resource");
-extern fn void enif_release_resource(void* obj) @extern("enif_release_resource");
-extern fn void enif_keep_resource(void* obj) @extern("enif_keep_resource");
-extern fn ErlNifTerm enif_make_resource(ErlNifEnv* env, void* obj) @extern("enif_make_resource");
-extern fn CInt enif_get_resource(ErlNifEnv* env, ErlNifTerm term, ErlNifResourceType* type, void** objp) @extern("enif_get_resource");
-extern fn CULong enif_sizeof_resource(void* obj) @extern("enif_sizeof_resource");
+extern fn void* enif_alloc_resource(ErlNifResourceType* type, CULong size) @cname("enif_alloc_resource");
+extern fn void enif_release_resource(void* obj) @cname("enif_release_resource");
+extern fn void enif_keep_resource(void* obj) @cname("enif_keep_resource");
+extern fn ErlNifTerm enif_make_resource(ErlNifEnv* env, void* obj) @cname("enif_make_resource");
+extern fn CInt enif_get_resource(ErlNifEnv* env, ErlNifTerm term, ErlNifResourceType* type, void** objp) @cname("enif_get_resource");
+extern fn CULong enif_sizeof_resource(void* obj) @cname("enif_sizeof_resource");
 
 // --- Environment operations ---
-extern fn ErlNifEnv* enif_alloc_env() @extern("enif_alloc_env");
-extern fn void enif_free_env(ErlNifEnv* env) @extern("enif_free_env");
-extern fn void enif_clear_env(ErlNifEnv* env) @extern("enif_clear_env");
-extern fn ErlNifTerm enif_make_copy(ErlNifEnv* dst_env, ErlNifTerm src_term) @extern("enif_make_copy");
+extern fn ErlNifEnv* enif_alloc_env() @cname("enif_alloc_env");
+extern fn void enif_free_env(ErlNifEnv* env) @cname("enif_free_env");
+extern fn void enif_clear_env(ErlNifEnv* env) @cname("enif_clear_env");
+extern fn ErlNifTerm enif_make_copy(ErlNifEnv* dst_env, ErlNifTerm src_term) @cname("enif_make_copy");
 
 // --- Process operations ---
-extern fn ErlNifPid* enif_self(ErlNifEnv* caller_env, ErlNifPid* pid) @extern("enif_self");
-extern fn CInt enif_get_local_pid(ErlNifEnv* env, ErlNifTerm term, ErlNifPid* pid) @extern("enif_get_local_pid");
-extern fn CInt enif_send(ErlNifEnv* env, ErlNifPid* to_pid, ErlNifEnv* msg_env, ErlNifTerm msg) @extern("enif_send");
+extern fn ErlNifPid* enif_self(ErlNifEnv* caller_env, ErlNifPid* pid) @cname("enif_self");
+extern fn CInt enif_get_local_pid(ErlNifEnv* env, ErlNifTerm term, ErlNifPid* pid) @cname("enif_get_local_pid");
+extern fn CInt enif_send(ErlNifEnv* env, ErlNifPid* to_pid, ErlNifEnv* msg_env, ErlNifTerm msg) @cname("enif_send");
 // Note: enif_make_pid is a macro in OTP. Use make_pid() helper below instead.
 // It simply returns the pid field from ErlNifPid.
 
 // --- Process monitoring ---
-extern fn CInt enif_monitor_process(ErlNifEnv* caller_env, void* obj, ErlNifPid* target_pid, ErlNifMonitor* monitor) @extern("enif_monitor_process");
-extern fn CInt enif_demonitor_process(ErlNifEnv* caller_env, void* obj, ErlNifMonitor* monitor) @extern("enif_demonitor_process");
-extern fn CInt enif_compare_monitors(ErlNifMonitor* mon1, ErlNifMonitor* mon2) @extern("enif_compare_monitors");
+extern fn CInt enif_monitor_process(ErlNifEnv* caller_env, void* obj, ErlNifPid* target_pid, ErlNifMonitor* monitor) @cname("enif_monitor_process");
+extern fn CInt enif_demonitor_process(ErlNifEnv* caller_env, void* obj, ErlNifMonitor* monitor) @cname("enif_demonitor_process");
+extern fn CInt enif_compare_monitors(ErlNifMonitor* mon1, ErlNifMonitor* mon2) @cname("enif_compare_monitors");
 
 // --- Scheduler operations ---
-extern fn CInt enif_consume_timeslice(ErlNifEnv* env, CInt percent) @extern("enif_consume_timeslice");
+extern fn CInt enif_consume_timeslice(ErlNifEnv* env, CInt percent) @cname("enif_consume_timeslice");
 extern fn ErlNifTerm enif_schedule_nif(
     ErlNifEnv* env,
     char* fun_name,
@@ -322,18 +322,18 @@ extern fn ErlNifTerm enif_schedule_nif(
     NifFuncPtr fp,
     CInt argc,
     ErlNifTerm* argv
-) @extern("enif_schedule_nif");
-extern fn CInt enif_thread_type() @extern("enif_thread_type");
-extern fn CInt enif_is_current_process_alive(ErlNifEnv* env) @extern("enif_is_current_process_alive");
+) @cname("enif_schedule_nif");
+extern fn CInt enif_thread_type() @cname("enif_thread_type");
+extern fn CInt enif_is_current_process_alive(ErlNifEnv* env) @cname("enif_is_current_process_alive");
 
 // --- NIF options (ERL_NIF 2.17, OTP 26) ---
 // enif_set_option is variadic in C; bind one concrete form per option value.
 // DELAY_HALT takes no trailing argument.
-extern fn CInt enif_set_option_delay_halt(ErlNifEnv* env, ErlNifOption opt) @extern("enif_set_option");
+extern fn CInt enif_set_option_delay_halt(ErlNifEnv* env, ErlNifOption opt) @cname("enif_set_option");
 // ON_HALT takes a halt callback.
-extern fn CInt enif_set_option_on_halt(ErlNifEnv* env, ErlNifOption opt, OnHaltFn callback) @extern("enif_set_option");
+extern fn CInt enif_set_option_on_halt(ErlNifEnv* env, ErlNifOption opt, OnHaltFn callback) @cname("enif_set_option");
 // ON_UNLOAD_THREAD takes an unload-thread callback.
-extern fn CInt enif_set_option_on_unload_thread(ErlNifEnv* env, ErlNifOption opt, OnUnloadThreadFn callback) @extern("enif_set_option");
+extern fn CInt enif_set_option_on_unload_thread(ErlNifEnv* env, ErlNifOption opt, OnUnloadThreadFn callback) @cname("enif_set_option");
 
 // Thread type constants (returned by enif_thread_type)
 const CInt ERL_NIF_THR_UNDEFINED = 0;
@@ -342,8 +342,8 @@ const CInt ERL_NIF_THR_DIRTY_CPU_SCHEDULER = 2;
 const CInt ERL_NIF_THR_DIRTY_IO_SCHEDULER = 3;
 
 // --- Term serialization ---
-extern fn CInt enif_term_to_binary(ErlNifEnv* env, ErlNifTerm term, ErlNifBinary* bin) @extern("enif_term_to_binary");
-extern fn CULong enif_binary_to_term(ErlNifEnv* env, char* data, CULong size, ErlNifTerm* term, CUInt opts) @extern("enif_binary_to_term");
+extern fn CInt enif_term_to_binary(ErlNifEnv* env, ErlNifTerm term, ErlNifBinary* bin) @cname("enif_term_to_binary");
+extern fn CULong enif_binary_to_term(ErlNifEnv* env, char* data, CULong size, ErlNifTerm* term, CUInt opts) @cname("enif_binary_to_term");
 
 // =============================================================================
 // Helper Functions (for C macros not callable from C3)

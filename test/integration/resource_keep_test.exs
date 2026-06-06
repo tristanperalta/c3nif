@@ -80,7 +80,7 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
           return term::make_badarg(&e).raw();
       }
 
-      void* ptr = resource::alloc(tracked_type, Tracked.sizeof)!!;
+      void* ptr = resource::alloc(tracked_type, Tracked::size)!!;
       Tracked* tracked = (Tracked*)ptr;
       tracked.value = initial;
       g_live_count++;

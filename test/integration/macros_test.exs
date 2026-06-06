@@ -211,7 +211,7 @@ defmodule C3nif.IntegrationTest.MacrosTest do
   ) {
       Env e = env::wrap(env_raw);
 
-      void* ptr = erl_nif::enif_alloc_resource(counter_resource_type, Counter.sizeof);
+      void* ptr = erl_nif::enif_alloc_resource(counter_resource_type, Counter::size);
       if (ptr == null) {
           return safety::make_alloc_error(&e).raw();
       }

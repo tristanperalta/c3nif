@@ -159,7 +159,7 @@ fn ErlNifEntry make_nif_entry(
         .unload = unload,
         .vm_variant = erl_nif::ERL_NIF_VM_VARIANT,
         .options = 0,
-        .sizeof_ErlNifResourceTypeInit = erl_nif::ErlNifResourceTypeInit.sizeof,
+        .sizeof_ErlNifResourceTypeInit = erl_nif::ErlNifResourceTypeInit::size,
         .min_erts = erl_nif::ERL_NIF_MIN_ERTS_VERSION,
     };
 }
