@@ -17,6 +17,7 @@ defmodule C3nif.IntegrationTest.Utf8AtomNif do
   end
 
   def make_utf8(_binary), do: :erlang.nif_error(:nif_not_loaded)
+  def make_utf8_cstr(_binary), do: :erlang.nif_error(:nif_not_loaded)
   def make_existing_utf8(_binary), do: :erlang.nif_error(:nif_not_loaded)
 end
 
@@ -51,7 +52,37 @@ defmodule C3nif.IntegrationTest.Utf8AtomTest do
           return term::make_error_atom(&e, "too_long").raw();
       }
 
-      Term? atom = term::make_atom_utf8_len(&e, (char*)bin.data, (usz)bin.size);
+      Term? atom = term::make_atom_len(&e, (char*)bin.data, (usz)bin.size);
+      if (catch err = atom) {
+          return term::make_error_atom(&e, "atom_table_full").raw();
+      }
+      return atom.raw();
+  }
+
+  // NIF: make_utf8_cstr(binary) -> atom | {:error, :atom_table_full}
+  // Exercises the no-length make_atom default (safe UTF-8).
+  fn ErlNifTerm make_utf8_cstr(
+      ErlNifEnv* env_raw, CInt argc, ErlNifTerm* argv
+  ) {
+      Env e = env::wrap(env_raw);
+      Term bin_term = term::wrap(argv[0]);
+
+      ErlNifBinary? bin = bin_term.inspect_binary(&e);
+      if (catch err = bin) {
+          return term::make_error_atom(&e, "badarg").raw();
+      }
+
+      if (bin.size > 255) {
+          return term::make_error_atom(&e, "too_long").raw();
+      }
+
+      char[256] buf;
+      for (usz i = 0; i < bin.size; i++) {
+          buf[i] = bin.data[i];
+      }
+      buf[bin.size] = 0;
+
+      Term? atom = term::make_atom(&e, &buf);
       if (catch err = atom) {
           return term::make_error_atom(&e, "atom_table_full").raw();
       }
@@ -87,8 +118,9 @@ defmodule C3nif.IntegrationTest.Utf8AtomTest do
       return term::make_ok_tuple(&e, atom).raw();
   }
 
-  ErlNifFunc[2] nif_funcs = {
+  ErlNifFunc[3] nif_funcs = {
       { .name = "make_utf8", .arity = 1, .fptr = &make_utf8, .flags = 0 },
+      { .name = "make_utf8_cstr", .arity = 1, .fptr = &make_utf8_cstr, .flags = 0 },
       { .name = "make_existing_utf8", .arity = 1, .fptr = &make_existing_utf8, .flags = 0 },
   };
 
@@ -98,7 +130,7 @@ defmodule C3nif.IntegrationTest.Utf8AtomTest do
       nif_entry = c3nif::make_nif_entry(
           "Elixir.C3nif.IntegrationTest.Utf8AtomNif",
           &nif_funcs,
-          2,
+          3,
           null,
           null
       );
@@ -133,7 +165,7 @@ defmodule C3nif.IntegrationTest.Utf8AtomTest do
     end
   end
 
-  describe "make_atom_utf8_len" do
+  describe "make_atom_len" do
     test "creates ASCII atoms" do
       assert Utf8AtomNif.make_utf8("hello") == :hello
     end
@@ -146,6 +178,17 @@ defmodule C3nif.IntegrationTest.Utf8AtomTest do
 
     test "creates empty atom" do
       assert Utf8AtomNif.make_utf8("") == :""
+    end
+  end
+
+  describe "make_atom (no-length default)" do
+    test "creates ASCII atoms" do
+      assert Utf8AtomNif.make_utf8_cstr("hello") == :hello
+    end
+
+    test "creates non-Latin-1 UTF-8 atoms" do
+      assert Utf8AtomNif.make_utf8_cstr("日本") == :"日本"
+      assert Utf8AtomNif.make_utf8_cstr("café") == :"café"
     end
   end
 

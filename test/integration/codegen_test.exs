@@ -270,7 +270,7 @@ defmodule C3nif.IntegrationTest.CodegenDirtySchedulerTest do
           case ThreadType.UNDEFINED: thread_name = "undefined";
       }
 
-      return term::make_ok_tuple(&e, term::make_atom(&e, thread_name)).raw();
+      return term::make_ok_tuple(&e, term::make_atom_latin1(&e, thread_name)).raw();
   }
 
   <* nif: arity = 0, dirty = io *>
@@ -290,7 +290,7 @@ defmodule C3nif.IntegrationTest.CodegenDirtySchedulerTest do
           case ThreadType.UNDEFINED: thread_name = "undefined";
       }
 
-      return term::make_ok_tuple(&e, term::make_atom(&e, thread_name)).raw();
+      return term::make_ok_tuple(&e, term::make_atom_latin1(&e, thread_name)).raw();
   }
   """
 

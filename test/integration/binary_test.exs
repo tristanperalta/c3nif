@@ -86,7 +86,7 @@ defmodule C3nif.IntegrationTest.BinaryTest do
       }
 
       if (bin.len() == 0) {
-          return term::make_atom(&e, "empty").raw();
+          return term::make_atom_latin1(&e, "empty").raw();
       }
 
       char[] slice = bin.as_slice();
@@ -259,7 +259,7 @@ defmodule C3nif.IntegrationTest.BinaryTest do
       }
 
       // Build {:ok, size, first_byte} tuple
-      Term ok = term::make_atom(&e, "ok");
+      Term ok = term::make_atom_latin1(&e, "ok");
       Term size_term = term::make_int(&e, (int)size);
       Term first_term = term::make_int(&e, (int)first);
       ErlNifTerm[3] elements = { ok.raw(), size_term.raw(), first_term.raw() };

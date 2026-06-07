@@ -108,7 +108,7 @@ defmodule C3nif.IntegrationTest.ResourceBasicTest do
       Counter* counter = (Counter*)ptr;
       counter.value++;
 
-      return term::make_atom(&e, "ok").raw();
+      return term::make_atom_latin1(&e, "ok").raw();
   }
 
   // NIF: get_resource_count() -> integer (for verifying destructor calls)

@@ -46,7 +46,7 @@
  *
  *     if (!e.is_process_alive()) {
  *         // Process terminated, clean up and return
- *         return term::make_atom(&e, "process_terminated");
+ *         return term::make_atom_latin1(&e, "process_terminated");
  *     }
  */
 module c3nif::scheduler;

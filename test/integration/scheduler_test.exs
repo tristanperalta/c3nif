@@ -66,13 +66,13 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
       // C3 switch is exhaustive for enums - no fall-through, implicit break
       switch (t) {
           case ThreadType.UNDEFINED:
-              return term::make_atom(&e, "undefined").raw();
+              return term::make_atom_latin1(&e, "undefined").raw();
           case ThreadType.NORMAL:
-              return term::make_atom(&e, "normal").raw();
+              return term::make_atom_latin1(&e, "normal").raw();
           case ThreadType.DIRTY_CPU:
-              return term::make_atom(&e, "dirty_cpu").raw();
+              return term::make_atom_latin1(&e, "dirty_cpu").raw();
           case ThreadType.DIRTY_IO:
-              return term::make_atom(&e, "dirty_io").raw();
+              return term::make_atom_latin1(&e, "dirty_io").raw();
       }
   }
 
@@ -83,9 +83,9 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
       Env e = env::wrap(env_raw);
       bool is_dirty = scheduler::is_dirty_scheduler();
       if (is_dirty) {
-          return term::make_atom(&e, "true").raw();
+          return term::make_atom_latin1(&e, "true").raw();
       }
-      return term::make_atom(&e, "false").raw();
+      return term::make_atom_latin1(&e, "false").raw();
   }
 
   // NIF: is_normal_scheduler() -> boolean
@@ -95,9 +95,9 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
       Env e = env::wrap(env_raw);
       bool is_normal = scheduler::is_normal_scheduler();
       if (is_normal) {
-          return term::make_atom(&e, "true").raw();
+          return term::make_atom_latin1(&e, "true").raw();
       }
-      return term::make_atom(&e, "false").raw();
+      return term::make_atom_latin1(&e, "false").raw();
   }
 
   // =============================================================================
@@ -111,9 +111,9 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
       Env e = env::wrap(env_raw);
       bool alive = scheduler::is_process_alive(&e);
       if (alive) {
-          return term::make_atom(&e, "true").raw();
+          return term::make_atom_latin1(&e, "true").raw();
       }
-      return term::make_atom(&e, "false").raw();
+      return term::make_atom_latin1(&e, "false").raw();
   }
 
   // =============================================================================
@@ -138,9 +138,9 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
 
       bool should_yield = e.consume_timeslice(percent);
       if (should_yield) {
-          return term::make_atom(&e, "yield").raw();
+          return term::make_atom_latin1(&e, "yield").raw();
       }
-      return term::make_atom(&e, "continue").raw();
+      return term::make_atom_latin1(&e, "continue").raw();
   }
 
   // =============================================================================
@@ -165,7 +165,7 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
           case ThreadType.UNDEFINED: thread_name = "undefined";
       }
 
-      return term::make_ok_tuple(&e, term::make_atom(&e, thread_name)).raw();
+      return term::make_ok_tuple(&e, term::make_atom_latin1(&e, thread_name)).raw();
   }
 
   // NIF: dirty_io_work() -> {:ok, :dirty_io}
@@ -185,7 +185,7 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
           case ThreadType.UNDEFINED: thread_name = "undefined";
       }
 
-      return term::make_ok_tuple(&e, term::make_atom(&e, thread_name)).raw();
+      return term::make_ok_tuple(&e, term::make_atom_latin1(&e, thread_name)).raw();
   }
 
   // =============================================================================
@@ -200,7 +200,7 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
       ThreadType t = scheduler::current_thread_type();
 
       if (t == ThreadType.DIRTY_CPU) {
-          return term::make_ok_tuple(&e, term::make_atom(&e, "dirty_cpu")).raw();
+          return term::make_ok_tuple(&e, term::make_atom_latin1(&e, "dirty_cpu")).raw();
       }
       return term::make_error_atom(&e, "wrong_scheduler").raw();
   }
@@ -213,7 +213,7 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
       ThreadType t = scheduler::current_thread_type();
 
       if (t == ThreadType.DIRTY_IO) {
-          return term::make_ok_tuple(&e, term::make_atom(&e, "dirty_io")).raw();
+          return term::make_ok_tuple(&e, term::make_atom_latin1(&e, "dirty_io")).raw();
       }
       return term::make_error_atom(&e, "wrong_scheduler").raw();
   }
@@ -242,7 +242,7 @@ defmodule C3nif.IntegrationTest.SchedulerTest do
       ThreadType t = scheduler::current_thread_type();
 
       if (t == ThreadType.NORMAL) {
-          return term::make_ok_tuple(&e, term::make_atom(&e, "back_to_normal")).raw();
+          return term::make_ok_tuple(&e, term::make_atom_latin1(&e, "back_to_normal")).raw();
       }
       return term::make_error_atom(&e, "still_dirty").raw();
   }

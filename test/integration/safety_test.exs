@@ -260,7 +260,7 @@ defmodule C3nif.IntegrationTest.SafetyTest do
           return safety::make_badarg_error(&e).raw();
       }
 
-      return term::make_atom(&e, "ok").raw();
+      return term::make_atom_latin1(&e, "ok").raw();
   }
 
   // NIF: require_list_test(value) -> :ok | {:error, :badarg}
@@ -278,7 +278,7 @@ defmodule C3nif.IntegrationTest.SafetyTest do
           return safety::make_badarg_error(&e).raw();
       }
 
-      return term::make_atom(&e, "ok").raw();
+      return term::make_atom_latin1(&e, "ok").raw();
   }
 
   // =============================================================================

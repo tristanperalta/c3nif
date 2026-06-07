@@ -159,7 +159,7 @@ defmodule C3nif.IntegrationTest.MacrosTest do
           return safety::make_badarg_error(&e).raw();
       }
 
-      return term::make_atom(&e, "ok").raw();
+      return term::make_atom_latin1(&e, "ok").raw();
   }
 
   fn ErlNifTerm require_list_macro(
@@ -176,7 +176,7 @@ defmodule C3nif.IntegrationTest.MacrosTest do
           return safety::make_badarg_error(&e).raw();
       }
 
-      return term::make_atom(&e, "ok").raw();
+      return term::make_atom_latin1(&e, "ok").raw();
   }
 
   fn ErlNifTerm require_map_macro(
@@ -193,7 +193,7 @@ defmodule C3nif.IntegrationTest.MacrosTest do
           return safety::make_badarg_error(&e).raw();
       }
 
-      return term::make_atom(&e, "ok").raw();
+      return term::make_atom_latin1(&e, "ok").raw();
   }
 
   // =============================================================================

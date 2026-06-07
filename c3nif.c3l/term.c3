@@ -225,18 +225,52 @@ fn double? Term.get_double(&self, Env* e) {
 // =============================================================================
 
 /**
- * Create an atom from a null-terminated string.
- * Note: This creates atoms unconditionally. Use make_existing_atom
- * to avoid atom table exhaustion attacks.
+ * Create an atom from a null-terminated UTF-8 string, safely.
+ *
+ * Uses enif_make_new_atom (ERL_NIF 2.17, OTP 26+): returns ATOM_TABLE_FULL
+ * instead of aborting the VM if the atom table is exhausted. This is the
+ * recommended default. For the old infallible Latin1 behavior, use
+ * make_atom_latin1.
  */
-fn Term make_atom(Env* e, char* name) {
+fn Term? make_atom(Env* e, char* name) {
+    ErlNifTerm atom;
+    if (erl_nif::enif_make_new_atom(e.inner, name, &atom, ErlNifCharEncoding.UTF8) == 0) {
+        return ATOM_TABLE_FULL~;
+    }
+    return (Term){ .inner = atom };
+}
+
+/**
+ * Create a UTF-8 atom from a string with explicit length, safely.
+ *
+ * Like make_atom, returns ATOM_TABLE_FULL instead of aborting the VM.
+ */
+fn Term? make_atom_len(Env* e, char* name, usz len) {
+    ErlNifTerm atom;
+    if (erl_nif::enif_make_new_atom_len(e.inner, name, len, &atom, ErlNifCharEncoding.UTF8) == 0) {
+        return ATOM_TABLE_FULL~;
+    }
+    return (Term){ .inner = atom };
+}
+
+/**
+ * Create a Latin1 atom from a null-terminated string, unconditionally.
+ *
+ * Infallible escape hatch using enif_make_atom: it creates the atom even
+ * if that means **aborting the VM** when the atom table is exhausted. Prefer
+ * make_atom unless you specifically need Latin1 encoding and infallibility.
+ */
+fn Term make_atom_latin1(Env* e, char* name) {
     return (Term){ .inner = erl_nif::enif_make_atom(e.inner, name) };
 }
 
 /**
- * Create an atom from a string with explicit length.
+ * Create a Latin1 atom from a string with explicit length, unconditionally.
+ *
+ * Infallible counterpart of make_atom_latin1; may abort the VM on atom
+ * table exhaustion.
  */
-fn Term make_atom_len(Env* e, char* name, usz len) {
+fn Term make_atom_latin1_len(Env* e, char* name, usz len) {
     return (Term){ .inner = erl_nif::enif_make_atom_len(e.inner, name, len) };
 }
 
@@ -252,30 +286,9 @@ fn Term? make_existing_atom(Env* e, char* name) {
     return (Term){ .inner = atom };
 }
 
-/**
- * Create a UTF-8 atom safely (ERL_NIF 2.17, OTP 26+).
- *
- * Unlike make_atom(), this returns ATOM_TABLE_FULL instead of aborting
- * the VM if the atom table is exhausted.
- */
-fn Term? make_atom_utf8(Env* e, char* name) {
-    ErlNifTerm atom;
-    if (erl_nif::enif_make_new_atom(e.inner, name, &atom, ErlNifCharEncoding.UTF8) == 0) {
-        return ATOM_TABLE_FULL~;
-    }
-    return (Term){ .inner = atom };
-}
-
-/**
- * Create a UTF-8 atom with explicit length (ERL_NIF 2.17, OTP 26+).
- */
-fn Term? make_atom_utf8_len(Env* e, char* name, usz len) {
-    ErlNifTerm atom;
-    if (erl_nif::enif_make_new_atom_len(e.inner, name, len, &atom, ErlNifCharEncoding.UTF8) == 0) {
-        return ATOM_TABLE_FULL~;
-    }
-    return (Term){ .inner = atom };
-}
+// Deprecated aliases: the safe UTF-8 path is now the default make_atom/_len.
+alias make_atom_utf8 @deprecated("Use make_atom") = make_atom;
+alias make_atom_utf8_len @deprecated("Use make_atom_len") = make_atom_len;
 
 /**
  * Look up an existing UTF-8 atom. Returns BADARG if the atom doesn't exist.
@@ -521,7 +534,7 @@ fn ErlNifPid? Term.get_local_pid(&self, Env* e) {
  * Create an {:ok, value} tuple.
  */
 fn Term make_ok_tuple(Env* e, Term value) {
-    Term ok_atom = make_atom(e, "ok");
+    Term ok_atom = make_atom_latin1(e, "ok");
     ErlNifTerm[2] elements = { ok_atom.inner, value.inner };
     return make_tuple_from_array(e, elements[0:2]);
 }
@@ -530,7 +543,7 @@ fn Term make_ok_tuple(Env* e, Term value) {
  * Create an {:error, reason} tuple.
  */
 fn Term make_error_tuple(Env* e, Term reason) {
-    Term error_atom = make_atom(e, "error");
+    Term error_atom = make_atom_latin1(e, "error");
     ErlNifTerm[2] elements = { error_atom.inner, reason.inner };
     return make_tuple_from_array(e, elements[0:2]);
 }
@@ -539,5 +552,5 @@ fn Term make_error_tuple(Env* e, Term reason) {
  * Create an {:error, reason} tuple with an atom reason.
  */
 fn Term make_error_atom(Env* e, char* reason) {
-    return make_error_tuple(e, make_atom(e, reason));
+    return make_error_tuple(e, make_atom_latin1(e, reason));
 }

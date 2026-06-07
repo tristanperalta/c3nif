@@ -93,32 +93,32 @@ defmodule C3nif.IntegrationTest.TermTest do
       Term map = term::make_new_map(&e);
 
       // Add each type check result
-      map = map.map_put(&e, term::make_atom(&e, "is_atom"), make_bool(&e, t.is_atom(&e)))!!;
-      map = map.map_put(&e, term::make_atom(&e, "is_binary"), make_bool(&e, t.is_binary(&e)))!!;
-      map = map.map_put(&e, term::make_atom(&e, "is_ref"), make_bool(&e, t.is_ref(&e)))!!;
-      map = map.map_put(&e, term::make_atom(&e, "is_fun"), make_bool(&e, t.is_fun(&e)))!!;
-      map = map.map_put(&e, term::make_atom(&e, "is_pid"), make_bool(&e, t.is_pid(&e)))!!;
-      map = map.map_put(&e, term::make_atom(&e, "is_port"), make_bool(&e, t.is_port(&e)))!!;
-      map = map.map_put(&e, term::make_atom(&e, "is_list"), make_bool(&e, t.is_list(&e)))!!;
-      map = map.map_put(&e, term::make_atom(&e, "is_empty_list"), make_bool(&e, t.is_empty_list(&e)))!!;
-      map = map.map_put(&e, term::make_atom(&e, "is_tuple"), make_bool(&e, t.is_tuple(&e)))!!;
-      map = map.map_put(&e, term::make_atom(&e, "is_map"), make_bool(&e, t.is_map(&e)))!!;
-      map = map.map_put(&e, term::make_atom(&e, "is_number"), make_bool(&e, t.is_number(&e)))!!;
-      map = map.map_put(&e, term::make_atom(&e, "is_exception"), make_bool(&e, t.is_exception(&e)))!!;
+      map = map.map_put(&e, term::make_atom_latin1(&e, "is_atom"), make_bool(&e, t.is_atom(&e)))!!;
+      map = map.map_put(&e, term::make_atom_latin1(&e, "is_binary"), make_bool(&e, t.is_binary(&e)))!!;
+      map = map.map_put(&e, term::make_atom_latin1(&e, "is_ref"), make_bool(&e, t.is_ref(&e)))!!;
+      map = map.map_put(&e, term::make_atom_latin1(&e, "is_fun"), make_bool(&e, t.is_fun(&e)))!!;
+      map = map.map_put(&e, term::make_atom_latin1(&e, "is_pid"), make_bool(&e, t.is_pid(&e)))!!;
+      map = map.map_put(&e, term::make_atom_latin1(&e, "is_port"), make_bool(&e, t.is_port(&e)))!!;
+      map = map.map_put(&e, term::make_atom_latin1(&e, "is_list"), make_bool(&e, t.is_list(&e)))!!;
+      map = map.map_put(&e, term::make_atom_latin1(&e, "is_empty_list"), make_bool(&e, t.is_empty_list(&e)))!!;
+      map = map.map_put(&e, term::make_atom_latin1(&e, "is_tuple"), make_bool(&e, t.is_tuple(&e)))!!;
+      map = map.map_put(&e, term::make_atom_latin1(&e, "is_map"), make_bool(&e, t.is_map(&e)))!!;
+      map = map.map_put(&e, term::make_atom_latin1(&e, "is_number"), make_bool(&e, t.is_number(&e)))!!;
+      map = map.map_put(&e, term::make_atom_latin1(&e, "is_exception"), make_bool(&e, t.is_exception(&e)))!!;
 
       // Add term_type as atom
       erl_nif::ErlNifTermType tt = t.term_type(&e);
       char* type_name = get_type_name(tt);
-      map = map.map_put(&e, term::make_atom(&e, "term_type"), term::make_atom(&e, type_name))!!;
+      map = map.map_put(&e, term::make_atom_latin1(&e, "term_type"), term::make_atom_latin1(&e, type_name))!!;
 
       return map.raw();
   }
 
   fn Term make_bool(Env* e, bool value) {
       if (value) {
-          return term::make_atom(e, "true");
+          return term::make_atom_latin1(e, "true");
       } else {
-          return term::make_atom(e, "false");
+          return term::make_atom_latin1(e, "false");
       }
   }
 
@@ -154,9 +154,9 @@ defmodule C3nif.IntegrationTest.TermTest do
       Term b = term::wrap(argv[1]);
 
       if (a == b) {
-          return term::make_atom(&e, "true").raw();
+          return term::make_atom_latin1(&e, "true").raw();
       } else {
-          return term::make_atom(&e, "false").raw();
+          return term::make_atom_latin1(&e, "false").raw();
       }
   }
 
@@ -172,11 +172,11 @@ defmodule C3nif.IntegrationTest.TermTest do
 
       int cmp = a.compare_to(b);
       if (cmp < 0) {
-          return term::make_atom(&e, "lt").raw();
+          return term::make_atom_latin1(&e, "lt").raw();
       } else if (cmp > 0) {
-          return term::make_atom(&e, "gt").raw();
+          return term::make_atom_latin1(&e, "gt").raw();
       } else {
-          return term::make_atom(&e, "eq").raw();
+          return term::make_atom_latin1(&e, "eq").raw();
       }
   }
 
@@ -262,7 +262,7 @@ defmodule C3nif.IntegrationTest.TermTest do
           return term::make_error_atom(&e, "badarg").raw();
       }
 
-      return term::make_atom_len(&e, (char*)bin.data, (usz)len).raw();
+      return term::make_atom_latin1_len(&e, (char*)bin.data, (usz)len).raw();
   }
 
   /**
@@ -583,13 +583,13 @@ defmodule C3nif.IntegrationTest.TermTest do
       Term arg = term::wrap(argv[0]);
 
       // Check if we should raise
-      Term raise_atom = term::make_atom(&e, "raise");
+      Term raise_atom = term::make_atom_latin1(&e, "raise");
       if (arg == raise_atom) {
-          Term reason = term::make_atom(&e, "test_exception");
+          Term reason = term::make_atom_latin1(&e, "test_exception");
           return term::raise_exception(&e, reason).raw();
       }
 
-      return term::make_atom(&e, "ok").raw();
+      return term::make_atom_latin1(&e, "ok").raw();
   }
 
   // =============================================================================

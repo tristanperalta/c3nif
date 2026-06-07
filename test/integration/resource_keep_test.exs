@@ -123,7 +123,7 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
       resource::keep(ptr);
       g_native_resource = ptr;
 
-      return term::make_atom(&e, "ok").raw();
+      return term::make_atom_latin1(&e, "ok").raw();
   }
 
   // NIF: release_from_native() -> :ok | :error
@@ -134,13 +134,13 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
       Env e = env::wrap(env_raw);
 
       if (g_native_resource == null) {
-          return term::make_atom(&e, "error").raw();
+          return term::make_atom_latin1(&e, "error").raw();
       }
 
       resource::release(g_native_resource);
       g_native_resource = null;
 
-      return term::make_atom(&e, "ok").raw();
+      return term::make_atom_latin1(&e, "ok").raw();
   }
 
   // NIF: get_native_value() -> integer | nil
@@ -151,7 +151,7 @@ defmodule C3nif.IntegrationTest.ResourceKeepTest do
       Env e = env::wrap(env_raw);
 
       if (g_native_resource == null) {
-          return term::make_atom(&e, "nil").raw();
+          return term::make_atom_latin1(&e, "nil").raw();
       }
 
       Tracked* tracked = (Tracked*)g_native_resource;

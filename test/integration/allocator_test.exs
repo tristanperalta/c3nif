@@ -81,7 +81,7 @@ defmodule C3nif.IntegrationTest.AllocatorTest do
       // Free memory
       allocator::free(ptr);
 
-      return term::make_atom(&e, "ok").raw();
+      return term::make_atom_latin1(&e, "ok").raw();
   }
 
   // NIF: calloc_test(size) -> :ok | {:error, reason}
@@ -113,7 +113,7 @@ defmodule C3nif.IntegrationTest.AllocatorTest do
       }
 
       allocator::free(ptr);
-      return term::make_atom(&e, "ok").raw();
+      return term::make_atom_latin1(&e, "ok").raw();
   }
 
   // NIF: realloc_grow(initial_size, final_size) -> :ok | {:error, reason}
@@ -164,7 +164,7 @@ defmodule C3nif.IntegrationTest.AllocatorTest do
       }
 
       allocator::free(new_ptr);
-      return term::make_atom(&e, "ok").raw();
+      return term::make_atom_latin1(&e, "ok").raw();
   }
 
   // NIF: realloc_shrink(initial_size, final_size) -> :ok | {:error, reason}
@@ -215,7 +215,7 @@ defmodule C3nif.IntegrationTest.AllocatorTest do
       }
 
       allocator::free(new_ptr);
-      return term::make_atom(&e, "ok").raw();
+      return term::make_atom_latin1(&e, "ok").raw();
   }
 
   // NIF: fill_buffer(size, value) -> binary
