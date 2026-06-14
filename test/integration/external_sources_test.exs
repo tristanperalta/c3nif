@@ -113,9 +113,6 @@ defmodule C3nif.IntegrationTest.ExternalSourcesTest do
 
       {:error, {:compile_failed, _exit_code, output}} ->
         raise "Compilation failed: #{output}"
-
-      {:error, reason} ->
-        raise "Compilation failed: #{inspect(reason)}"
     end
   end
 
@@ -266,9 +263,6 @@ defmodule C3nif.IntegrationTest.GlobPatternTest do
 
       {:error, {:compile_failed, _exit_code, output}} ->
         raise "Compilation failed: #{output}"
-
-      {:error, reason} ->
-        raise "Compilation failed: #{inspect(reason)}"
     end
   end
 

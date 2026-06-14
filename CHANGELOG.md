@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.4.0] - 2026-06-14
+
+Elixir 1.20 and Erlang/OTP 29 support, plus safer atom creation.
+
+### Breaking
+
+- **Minimum Elixir version is now 1.20** (was 1.18).
+- **Safe UTF-8 is now the default atom-creation path.** `term::make_atom` and
+  `term::make_atom_len` now use `enif_make_new_atom*` (UTF-8, returning a
+  fallible `Term?` with `ATOM_TABLE_FULL`) instead of the old `enif_make_atom*`
+  (Latin1, infallible, aborts the VM when the atom table is full). The previous
+  behavior is available unchanged as `make_atom_latin1` / `make_atom_latin1_len`.
+  `make_atom_utf8` / `make_atom_utf8_len` remain as `@deprecated` aliases of the
+  new defaults.
+
+### Added
+
+- **Erlang/OTP 29 support.** The NIF ABI is unchanged: c3nif still declares
+  ERL_NIF 2.17, which loads on OTP 26 through 29 (OTP 29's 2.18 is
+  major-compatible). New ERL_NIF 2.18 bindings are available for OTP-29-only
+  use — `enif_term_size`, `enif_get_atom_cache_index`,
+  `enif_max_atom_cache_index` — but the declared minor version is intentionally
+  kept at 17 so NIFs remain loadable on OTP 26+; calling a 2.18 function on an
+  older runtime fails NIF load.
+- **CI on Erlang/OTP 29 + Elixir 1.20**, building the library and running the
+  integration suite (which compiles and `load_nif`s every fixture) as a
+  build-and-load smoke test.
+
+### Fixed
+
+- Elixir 1.20 deprecations and warnings: `File.stream!/3` argument order in
+  `C3nif.Precompiled.file_checksum/1`, a now-unused module-level `require
+  Logger` in `C3nif.Compiler`, and unreachable `case` clauses in the
+  integration tests flagged by the 1.20 type checker. Added
+  `:test_ignore_filters` so the test-support module no longer trips the new
+  `mix test` file-pattern warning.
+
 ## [0.3.0] - 2026-06-06
 
 Migration to C3 0.8.

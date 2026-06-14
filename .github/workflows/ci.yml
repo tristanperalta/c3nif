@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (OTP ${{ matrix.otp }} / Elixir ${{ matrix.elixir }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - otp: "29"
+            elixir: "1.20"
+
+    env:
+      MIX_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install C3 compiler
+        run: |
+          curl -fsSL -o c3-linux.tar.gz \
+            https://github.com/c3lang/c3c/releases/download/v0.8.1/c3-linux.tar.gz
+          tar xzf c3-linux.tar.gz
+          echo "$PWD/c3" >> "$GITHUB_PATH"
+
+      - name: Verify c3c
+        run: c3c --version
+
+      - name: Set up Erlang/Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
+
+      - name: Restore deps and build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      # Compiles c3nif.c3l, then recompiles and load_nif's every embedded-C3
+      # integration fixture — doubling as the OTP 29 build-and-load smoke test.
+      - name: Run tests
+        run: mix test

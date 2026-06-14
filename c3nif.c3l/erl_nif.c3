@@ -226,6 +226,16 @@ extern fn CInt enif_get_atom_length(ErlNifEnv* env, ErlNifTerm atom, CUInt* len,
 extern fn CInt enif_make_new_atom(ErlNifEnv* env, char* name, ErlNifTerm* atom, ErlNifCharEncoding encoding) @cname("enif_make_new_atom");
 extern fn CInt enif_make_new_atom_len(ErlNifEnv* env, char* name, CULong len, ErlNifTerm* atom, ErlNifCharEncoding encoding) @cname("enif_make_new_atom_len");
 
+// --- ERL_NIF 2.18 (OTP 29+) ---
+// These symbols only exist in OTP 29 and newer. c3nif keeps its declared NIF
+// version at 2.17 (see ERL_NIF_MINOR_VERSION) so that compiled NIFs still load
+// on OTP 26+, which means these symbols are NOT resolved when running on OTP 26-28.
+// Only call them after confirming the runtime is OTP 29+; otherwise enif_load_nif
+// fails for the whole module at load time.
+extern fn usz enif_term_size(ErlNifTerm term) @cname("enif_term_size");
+extern fn CInt enif_get_atom_cache_index(ErlNifEnv* env, ErlNifTerm atom, CUInt* index) @cname("enif_get_atom_cache_index");
+extern fn CUInt enif_max_atom_cache_index() @cname("enif_max_atom_cache_index");
+
 // --- Binary operations ---
 extern fn CInt enif_inspect_binary(ErlNifEnv* env, ErlNifTerm bin_term, ErlNifBinary* bin) @cname("enif_inspect_binary");
 extern fn CInt enif_inspect_iolist_as_binary(ErlNifEnv* env, ErlNifTerm term, ErlNifBinary* bin) @cname("enif_inspect_iolist_as_binary");

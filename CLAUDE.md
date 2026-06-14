@@ -57,5 +57,5 @@ See [docs/TESTING_RESEARCH.md](docs/TESTING_RESEARCH.md) for testing patterns fr
 ## Dependencies
 
 - C3 compiler version 0.8.0 or later (https://c3-lang.org)
-- Erlang/OTP with NIF support
-- Elixir with Mix build tool
+- Erlang/OTP 29 (NIFs build against ERL_NIF 2.17, so they still load on OTP 26+)
+- Elixir 1.20 or later with Mix build tool

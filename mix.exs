@@ -1,15 +1,16 @@
 defmodule C3nif.MixProject do
   use Mix.Project
 
-  @version "0.3.0"
+  @version "0.4.0"
   @source_url "https://github.com/tristanperalta/c3nif"
 
   def project do
     [
       app: :c3nif,
       version: @version,
-      elixir: "~> 1.18",
+      elixir: "~> 1.20",
       start_permanent: Mix.env() == :prod,
+      test_ignore_filters: [&String.starts_with?(&1, "test/support/")],
       deps: deps(),
       aliases: aliases(),
       dialyzer: dialyzer(),

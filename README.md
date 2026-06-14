@@ -253,7 +253,8 @@ mix test
 
 ## Requirements
 
-- Elixir 1.18+
+- Elixir 1.20+
+- Erlang/OTP 29 (compiled NIFs still load on OTP 26+ — the ABI floor is ERL_NIF 2.17)
 - C3 compiler 0.8.0+
 - Linux x86_64
 

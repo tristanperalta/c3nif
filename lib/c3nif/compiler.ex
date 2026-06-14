@@ -14,8 +14,6 @@ defmodule C3nif.Compiler do
   4. Appends generated code to user's C3 source before compilation
   """
 
-  require Logger
-
   alias C3nif.Generator
   alias C3nif.Parser
   alias Mix.Project
